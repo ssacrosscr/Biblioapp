@@ -20,7 +20,14 @@ const DB_NAME = 'biblioteca';
 let db;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://ssacrosscr.github.io'
+  ],
+  methods: ['GET', 'POST', 'PUT'],
+  allowedHeaders: ['Content-Type']
+}));
 app.use(express.json());
 
 // Servir archivos estáticos del frontend
