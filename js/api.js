@@ -132,6 +132,23 @@ window.BiblioApp = window.BiblioApp || {};
     return request('GET', '/historial');
   };
 
+  /* ── Mi perfil (cualquier usuario) ── */
+  B.apiGetMiPerfil = function () {
+    return request('GET', '/mi-perfil');
+  };
+
+  B.apiEditMiPerfil = function (data) {
+    return request('PUT', '/mi-perfil', data).then(function (updated) {
+      var stored = B.getUser();
+      if (stored) {
+        stored.nombre = updated.nombre || stored.nombre;
+        if (updated.foto !== undefined) stored.foto = updated.foto;
+        localStorage.setItem('biblio_user', JSON.stringify(stored));
+      }
+      return updated;
+    });
+  };
+
   /* ── Usuarios (admin) ── */
   B.apiGetUsuarios = function () {
     return request('GET', '/usuarios');

@@ -7,6 +7,19 @@
 
   var usuariosList = [];
 
+  function setAdminFotoPreview(fotoBase64, nombre) {
+    var el = B.$('u-foto-preview');
+    if (!el) return;
+    if (fotoBase64) {
+      el.className = '';
+      el.innerHTML = '<img class="profile-foto-lg" src="' + fotoBase64 + '" alt="Foto" title="Cambiar foto">';
+    } else {
+      el.className = 'profile-foto-placeholder';
+      el.innerHTML = nombre ? B.esc(nombre.charAt(0).toUpperCase()) : '&#128100;';
+      el.title = 'Cambiar foto';
+    }
+  }
+
   function renderUsuarios() {
     var body = B.$('usuariosBody');
     if (!body) return;
@@ -25,9 +38,17 @@
         : '<button class="btn sm primary" data-edit-user="' + u.id + '">Editar</button> '
         + '<button class="btn sm" data-del-user="' + u.id + '" style="color:var(--danger);border-color:var(--danger)">Eliminar</button>';
 
+      var fotoHtml = u.foto
+        ? '<img class="av-neon" src="' + u.foto + '" alt="Foto">'
+        : '<div class="av" style="background:linear-gradient(135deg,#003DA5,#1A52B5);color:white;font-size:14px">'
+        + B.esc((u.nombre || '?').charAt(0).toUpperCase()) + '</div>';
+
       return ''
         + '<tr>'
-        + '<td style="font-weight:700">' + B.esc(u.usuario) + '</td>'
+        + '<td><div style="display:flex;align-items:center;gap:10px">'
+        + fotoHtml
+        + '<span style="font-weight:700">' + B.esc(u.usuario) + '</span>'
+        + '</div></td>'
         + '<td>' + B.esc(u.nombre) + '</td>'
         + '<td>' + rolBadge + '</td>'
         + '<td>' + actions + '</td>'
@@ -53,6 +74,8 @@
     B.clearFields(['u-usuario', 'u-password', 'u-nombre']);
     B.$('u-rol').value = 'usuario';
     B.$('u-usuario').disabled = false;
+    B.$('u-foto-data').value = '';
+    setAdminFotoPreview('', '');
     B.openModal('modalUsuario');
   });
 
@@ -70,6 +93,8 @@
     B.$('u-password').value = '';
     B.$('u-nombre').value = u.nombre;
     B.$('u-rol').value = u.rol;
+    B.$('u-foto-data').value = u.foto || '';
+    setAdminFotoPreview(u.foto, u.nombre);
     B.openModal('modalUsuario');
   });
 
@@ -90,6 +115,8 @@
     if (id) {
       var data = { nombre: nombre, rol: rol };
       if (password) data.password = password;
+      var foto = B.$('u-foto-data').value;
+      data.foto = foto;
       B.apiEditUsuario(parseInt(id), data).then(function () {
         B.closeModal('modalUsuario');
         B.showToast('\u2713 Usuario actualizado');
@@ -102,7 +129,8 @@
         B.showToast('Complete usuario y contrase\u00F1a', true);
         return;
       }
-      B.apiAddUsuario({ usuario: usuario, password: password, nombre: nombre, rol: rol }).then(function () {
+      var fotoNew = B.$('u-foto-data').value;
+      B.apiAddUsuario({ usuario: usuario, password: password, nombre: nombre, rol: rol, foto: fotoNew }).then(function () {
         B.closeModal('modalUsuario');
         B.showToast('\u2713 Usuario creado');
         B.pageRenderers.usuarios();

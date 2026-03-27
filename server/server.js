@@ -99,7 +99,7 @@ app.post('/api/login', async (req, res) => {
     );
     res.json({
       token,
-      user: { id: user.id, usuario: user.usuario, nombre: user.nombre, rol: user.rol }
+      user: { id: user.id, usuario: user.usuario, nombre: user.nombre, rol: user.rol, foto: user.foto || '' }
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -108,6 +108,34 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/me', auth, (req, res) => {
   res.json(req.user);
+});
+
+// ── Mi perfil (cualquier usuario autenticado) ───────────────
+
+app.get('/api/mi-perfil', auth, async (req, res) => {
+  try {
+    const user = await db.collection('usuarios').findOne({ id: req.user.id });
+    res.json(toClient(user));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/mi-perfil', auth, async (req, res) => {
+  try {
+    const update = {};
+    if (req.body.nombre) update.nombre = req.body.nombre;
+    if (req.body.password) update.password = await bcrypt.hash(req.body.password, 10);
+    if (req.body.foto !== undefined) update.foto = req.body.foto;
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ error: 'Nada que actualizar' });
+    }
+    await db.collection('usuarios').updateOne({ id: req.user.id }, { $set: update });
+    const updated = await db.collection('usuarios').findOne({ id: req.user.id });
+    res.json(toClient(updated));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ════════════════════════════════════════════════════════════

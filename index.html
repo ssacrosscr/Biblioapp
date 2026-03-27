@@ -27,7 +27,10 @@
   </div>
   <div class="topbar-right">
     <button class="alert-pill" id="alertBtn">&#9888; Pr&eacute;stamos vencidos</button>
-    <span class="user-chip">&#128100; Usuario</span>
+    <button class="user-chip" id="btnMiPerfil" title="Mi perfil">
+      <span class="user-chip-foto" id="userChipFoto">&#128100;</span>
+      <span id="userChipName">Usuario</span>
+    </button>
     <button class="btn-logout" id="btnLogout" title="Cerrar sesi&oacute;n">&#10148;</button>
   </div>
 </header>
@@ -616,6 +619,12 @@
     <div class="modal-title" id="modalUsuarioTitle">Nuevo usuario</div>
     <div class="modal-sub">Gestionar acceso al sistema</div>
     <input type="hidden" id="u-id">
+    <input type="hidden" id="u-foto-data">
+    <div id="u-foto-wrap" style="text-align:center;margin-bottom:12px">
+      <div class="profile-foto-placeholder" id="u-foto-preview" title="Cambiar foto">&#128100;</div>
+      <input type="file" id="u-foto-input" accept="image/*" style="display:none">
+      <div class="foto-hint">Clic para cambiar foto</div>
+    </div>
     <div class="form-grid">
       <div class="fg">
         <label class="fl">Usuario *</label>
@@ -640,6 +649,42 @@
     <div class="mf">
       <button class="btn" id="btnCancelUsuario">Cancelar</button>
       <button class="btn primary" id="btnGuardarUsuario">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Mi Perfil (todos los usuarios) -->
+<div class="modal-overlay" id="modalMiPerfil">
+  <div class="modal">
+    <div class="modal-title">Mi perfil</div>
+    <div class="modal-sub">Editar mis datos personales</div>
+    <div id="mp-foto-wrap" style="text-align:center;margin-bottom:8px">
+      <div class="profile-foto-placeholder" id="mp-foto-preview" title="Cambiar foto">&#128100;</div>
+      <input type="file" id="mp-foto-input" accept="image/*" style="display:none">
+      <input type="hidden" id="mp-foto-data">
+      <div class="foto-hint">Clic en la imagen para cambiar foto</div>
+    </div>
+    <div class="form-grid">
+      <div class="fg">
+        <label class="fl">Usuario</label>
+        <input class="fi" type="text" id="mp-usuario" disabled>
+      </div>
+      <div class="fg">
+        <label class="fl">Rol</label>
+        <input class="fi" type="text" id="mp-rol" disabled>
+      </div>
+      <div class="fg">
+        <label class="fl">Nombre completo *</label>
+        <input class="fi" type="text" id="mp-nombre" maxlength="200">
+      </div>
+      <div class="fg">
+        <label class="fl">Nueva contrase&ntilde;a</label>
+        <input class="fi" type="password" id="mp-password" maxlength="50" placeholder="Dejar vac&iacute;o para no cambiar" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelMiPerfil">Cancelar</button>
+      <button class="btn primary" id="btnGuardarMiPerfil">Guardar</button>
     </div>
   </div>
 </div>
