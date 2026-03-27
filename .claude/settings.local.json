@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(where node:*)",
+      "Bash(winget --version)",
+      "Bash(winget install:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/nodejs\")",
+      "Bash(npm install:*)",
+      "Bash(node seed.js)",
+      "Bash(nslookup _mongodb._tcp.cluster0.2lyxuqg.mongodb.net)",
+      "Bash(ping -n 2 cluster0.2lyxuqg.mongodb.net)",
+      "Bash(nslookup _mongodb._tcp.cluster0.2lyxuqg.mongodb.net 8.8.8.8)",
+      "Bash(nslookup cluster0-shard-00-00.2lyxuqg.mongodb.net 8.8.8.8)",
+      "Bash(node -e \":*)"
+    ]
+  }
+}

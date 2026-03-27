@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-Content-Security-Policy"
+        content="default-src 'self'; connect-src 'self' http://localhost:3000; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' https://www.mep.go.cr data:;">
+  <title>Biblioteca Escolar — MEP</title>
+  <link rel="icon" href="https://www.mep.go.cr/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOPBAR
+     ═══════════════════════════════════════════════════════════ -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-mep">
+      <img src="https://www.mep.go.cr/sites/default/files/favicon_0.ico" alt="MEP"
+           onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:14px;font-weight:800;color:#003DA5>MEP</span>'">
+    </div>
+    <div>
+      <div class="logo-name">Biblioteca Escolar</div>
+      <div class="logo-sub">Ministerio de Educaci&oacute;n P&uacute;blica &middot; Costa Rica</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="alert-pill" id="alertBtn">&#9888; Pr&eacute;stamos vencidos</button>
+    <span class="user-chip">&#128100; MB &middot; Bibliotec&oacute;loga</span>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ═══════════════════════════════════════════════════════════
+     SIDEBAR
+     ═══════════════════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="nav-section">Principal</div>
+  <div class="nav-item active" data-page="inicio"><span class="ni">&#127968;</span> Inicio</div>
+  <div class="nav-item" data-page="prestamos"><span class="ni">&#128228;</span> Pr&eacute;stamos</div>
+  <div class="nav-item" data-page="devoluciones"><span class="ni">&#128229;</span> Devoluciones</div>
+
+  <div class="nav-section">Cat&aacute;logo</div>
+  <div class="nav-item" data-page="catalogo"><span class="ni">&#128218;</span> Cat&aacute;logo</div>
+  <div class="nav-item" data-page="agregar"><span class="ni">&#10133;</span> Agregar libro</div>
+
+  <div class="nav-section">Personas</div>
+  <div class="nav-item" data-page="estudiantes"><span class="ni">&#127890;</span> Estudiantes</div>
+  <div class="nav-item" data-page="docentes"><span class="ni">&#128105;&#8205;&#127979;</span> Docentes</div>
+
+  <div class="nav-section">Informes</div>
+  <div class="nav-item" data-page="estadisticas"><span class="ni">&#128202;</span> Estad&iacute;sticas</div>
+
+  <div class="sidebar-foot">
+    <div class="sidebar-date">Jueves, 26 de marzo 2026<br>Sistema Biblioteca MEP v2.0</div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     INICIO (Dashboard)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main active" id="page-inicio">
+  <div class="hero-banner">
+    <div class="hero-deco">&#128218;</div>
+    <div class="hero-title">Panel de control</div>
+    <div class="hero-sub">Resumen del d&iacute;a &mdash; jueves, 26 de marzo 2026</div>
+  </div>
+
+  <div class="metrics" id="metrics-home"></div>
+
+  <div>
+    <p class="qa-section-title">Acciones r&aacute;pidas</p>
+    <div class="qg">
+      <div class="qa" data-page="prestamos">
+        <div class="qi bl">&#128228;</div>
+        <div><div class="ql">Nuevo pr&eacute;stamo</div><div class="qd">Registrar la salida de un libro</div></div>
+      </div>
+      <div class="qa qa-or" data-page="devoluciones">
+        <div class="qi or">&#128229;</div>
+        <div><div class="ql">Registrar devoluci&oacute;n</div><div class="qd">Marcar un libro como devuelto</div></div>
+      </div>
+      <div class="qa qa-gr" data-page="catalogo">
+        <div class="qi gr">&#128218;</div>
+        <div><div class="ql">Ver cat&aacute;logo</div><div class="qd">Consultar disponibilidad de libros</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Pr&eacute;stamos recientes</span>
+        <span class="cl" data-page="prestamos">Ver todos &rarr;</span>
+      </div>
+      <div id="home-loans"></div>
+    </div>
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Atenci&oacute;n requerida</span>
+        <span class="cl" data-page="prestamos">Ver vencidos &rarr;</span>
+      </div>
+      <div id="home-overdue"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PRÉSTAMOS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-prestamos">
+  <div class="ph">
+    <div>
+      <div class="pt">Pr&eacute;stamos</div>
+      <div class="ps">Gesti&oacute;n de pr&eacute;stamos activos</div>
+    </div>
+    <button class="btn or" id="btnNuevoPrestamo">+ Nuevo pr&eacute;stamo</button>
+  </div>
+  <div class="card">
+    <div class="srow">
+      <input class="fi" type="text" placeholder="&#128269;  Buscar por estudiante o libro..." id="searchPrestamo">
+      <select class="fi" id="filterEstado" style="width:180px">
+        <option value="">Todos los estados</option>
+        <option value="activo">Al d&iacute;a</option>
+        <option value="vence">Vence pronto</option>
+        <option value="vencido">Vencido</option>
+      </select>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Persona</th><th>Libro</th><th>Pr&eacute;stamo</th>
+          <th>Devolver antes de</th><th>Estado</th><th>Acci&oacute;n</th>
+        </tr>
+      </thead>
+      <tbody id="prestamosBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     DEVOLUCIONES
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-devoluciones">
+  <div>
+    <div class="pt">Devoluciones</div>
+    <div class="ps">Registrar la entrega de libros prestados</div>
+  </div>
+  <div class="dev-grid">
+    <div class="card">
+      <div class="ct" style="margin-bottom:14px">Buscar pr&eacute;stamo activo</div>
+      <div class="fg">
+        <label class="fl">Nombre del estudiante o docente</label>
+        <input class="fi" type="text" placeholder="Escriba para buscar..." id="devInput">
+      </div>
+    </div>
+    <div id="devResultados"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CATÁLOGO
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-catalogo">
+  <div class="ph">
+    <div>
+      <div class="pt">Cat&aacute;logo de libros</div>
+      <div class="ps">Inventario visual de la biblioteca</div>
+    </div>
+    <button class="btn primary" data-page="agregar">+ Agregar libro</button>
+  </div>
+  <div class="card" style="padding:16px">
+    <div class="srow" style="margin-bottom:0">
+      <input class="fi" type="text" placeholder="&#128269;  Buscar t&iacute;tulo, autor, materia..." id="searchCatalogo">
+      <select class="fi" id="filterMateria" style="width:190px">
+        <option value="">Todas las materias</option>
+        <option>Matem&aacute;ticas</option>
+        <option>Espa&ntilde;ol</option>
+        <option>Ciencias</option>
+        <option>Estudios Sociales</option>
+        <option>Ingl&eacute;s</option>
+        <option>Literatura</option>
+        <option>General</option>
+      </select>
+    </div>
+  </div>
+  <div class="book-grid" id="bookGrid"></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AGREGAR LIBRO
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-agregar">
+  <div>
+    <div class="pt">Agregar libro</div>
+    <div class="ps">Registrar un nuevo ejemplar al cat&aacute;logo</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 280px;gap:24px;align-items:start">
+    <div class="card">
+      <div class="form-grid">
+        <div class="fg full">
+          <label class="fl">T&iacute;tulo del libro *</label>
+          <input class="fi" type="text" id="nb-titulo" placeholder="Ej: Matem&aacute;ticas 7&deg; &mdash; MEP" maxlength="200">
+        </div>
+        <div class="fg">
+          <label class="fl">Autor</label>
+          <input class="fi" type="text" id="nb-autor" placeholder="Ej: MEP" maxlength="200">
+        </div>
+        <div class="fg">
+          <label class="fl">ISBN (opcional)</label>
+          <input class="fi" type="text" id="nb-isbn" placeholder="978-..." maxlength="30">
+        </div>
+        <div class="fg">
+          <label class="fl">Materia *</label>
+          <select class="fi" id="nb-materia">
+            <option value="">Seleccionar...</option>
+            <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
+            <option>Ciencias</option><option>Estudios Sociales</option>
+            <option>Ingl&eacute;s</option><option>Literatura</option><option>General</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Nivel educativo</label>
+          <select class="fi" id="nb-nivel">
+            <option value="">General</option>
+            <option>I Ciclo (1&deg;&ndash;3&deg;)</option>
+            <option>II Ciclo (4&deg;&ndash;6&deg;)</option>
+            <option>III Ciclo (7&deg;&ndash;9&deg;)</option>
+            <option>Diversificado (10&deg;&ndash;11&deg;)</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Cantidad de ejemplares *</label>
+          <input class="fi" type="number" id="nb-cantidad" min="1" max="999" value="1">
+        </div>
+        <div class="fg">
+          <label class="fl">Editorial</label>
+          <input class="fi" type="text" id="nb-editorial" placeholder="Ej: Santillana" maxlength="200">
+        </div>
+        <div class="fg">
+          <label class="fl">Color de portada</label>
+          <select class="fi" id="nb-color">
+            <option value="0">Azul MEP</option><option value="1">Naranja</option>
+            <option value="2">Verde</option><option value="3">Rojo</option>
+            <option value="4">Morado</option><option value="5">Teal</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">&Iacute;cono del libro</label>
+          <select class="fi" id="nb-icon">
+            <option>&#128214;</option><option>&#128208;</option><option>&#128300;</option>
+            <option>&#127758;</option><option>&#128483;&#65039;</option><option>&#9999;&#65039;</option>
+            <option>&#128221;</option><option>&#129518;</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;border-top:1.5px solid var(--border);padding-top:18px">
+        <button class="btn" id="btnCancelAgregar">Cancelar</button>
+        <button class="btn primary" id="btnGuardarLibro">Guardar libro</button>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;padding:22px">
+      <div class="ct" style="margin-bottom:14px">Vista previa de portada</div>
+      <div id="previewWrap" style="width:150px;height:196px;margin:0 auto;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);"></div>
+      <p style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5">La portada se genera autom&aacute;ticamente con los datos ingresados</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ESTUDIANTES
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-estudiantes">
+  <div class="ph">
+    <div>
+      <div class="pt">Estudiantes</div>
+      <div class="ps">Registro de estudiantes activos</div>
+    </div>
+    <button class="btn or" id="btnNuevoEstudiante">+ Nuevo estudiante</button>
+  </div>
+  <div class="card">
+    <div class="srow">
+      <input class="fi" type="text" placeholder="&#128269;  Buscar por nombre o c&eacute;dula..." id="searchEstudiante">
+      <select class="fi" id="filterGrado" style="width:165px">
+        <option value="">Todos los grados</option>
+        <option>7&deg;</option><option>8&deg;</option><option>9&deg;</option>
+        <option>10&deg;</option><option>11&deg;</option>
+      </select>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Estudiante</th><th>C&eacute;dula / Carn&eacute;</th><th>Grado</th>
+          <th>Secci&oacute;n</th><th>Pr&eacute;stamos activos</th><th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="estudiantesBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     DOCENTES
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-docentes">
+  <div class="ph">
+    <div>
+      <div class="pt">Docentes</div>
+      <div class="ps">Personal docente y administrativo</div>
+    </div>
+    <button class="btn or" id="btnNuevoDocente">+ Nuevo docente</button>
+  </div>
+  <div class="card">
+    <div class="srow">
+      <input class="fi" type="text" placeholder="&#128269;  Buscar por nombre..." id="searchDocente">
+    </div>
+    <table class="tbl">
+      <thead><tr><th>Docente</th><th>C&eacute;dula</th><th>Materia</th><th>Pr&eacute;stamos activos</th></tr></thead>
+      <tbody id="docentesBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ESTADÍSTICAS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-estadisticas">
+  <div>
+    <div class="pt">Estad&iacute;sticas</div>
+    <div class="ps">An&aacute;lisis del movimiento de la biblioteca</div>
+  </div>
+  <div class="metrics" id="stat-metrics"></div>
+  <div class="two-col">
+    <div class="card">
+      <div class="ch"><span class="ct">Libros m&aacute;s prestados</span></div>
+      <div id="statLibros"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Pr&eacute;stamos por materia</span></div>
+      <div id="statMaterias"></div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="ch"><span class="ct">Actividad por grado</span></div>
+      <div id="statGrados"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Resumen general</span></div>
+      <div id="statResumen"></div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /.layout -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODALES
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Modal: Nuevo Préstamo -->
+<div class="modal-overlay" id="modalPrestamo">
+  <div class="modal">
+    <div class="modal-title">Nuevo pr&eacute;stamo</div>
+    <div class="modal-sub">Registrar la salida de un libro</div>
+    <div class="form-grid">
+      <div class="fg full">
+        <label class="fl">Estudiante o docente *</label>
+        <select class="fi" id="p-persona"></select>
+      </div>
+      <div class="fg full">
+        <label class="fl">Libro *</label>
+        <select class="fi" id="p-libro"></select>
+      </div>
+      <div class="fg">
+        <label class="fl">Fecha de pr&eacute;stamo</label>
+        <input class="fi" type="date" id="p-fecha" value="2026-03-26">
+      </div>
+      <div class="fg">
+        <label class="fl">Fecha de devoluci&oacute;n *</label>
+        <input class="fi" type="date" id="p-devolucion">
+      </div>
+      <div class="fg full">
+        <label class="fl">Notas (opcional)</label>
+        <input class="fi" type="text" id="p-notas" placeholder="Ej: Libro en buen estado" maxlength="200">
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelPrestamo">Cancelar</button>
+      <button class="btn primary" id="btnGuardarPrestamo">Registrar pr&eacute;stamo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo Estudiante -->
+<div class="modal-overlay" id="modalEstudiante">
+  <div class="modal">
+    <div class="modal-title">Nuevo estudiante</div>
+    <div class="modal-sub">Agregar al registro de la biblioteca</div>
+    <div class="form-grid">
+      <div class="fg full">
+        <label class="fl">Nombre completo *</label>
+        <input class="fi" type="text" id="e-nombre" placeholder="Apellido Apellido, Nombre" maxlength="200">
+      </div>
+      <div class="fg">
+        <label class="fl">C&eacute;dula / Carn&eacute; *</label>
+        <input class="fi" type="text" id="e-cedula" placeholder="1-2345-6789" maxlength="15">
+      </div>
+      <div class="fg">
+        <label class="fl">Tel&eacute;fono</label>
+        <input class="fi" type="text" id="e-tel" placeholder="8888-8888" maxlength="15">
+      </div>
+      <div class="fg">
+        <label class="fl">Grado</label>
+        <select class="fi" id="e-grado">
+          <option>7&deg;</option><option>8&deg;</option><option>9&deg;</option>
+          <option>10&deg;</option><option>11&deg;</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Secci&oacute;n</label>
+        <select class="fi" id="e-seccion">
+          <option>A</option><option>B</option><option>C</option><option>D</option>
+        </select>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelEstudiante">Cancelar</button>
+      <button class="btn primary" id="btnGuardarEstudiante">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo Docente -->
+<div class="modal-overlay" id="modalDocente">
+  <div class="modal">
+    <div class="modal-title">Nuevo docente</div>
+    <div class="modal-sub">Agregar al registro</div>
+    <div class="form-grid">
+      <div class="fg full">
+        <label class="fl">Nombre completo *</label>
+        <input class="fi" type="text" id="d-nombre" placeholder="Apellido Apellido, Nombre" maxlength="200">
+      </div>
+      <div class="fg">
+        <label class="fl">C&eacute;dula *</label>
+        <input class="fi" type="text" id="d-cedula" placeholder="1-2345-6789" maxlength="15">
+      </div>
+      <div class="fg">
+        <label class="fl">Materia</label>
+        <select class="fi" id="d-materia">
+          <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
+          <option>Ciencias</option><option>Estudios Sociales</option>
+          <option>Ingl&eacute;s</option><option>Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelDocente">Cancelar</button>
+      <button class="btn primary" id="btnGuardarDocente">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast de notificaciones -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS — Orden de carga importa
+     ═══════════════════════════════════════════════════════════ -->
+<script defer src="js/sanitize.js"></script>
+<script defer src="js/data.js"></script>
+<script defer src="js/api.js"></script>
+<script defer src="js/helpers.js"></script>
+<script defer src="js/covers.js"></script>
+<script defer src="js/ui.js"></script>
+<script defer src="js/router.js"></script>
+<script defer src="js/pages/inicio.js"></script>
+<script defer src="js/pages/prestamos.js"></script>
+<script defer src="js/pages/devoluciones.js"></script>
+<script defer src="js/pages/catalogo.js"></script>
+<script defer src="js/pages/agregar.js"></script>
+<script defer src="js/pages/estudiantes.js"></script>
+<script defer src="js/pages/docentes.js"></script>
+<script defer src="js/pages/estadisticas.js"></script>
+<script defer src="js/app.js"></script>
+</body>
+</html>

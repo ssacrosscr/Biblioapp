@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \":*)",
+      "Bash(curl -s http://localhost:3000/api/libros)",
+      "Bash(curl -s http://localhost:3000/api/estudiantes)"
+    ]
+  }
+}
