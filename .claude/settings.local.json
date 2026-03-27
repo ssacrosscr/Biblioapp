@@ -12,7 +12,17 @@
       "Bash(ping -n 2 cluster0.2lyxuqg.mongodb.net)",
       "Bash(nslookup _mongodb._tcp.cluster0.2lyxuqg.mongodb.net 8.8.8.8)",
       "Bash(nslookup cluster0-shard-00-00.2lyxuqg.mongodb.net 8.8.8.8)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\" -X POST https://biblioapp-nclh.onrender.com/api/login -H \"Content-Type: application/json\" -d '{\"\"usuario\"\":\"\"admin\"\",\"\"password\"\":\"\"admin123\"\"}')",
+      "Bash(curl -s http://localhost:3000/api/login -X POST -H \"Content-Type: application/json\" -d '{\"\"usuario\"\":\"\"admin\"\",\"\"password\"\":\"\"admin123\"\"}')",
+      "Bash(curl -s http://localhost:3000/api/login -X POST -H \"Content-Type: application/json\" -d \"{\"\"usuario\"\":\"\"admin\"\",\"\"password\"\":\"\"admin123\"\"}\")",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
+      "Bash(node -e \"const dns = require\\(''dns''\\); dns.setServers\\([''8.8.8.8'']\\); dns.lookup\\(''cluster0.2lyxuqg.mongodb.net'', \\(err, addr\\) => { console.log\\(''DNS result:'', err ? err.message : addr\\); }\\);\")",
+      "Bash(node -c server.js)",
+      "Bash(for f:*)",
+      "Bash(do node:*)",
+      "Bash(echo \"FAIL: $f\")",
+      "Bash(done)"
     ]
   }
 }

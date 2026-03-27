@@ -3,7 +3,25 @@
     "allow": [
       "Bash(node -e \":*)",
       "Bash(curl -s http://localhost:3000/api/libros)",
-      "Bash(curl -s http://localhost:3000/api/estudiantes)"
+      "Bash(curl -s http://localhost:3000/api/estudiantes)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 38764 //F)",
+      "Bash(curl -s -X POST http://localhost:3000/api/login -H \"Content-Type: application/json\" -d '{\"\"usuario\"\":\"\"candy\"\",\"\"password\"\":\"\"66414826\"\"}')",
+      "WebFetch(domain:biblioapp-nclh.onrender.com)",
+      "WebFetch(domain:ssacrosscr.github.io)",
+      "Bash(taskkill //PID 26188 //F)",
+      "Bash(curl -s http://localhost:3000/login.html)",
+      "Bash(curl -s http://localhost:3000/index.html)",
+      "Bash(node server.js)",
+      "Bash(taskkill //PID 13740 //F)",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\" https://biblioapp-nclh.onrender.com/)",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\" https://biblioapp-nclh.onrender.com/api/login -X POST -H \"Content-Type: application/json\" -d '{\"\"\"\"usuario\"\"\"\":\"\"\"\"admin\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"admin123\"\"\"\"}')",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''Repo:'''', d.get\\(''''full_name''''\\)\\); print\\(''''Default branch:'''', d.get\\(''''default_branch''''\\)\\); print\\(''''Pushed at:'''', d.get\\(''''pushed_at''''\\)\\)\")",
+      "Bash(gh auth:*)",
+      "Bash(where gh:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI\")",
+      "Bash(gh --version)",
+      "Bash(gh api:*)"
     ]
   }
 }
