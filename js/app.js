@@ -5,6 +5,20 @@
 
 (function (B) {
 
+  var ROL_LABELS = {
+    admin: 'Admin',
+    bibliotecologo: 'Bibliotec\u00F3logo',
+    docente: 'Docente',
+    usuario: 'Usuario'
+  };
+
+  var ROL_LABELS_FULL = {
+    admin: 'Administrador',
+    bibliotecologo: 'Bibliotec\u00F3logo',
+    docente: 'Docente',
+    usuario: 'Usuario'
+  };
+
   document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Verificar autenticación ── */
@@ -17,11 +31,34 @@
     var user = B.getUser();
     updateTopbarUser(user);
 
-    /* Mostrar/ocultar elementos solo para admin */
-    if (!B.isAdmin()) {
+    /* ── Visibilidad por rol ── */
+    var rol = user ? user.rol : '';
+
+    // data-admin: solo admin
+    if (rol !== 'admin') {
       document.querySelectorAll('[data-admin]').forEach(function (el) {
         el.style.display = 'none';
       });
+    }
+
+    // data-biblio: admin + bibliotecologo
+    if (rol !== 'admin' && rol !== 'bibliotecologo') {
+      document.querySelectorAll('[data-biblio]').forEach(function (el) {
+        el.style.display = 'none';
+      });
+    }
+
+    // data-docente: solo docente
+    if (rol !== 'docente') {
+      document.querySelectorAll('[data-docente]').forEach(function (el) {
+        el.style.display = 'none';
+      });
+    }
+
+    /* Ocultar alerta de vencidos para docentes */
+    if (rol === 'docente') {
+      var alertBtn = B.$('alertBtn');
+      if (alertBtn) alertBtn.style.display = 'none';
     }
 
     /* Inicializar modales */
@@ -31,9 +68,9 @@
     B.initRouter();
 
     /* Alerta de préstamos vencidos */
-    var alertBtn = B.$('alertBtn');
-    if (alertBtn) {
-      alertBtn.addEventListener('click', function () {
+    var alertBtn2 = B.$('alertBtn');
+    if (alertBtn2) {
+      alertBtn2.addEventListener('click', function () {
         B.goPage('prestamos');
       });
     }
@@ -69,7 +106,7 @@
       btnPerfil.addEventListener('click', function () {
         B.apiGetMiPerfil().then(function (u) {
           B.$('mp-usuario').value = u.usuario;
-          B.$('mp-rol').value = u.rol === 'admin' ? 'Administrador' : 'Usuario';
+          B.$('mp-rol').value = ROL_LABELS_FULL[u.rol] || 'Usuario';
           B.$('mp-nombre').value = u.nombre;
           B.$('mp-password').value = '';
           B.$('mp-foto-data').value = u.foto || '';
@@ -98,7 +135,7 @@
       var foto = B.$('mp-foto-data').value;
       data.foto = foto;
 
-      B.apiEditMiPerfil(data).then(function (updated) {
+      B.apiEditMiPerfil(data).then(function () {
         B.closeModal('modalMiPerfil');
         B.showToast('\u2713 Perfil actualizado');
         updateTopbarUser(B.getUser());
@@ -113,6 +150,11 @@
 
     /* Admin modal: foto upload */
     setupFotoUpload('u-foto-preview', 'u-foto-input', 'u-foto-data');
+
+    /* ── Cargar configuración del sitio (logo, favicon) ── */
+    B.apiGetConfig().then(function (cfg) {
+      B.applyConfig(cfg);
+    }).catch(function () { /* silencioso */ });
 
     /* Cargar datos desde MongoDB y luego renderizar */
     B.apiLoad().then(function () {
@@ -134,7 +176,7 @@
     var chipName = B.$('userChipName');
     if (!user) return;
     if (chipName) {
-      chipName.textContent = user.nombre + ' \u00B7 ' + (user.rol === 'admin' ? 'Admin' : 'Usuario');
+      chipName.textContent = user.nombre + ' \u00B7 ' + (ROL_LABELS[user.rol] || 'Usuario');
     }
     if (chipFoto) {
       if (user.foto) {
@@ -181,5 +223,28 @@
       reader.readAsDataURL(file);
     });
   }
+
+  /**
+   * Aplica la configuración del sitio (logo + favicon) globalmente.
+   */
+  B.applyConfig = function (cfg) {
+    if (!cfg) return;
+    /* Logo en topbar */
+    var logoWrap = B.$('topbarLogoWrap');
+    var logoImg = B.$('topbarLogo');
+    if (cfg.logo && logoWrap) {
+      logoWrap.innerHTML = '<img id="topbarLogo" class="logo-neon" src="' + cfg.logo + '" alt="Logo">';
+    } else if (logoImg && !cfg.logo) {
+      /* mantener el default */
+    }
+
+    /* Favicon */
+    if (cfg.favicon) {
+      var link = document.querySelector('link[rel="icon"]');
+      if (link) {
+        link.href = cfg.favicon;
+      }
+    }
+  };
 
 })(window.BiblioApp);

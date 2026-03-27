@@ -5,7 +5,36 @@
 
 (function (B) {
 
+  function renderDocenteDashboard() {
+    B.setHTML('metrics-home', ''
+      + '<div class="metric">'
+      +   '<span class="metric-icon">\u{1F4DA}</span>'
+      +   '<div class="ml">Libros disponibles</div>'
+      +   '<div class="mv">' + B.libros.length + '</div>'
+      +   '<div class="ms">en el cat\u00E1logo</div>'
+      + '</div>'
+      + '<div class="metric m-or">'
+      +   '<span class="metric-icon">\u{1F4E6}</span>'
+      +   '<div class="ml">Total ejemplares</div>'
+      +   '<div class="mv c-or">' + B.libros.reduce(function (s, l) { return s + l.ejemplares; }, 0) + '</div>'
+      +   '<div class="ms">en la biblioteca</div>'
+      + '</div>'
+    );
+    B.setHTML('home-loans', '<div class="empty" style="padding:30px;text-align:center">'
+      + '<div style="font-size:40px;margin-bottom:8px">&#128722;</div>'
+      + '<div style="font-weight:600;margin-bottom:4px">Solicitar libros</div>'
+      + '<div style="font-size:12px;color:var(--text3)">Use el men\u00FA lateral para solicitar libros</div>'
+      + '</div>');
+    B.setHTML('home-overdue', '<div class="empty" style="padding:30px;text-align:center">'
+      + '<div style="font-size:40px;margin-bottom:8px">&#128203;</div>'
+      + '<div style="font-weight:600;margin-bottom:4px">Mis solicitudes</div>'
+      + '<div style="font-size:12px;color:var(--text3)">Vea el estado de sus solicitudes</div>'
+      + '</div>');
+  }
+
   B.pageRenderers.inicio = function () {
+    if (B.isDocente()) { renderDocenteDashboard(); return; }
+
     var ac  = B.prestamos.filter(function (p) { return !p.dev; }).length;
     var ve  = B.prestamos.filter(function (p) { return !p.dev && B.estadoPrestamo(p) === 'v'; }).length;
     var pr  = B.prestamos.filter(function (p) { return !p.dev && B.estadoPrestamo(p) === 'w'; }).length;

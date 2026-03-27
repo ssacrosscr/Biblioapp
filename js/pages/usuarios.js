@@ -30,13 +30,21 @@
     }
 
     body.innerHTML = usuariosList.map(function (u) {
-      var rolBadge = u.rol === 'admin'
-        ? '<span class="badge danger">Admin</span>'
-        : '<span class="badge info">Usuario</span>';
-      var actions = u.id === 1
-        ? '<span style="font-size:11px;color:var(--text3)">Protegido</span>'
-        : '<button class="btn sm primary" data-edit-user="' + u.id + '">Editar</button> '
-        + '<button class="btn sm" data-del-user="' + u.id + '" style="color:var(--danger);border-color:var(--danger)">Eliminar</button>';
+      var rolBadge;
+      if (u.rol === 'admin') rolBadge = '<span class="badge danger">Admin</span>';
+      else if (u.rol === 'bibliotecologo') rolBadge = '<span class="badge ok">Bibliotec\u00F3logo</span>';
+      else if (u.rol === 'docente') rolBadge = '<span class="badge orange">Docente</span>';
+      else rolBadge = '<span class="badge info">Usuario</span>';
+
+      var currentUser = B.getUser();
+      var isSelf = currentUser && currentUser.id === u.id;
+      var actions;
+      if (u.id === 1 && !isSelf) {
+        actions = '<span style="font-size:11px;color:var(--text3)">Protegido</span>';
+      } else {
+        actions = '<button class="btn sm primary" data-edit-user="' + u.id + '">Editar</button> '
+          + (isSelf ? '' : '<button class="btn sm" data-del-user="' + u.id + '" style="color:var(--danger);border-color:var(--danger)">Eliminar</button>');
+      }
 
       var fotoHtml = u.foto
         ? '<img class="av-neon" src="' + u.foto + '" alt="Foto">'
@@ -73,6 +81,7 @@
     B.$('modalUsuarioTitle').textContent = 'Nuevo usuario';
     B.clearFields(['u-usuario', 'u-password', 'u-nombre']);
     B.$('u-rol').value = 'usuario';
+    B.$('u-rol').disabled = false;
     B.$('u-usuario').disabled = false;
     B.$('u-foto-data').value = '';
     setAdminFotoPreview('', '');
@@ -86,6 +95,8 @@
     var id = parseInt(btn.getAttribute('data-edit-user'));
     var u = usuariosList.find(function (x) { return x.id === id; });
     if (!u) return;
+    var currentUser = B.getUser();
+    var isSelf = currentUser && currentUser.id === u.id;
     B.$('u-id').value = id;
     B.$('modalUsuarioTitle').textContent = 'Editar usuario';
     B.$('u-usuario').value = u.usuario;
@@ -93,6 +104,8 @@
     B.$('u-password').value = '';
     B.$('u-nombre').value = u.nombre;
     B.$('u-rol').value = u.rol;
+    // Admin no puede quitarse su propio rol
+    B.$('u-rol').disabled = !!(isSelf && u.rol === 'admin');
     B.$('u-foto-data').value = u.foto || '';
     setAdminFotoPreview(u.foto, u.nombre);
     B.openModal('modalUsuario');

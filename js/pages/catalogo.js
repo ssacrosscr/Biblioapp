@@ -26,12 +26,19 @@
       return;
     }
 
+    var esDocente = B.isDocente();
     g.innerHTML = data.map(function (l) {
       var d = B.disponibles(l.id);
       var chip;
       if (d === 0)           chip = '<span class="chip un">Agotado</span>';
       else if (d < l.ejemplares) chip = '<span class="chip pa">' + d + ' disp.</span>';
       else                   chip = '<span class="chip av">' + d + ' disp.</span>';
+
+      var actionBtns = esDocente ? '' : ''
+        + '<div class="action-btns">'
+        +   '<button class="btn sm" data-edit-libro="' + l.id + '" title="Editar">&#9998;</button>'
+        +   '<button class="btn sm" data-del-libro="' + l.id + '" title="Eliminar" style="color:var(--danger);border-color:var(--danger)">&#128465;</button>'
+        + '</div>';
 
       return ''
         + '<div class="book-card">'
@@ -43,12 +50,7 @@
         +       '<span class="badge info" style="font-size:10px">' + B.esc(l.materia) + '</span>'
         +     '</div>'
         +   '</div>'
-        +   '<div class="bft">' + chip
-        +     '<div class="action-btns">'
-        +       '<button class="btn sm" data-edit-libro="' + l.id + '" title="Editar">&#9998;</button>'
-        +       '<button class="btn sm" data-del-libro="' + l.id + '" title="Eliminar" style="color:var(--danger);border-color:var(--danger)">&#128465;</button>'
-        +     '</div>'
-        +   '</div>'
+        +   '<div class="bft">' + chip + actionBtns + '</div>'
         + '</div>';
     }).join('');
   }

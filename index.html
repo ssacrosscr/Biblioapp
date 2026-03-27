@@ -16,8 +16,8 @@
 <header class="topbar">
   <div class="logo">
     <button class="hamburger" id="btnHamburger" aria-label="Men&uacute;">&#9776;</button>
-    <div class="logo-mep">
-      <img src="https://www.mep.go.cr/sites/default/files/favicon_0.ico" alt="MEP"
+    <div class="logo-mep" id="topbarLogoWrap">
+      <img id="topbarLogo" src="https://www.mep.go.cr/sites/default/files/favicon_0.ico" alt="MEP"
            onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:14px;font-weight:800;color:#003DA5>MEP</span>'">
     </div>
     <div class="logo-text">
@@ -46,23 +46,31 @@
 <nav class="sidebar" id="sidebar">
   <div class="nav-section">Principal</div>
   <div class="nav-item active" data-page="inicio"><span class="ni">&#127968;</span> Inicio</div>
-  <div class="nav-item" data-page="prestamos"><span class="ni">&#128228;</span> Pr&eacute;stamos</div>
-  <div class="nav-item" data-page="devoluciones"><span class="ni">&#128229;</span> Devoluciones</div>
-  <div class="nav-item" data-page="historial"><span class="ni">&#128203;</span> Historial</div>
+  <div class="nav-item" data-page="prestamos" data-biblio><span class="ni">&#128228;</span> Pr&eacute;stamos</div>
+  <div class="nav-item" data-page="devoluciones" data-biblio><span class="ni">&#128229;</span> Devoluciones</div>
+  <div class="nav-item" data-page="historial" data-biblio><span class="ni">&#128203;</span> Historial</div>
 
   <div class="nav-section">Cat&aacute;logo</div>
   <div class="nav-item" data-page="catalogo"><span class="ni">&#128218;</span> Cat&aacute;logo</div>
-  <div class="nav-item" data-page="agregar"><span class="ni">&#10133;</span> Agregar libro</div>
+  <div class="nav-item" data-page="agregar" data-biblio><span class="ni">&#10133;</span> Agregar libro</div>
 
-  <div class="nav-section">Personas</div>
-  <div class="nav-item" data-page="estudiantes"><span class="ni">&#127890;</span> Estudiantes</div>
-  <div class="nav-item" data-page="docentes"><span class="ni">&#128105;&#8205;&#127979;</span> Docentes</div>
+  <div class="nav-section" data-biblio>Personas</div>
+  <div class="nav-item" data-page="estudiantes" data-biblio><span class="ni">&#127890;</span> Estudiantes</div>
+  <div class="nav-item" data-page="docentes" data-biblio><span class="ni">&#128105;&#8205;&#127979;</span> Docentes</div>
 
-  <div class="nav-section">Informes</div>
-  <div class="nav-item" data-page="estadisticas"><span class="ni">&#128202;</span> Estad&iacute;sticas</div>
+  <div class="nav-section" data-biblio>Informes</div>
+  <div class="nav-item" data-page="estadisticas" data-biblio><span class="ni">&#128202;</span> Estad&iacute;sticas</div>
+
+  <div class="nav-section" data-docente>Solicitudes</div>
+  <div class="nav-item" data-page="solicitar" data-docente><span class="ni">&#128722;</span> Solicitar libros</div>
+  <div class="nav-item" data-page="missolicitudes" data-docente><span class="ni">&#128203;</span> Mis solicitudes</div>
+
+  <div class="nav-section" data-biblio>Solicitudes</div>
+  <div class="nav-item" data-page="solicitudes" data-biblio><span class="ni">&#128230;</span> Solicitudes</div>
 
   <div class="nav-section" data-admin>Administraci&oacute;n</div>
   <div class="nav-item" data-page="usuarios" data-admin><span class="ni">&#128101;</span> Usuarios</div>
+  <div class="nav-item" data-page="configuracion" data-admin><span class="ni">&#9881;&#65039;</span> Configuraci&oacute;n</div>
 
   <div class="sidebar-foot">
     <div class="sidebar-date">LuKiBooks v2.0</div>
@@ -212,7 +220,7 @@
       <div class="pt">Cat&aacute;logo de libros</div>
       <div class="ps">Inventario visual de la biblioteca</div>
     </div>
-    <button class="btn primary" data-page="agregar">+ Agregar libro</button>
+    <button class="btn primary" data-page="agregar" data-biblio>+ Agregar libro</button>
   </div>
   <div class="card" style="padding:16px">
     <div class="srow" style="margin-bottom:0">
@@ -422,6 +430,139 @@
         </thead>
         <tbody id="usuariosBody"></tbody>
       </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SOLICITAR LIBROS (Docente — carrito)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-solicitar" data-docente>
+  <div class="ph">
+    <div>
+      <div class="pt">Solicitar libros</div>
+      <div class="ps">Seleccione los libros que necesita y env&iacute;e su solicitud</div>
+    </div>
+    <button class="btn primary" id="btnEnviarSolicitud">&#128230; Enviar solicitud (<span id="cartCount">0</span>)</button>
+  </div>
+  <div class="solicitar-layout">
+    <div>
+      <div class="card" style="padding:16px;margin-bottom:18px">
+        <div class="srow" style="margin-bottom:0">
+          <input class="fi" type="text" placeholder="&#128269;  Buscar t&iacute;tulo, autor, materia..." id="searchSolicitar">
+          <select class="fi" id="filterSolMateria" style="width:190px">
+            <option value="">Todas las materias</option>
+            <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
+            <option>Ciencias</option><option>Estudios Sociales</option>
+            <option>Ingl&eacute;s</option><option>Literatura</option><option>General</option>
+          </select>
+        </div>
+      </div>
+      <div class="book-grid" id="solBookGrid"></div>
+    </div>
+    <div class="card cart-sidebar" id="cartSidebar">
+      <div class="ct" style="margin-bottom:14px">&#128722; Carrito de libros</div>
+      <div id="cartItems"></div>
+      <div class="fg" style="margin-top:14px">
+        <label class="fl">Notas (opcional)</label>
+        <textarea class="fi" id="sol-notas" placeholder="Ej: Para el proyecto de lectura del II ciclo..." maxlength="500" rows="3"></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MIS SOLICITUDES (Docente — historial propio)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-missolicitudes" data-docente>
+  <div class="ph">
+    <div>
+      <div class="pt">Mis solicitudes</div>
+      <div class="ps">Historial de sus solicitudes de libros</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="srow">
+      <select class="fi" id="filterMisSolEstado" style="width:190px">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="aprobada">Aprobada</option>
+        <option value="rechazada">Rechazada</option>
+      </select>
+    </div>
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead>
+          <tr><th>#</th><th>Fecha</th><th>Libros</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="misSolicitudesBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SOLICITUDES (Bibliotec&oacute;logo — gesti&oacute;n)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-solicitudes" data-biblio>
+  <div class="ph">
+    <div>
+      <div class="pt">Solicitudes de libros</div>
+      <div class="ps">Gestionar solicitudes de docentes</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="srow">
+      <input class="fi" type="text" placeholder="&#128269;  Buscar por docente..." id="searchSolicitudes">
+      <select class="fi" id="filterSolEstado" style="width:190px">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="aprobada">Aprobada</option>
+        <option value="rechazada">Rechazada</option>
+      </select>
+    </div>
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead>
+          <tr><th>#</th><th>Docente</th><th>Fecha</th><th>Libros</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="solicitudesBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CONFIGURACI&Oacute;N (Admin)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-configuracion" data-admin>
+  <div class="ph">
+    <div>
+      <div class="pt">Configuraci&oacute;n</div>
+      <div class="ps">Personalizar la apariencia del sistema</div>
+    </div>
+    <button class="btn primary" id="btnGuardarConfig">Guardar cambios</button>
+  </div>
+  <div class="config-grid">
+    <div class="card config-card">
+      <div class="ct" style="margin-bottom:16px">Logo del sistema</div>
+      <div class="config-preview" id="configLogoPreview" title="Clic para cambiar logo">
+        <span style="font-size:40px">&#128218;</span>
+      </div>
+      <input type="file" id="configLogoInput" accept="image/*" style="display:none">
+      <input type="hidden" id="configLogoData">
+      <div class="foto-hint">Clic en la imagen para cambiar el logo</div>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px">Se mostrar&aacute; en el topbar y en la p&aacute;gina de login con borde neon</p>
+    </div>
+    <div class="card config-card">
+      <div class="ct" style="margin-bottom:16px">Favicon</div>
+      <div class="config-preview-fav" id="configFavPreview" title="Clic para cambiar favicon">
+        <span style="font-size:28px">&#128218;</span>
+      </div>
+      <input type="file" id="configFavInput" accept="image/*" style="display:none">
+      <input type="hidden" id="configFavData">
+      <div class="foto-hint">Clic en la imagen para cambiar el favicon</div>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px">Icono que aparece en la pesta&ntilde;a del navegador</p>
     </div>
   </div>
 </section>
@@ -642,6 +783,8 @@
         <label class="fl">Rol</label>
         <select class="fi" id="u-rol">
           <option value="usuario">Usuario</option>
+          <option value="bibliotecologo">Bibliot&eacute;cologo</option>
+          <option value="docente">Docente</option>
           <option value="admin">Administrador</option>
         </select>
       </div>
@@ -702,12 +845,53 @@
   </div>
 </div>
 
+<!-- Modal: Detalle de solicitud -->
+<div class="modal-overlay" id="modalSolicitud">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">Detalle de solicitud</div>
+    <div class="modal-sub" id="solModalSub"></div>
+    <div id="solModalInfo"></div>
+    <div class="table-responsive" style="margin:16px 0">
+      <table class="tbl">
+        <thead><tr><th>Libro</th><th>Cantidad</th></tr></thead>
+        <tbody id="solModalItems"></tbody>
+      </table>
+    </div>
+    <div id="solModalNotas"></div>
+    <div id="solModalRespuesta"></div>
+    <div class="mf">
+      <button class="btn" id="btnCerrarSolicitud">Cerrar</button>
+      <button class="btn primary" id="btnPdfSolicitud" style="display:none">&#128196; Descargar PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Responder solicitud -->
+<div class="modal-overlay" id="modalResponder">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">Responder solicitud</div>
+    <div class="modal-sub" id="respModalSub"></div>
+    <input type="hidden" id="resp-id">
+    <div class="fg">
+      <label class="fl">Notas de respuesta (opcional)</label>
+      <textarea class="fi" id="resp-notas" placeholder="Observaciones..." maxlength="500" rows="3"></textarea>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelResponder">Cancelar</button>
+      <button class="btn" id="btnRechazarSolicitud" style="background:linear-gradient(135deg,var(--danger),#7A1010);color:white;border-color:var(--danger)">Rechazar</button>
+      <button class="btn primary" id="btnAprobarSolicitud">Aprobar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast de notificaciones -->
 <div class="toast" id="toast"></div>
 
 <!-- ═══════════════════════════════════════════════════════════
      SCRIPTS
      ═══════════════════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
 <script defer src="js/sanitize.js"></script>
 <script defer src="js/data.js"></script>
 <script defer src="js/api.js"></script>
@@ -725,6 +909,10 @@
 <script defer src="js/pages/estadisticas.js"></script>
 <script defer src="js/pages/historial.js"></script>
 <script defer src="js/pages/usuarios.js"></script>
+<script defer src="js/pages/solicitar.js"></script>
+<script defer src="js/pages/missolicitudes.js"></script>
+<script defer src="js/pages/solicitudes.js"></script>
+<script defer src="js/pages/configuracion.js"></script>
 <script defer src="js/app.js"></script>
 </body>
 </html>

@@ -124,4 +124,27 @@ window.BiblioApp = window.BiblioApp || {};
     return document.getElementById(id);
   };
 
+  /**
+   * Muestra modal de detalle de solicitud.
+   */
+  B.showSolicitudModal = function (s) {
+    B.$('solModalSub').textContent = 'Solicitud #' + s.id + ' \u2014 ' + B.fmt(s.fecha);
+    B.setHTML('solModalInfo', ''
+      + '<div style="margin-bottom:8px"><strong>Docente:</strong> ' + B.esc(s.docenteNombre) + '</div>'
+      + '<div><strong>Estado:</strong> ' + B.badgeSolicitud(s.estado) + '</div>'
+    );
+    B.setHTML('solModalItems', s.items.map(function (i) {
+      return '<tr><td>' + B.esc(i.titulo) + '</td><td style="text-align:center">' + i.cantidad + '</td></tr>';
+    }).join(''));
+    B.setHTML('solModalNotas', s.notas
+      ? '<div style="margin-top:8px"><strong>Notas del docente:</strong> ' + B.esc(s.notas) + '</div>'
+      : '');
+    B.setHTML('solModalRespuesta', s.respondidoPor
+      ? '<div style="margin-top:8px"><strong>Respondido por:</strong> ' + B.esc(s.respondidoPor)
+        + ' (' + B.fmt(s.fechaRespuesta) + ')</div>'
+        + (s.notasRespuesta ? '<div><strong>Notas:</strong> ' + B.esc(s.notasRespuesta) + '</div>' : '')
+      : '');
+    B.openModal('modalSolicitud');
+  };
+
 })(window.BiblioApp);

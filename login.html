@@ -32,13 +32,29 @@
       margin-bottom: 8px;
     }
     .login-logo-icon {
-      width: 64px; height: 64px;
-      border-radius: 50%;
+      width: 80px; height: 80px;
+      border-radius: 18px;
       background: linear-gradient(135deg, #003DA5, #1A52B5);
       display: inline-flex; align-items: center; justify-content: center;
       font-size: 28px;
       box-shadow: 0 8px 24px rgba(0,61,165,0.25);
       margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .login-logo-icon img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      border-radius: 14px;
+      padding: 4px;
+    }
+    @keyframes neonGlow {
+      0%, 100% { box-shadow: 0 0 4px #00aaff, 0 0 8px #00aaff, 0 0 16px #0066ff; }
+      50%      { box-shadow: 0 0 6px #00ccff, 0 0 14px #00aaff, 0 0 22px #0066ff, 0 0 30px #0044cc; }
+    }
+    .login-logo-neon {
+      border: 3px solid #00aaff;
+      animation: neonGlow 2s ease-in-out infinite;
+      background: white;
     }
     .login-title {
       font-family: 'Playfair Display', Georgia, serif;
@@ -151,6 +167,21 @@
         window.location.href = 'index.html';
         return;
       }
+
+      // Cargar logo y favicon dinámicos
+      fetch(BASE + '/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.logo) {
+          var logoEl = document.querySelector('.login-logo-icon');
+          if (logoEl) {
+            logoEl.innerHTML = '<img src="' + cfg.logo + '" alt="Logo">';
+            logoEl.classList.add('login-logo-neon');
+          }
+        }
+        if (cfg.favicon) {
+          var link = document.querySelector('link[rel="icon"]');
+          if (link) link.href = cfg.favicon;
+        }
+      }).catch(function () { /* silencioso */ });
 
       var form = document.getElementById('loginForm');
       var errEl = document.getElementById('errorMsg');

@@ -52,6 +52,21 @@ window.BiblioApp = window.BiblioApp || {};
     return u && u.rol === 'admin';
   };
 
+  B.isBiblio = function () {
+    var u = B.getUser();
+    return u && (u.rol === 'bibliotecologo' || u.rol === 'admin');
+  };
+
+  B.isDocente = function () {
+    var u = B.getUser();
+    return u && u.rol === 'docente';
+  };
+
+  B.getUserRol = function () {
+    var u = B.getUser();
+    return u ? u.rol : '';
+  };
+
   B.logout = function () {
     localStorage.removeItem('biblio_token');
     localStorage.removeItem('biblio_user');
@@ -60,6 +75,15 @@ window.BiblioApp = window.BiblioApp || {};
 
   /* ── Cargar todos los datos desde la BD ── */
   B.apiLoad = function () {
+    var rol = B.getUserRol();
+    if (rol === 'docente') {
+      return request('GET', '/libros').then(function (result) {
+        B.libros = result;
+        B.estudiantes = [];
+        B.docentes = [];
+        B.prestamos = [];
+      });
+    }
     return Promise.all([
       request('GET', '/libros'),
       request('GET', '/estudiantes'),
@@ -164,6 +188,28 @@ window.BiblioApp = window.BiblioApp || {};
 
   B.apiDeleteUsuario = function (id) {
     return request('DELETE', '/usuarios/' + id);
+  };
+
+  /* ── Solicitudes ── */
+  B.apiGetSolicitudes = function () {
+    return request('GET', '/solicitudes');
+  };
+
+  B.apiAddSolicitud = function (data) {
+    return request('POST', '/solicitudes', data);
+  };
+
+  B.apiResponderSolicitud = function (id, data) {
+    return request('PUT', '/solicitudes/' + id, data);
+  };
+
+  /* ── Configuración del sitio ── */
+  B.apiGetConfig = function () {
+    return request('GET', '/config');
+  };
+
+  B.apiSaveConfig = function (data) {
+    return request('PUT', '/config', data);
   };
 
 })(window.BiblioApp);

@@ -32,6 +32,7 @@ window.BiblioApp = window.BiblioApp || {};
   B.estudiantes = [];
   B.docentes    = [];
   B.prestamos   = [];
+  B.solicitudes = [];
 
   B.nextId = 9;
 

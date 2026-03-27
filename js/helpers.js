@@ -57,4 +57,85 @@ window.BiblioApp = window.BiblioApp || {};
     return '<span class="badge ok">Al d\u00EDa</span>';
   };
 
+  /**
+   * Badge HTML para estado de solicitud.
+   */
+  B.badgeSolicitud = function (estado) {
+    if (estado === 'aprobada')  return '<span class="badge ok">Aprobada</span>';
+    if (estado === 'rechazada') return '<span class="badge danger">Rechazada</span>';
+    return '<span class="badge orange">Pendiente</span>';
+  };
+
+  /**
+   * Genera un PDF de boleta para una solicitud usando jsPDF.
+   */
+  B.generatePDF = function (solicitud) {
+    var jsPDF = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDF) { B.showToast('Error: jsPDF no cargado', true); return; }
+    var doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('LuKiBooks', 105, 20, { align: 'center' });
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Ministerio de Educaci\u00F3n P\u00FAblica \u00B7 Costa Rica', 105, 27, { align: 'center' });
+
+    doc.setDrawColor(0, 61, 165);
+    doc.setLineWidth(0.5);
+    doc.line(20, 32, 190, 32);
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Boleta de solicitud de libros #' + solicitud.id, 20, 42);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Fecha: ' + solicitud.fecha, 20, 52);
+    doc.text('Docente: ' + solicitud.docenteNombre, 20, 59);
+    doc.text('Estado: ' + solicitud.estado.toUpperCase(), 20, 66);
+    var infoY = 73;
+    if (solicitud.respondidoPor) {
+      doc.text('Respondido por: ' + solicitud.respondidoPor + ' (' + (solicitud.fechaRespuesta || '') + ')', 20, infoY);
+      infoY += 7;
+    }
+
+    doc.autoTable({
+      startY: infoY + 5,
+      head: [['#', 'T\u00EDtulo del libro', 'Cantidad']],
+      body: solicitud.items.map(function (item, i) {
+        return [i + 1, item.titulo, item.cantidad];
+      }),
+      styles: { fontSize: 10, cellPadding: 4 },
+      headStyles: { fillColor: [0, 61, 165], textColor: 255 },
+      alternateRowStyles: { fillColor: [235, 241, 255] },
+      margin: { left: 20, right: 20 }
+    });
+
+    var finalY = doc.lastAutoTable.finalY + 10;
+    if (solicitud.notas) {
+      doc.setFontSize(10);
+      doc.text('Notas del docente: ' + solicitud.notas, 20, finalY);
+      finalY += 10;
+    }
+    if (solicitud.notasRespuesta) {
+      doc.setFontSize(10);
+      doc.text('Notas de respuesta: ' + solicitud.notasRespuesta, 20, finalY);
+      finalY += 10;
+    }
+
+    finalY += 20;
+    doc.line(20, finalY, 90, finalY);
+    doc.setFontSize(9);
+    doc.text('Firma del Bibliot\u00E9c\u00F3logo', 55, finalY + 5, { align: 'center' });
+    doc.line(120, finalY, 190, finalY);
+    doc.text('Firma del Docente', 155, finalY + 5, { align: 'center' });
+
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('LuKiBooks v2.0 \u2014 Documento generado autom\u00E1ticamente', 105, 285, { align: 'center' });
+
+    doc.save('boleta-solicitud-' + solicitud.id + '.pdf');
+  };
+
 })(window.BiblioApp);

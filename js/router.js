@@ -11,8 +11,12 @@ window.BiblioApp = window.BiblioApp || {};
   var PAGES = [
     'inicio', 'prestamos', 'devoluciones', 'catalogo',
     'agregar', 'estudiantes', 'docentes', 'estadisticas',
-    'historial', 'usuarios'
+    'historial', 'usuarios', 'solicitar', 'missolicitudes',
+    'solicitudes', 'configuracion'
   ];
+
+  /* Páginas permitidas para cada rol */
+  var DOCENTE_PAGES = ['inicio', 'catalogo', 'solicitar', 'missolicitudes'];
 
   /* Funciones de renderizado por página (se registran desde cada módulo) */
   B.pageRenderers = {};
@@ -27,6 +31,21 @@ window.BiblioApp = window.BiblioApp || {};
 
     /* Validar contra whitelist */
     if (PAGES.indexOf(page) === -1) {
+      page = 'inicio';
+    }
+
+    /* Guardia por rol */
+    var rol = B.getUserRol ? B.getUserRol() : '';
+    if (rol === 'docente' && DOCENTE_PAGES.indexOf(page) === -1) {
+      page = 'inicio';
+    }
+    if (page === 'solicitudes' && rol !== 'admin' && rol !== 'bibliotecologo') {
+      page = 'inicio';
+    }
+    if (page === 'usuarios' && rol !== 'admin') {
+      page = 'inicio';
+    }
+    if (page === 'configuracion' && rol !== 'admin') {
       page = 'inicio';
     }
 

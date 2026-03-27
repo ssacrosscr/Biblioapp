@@ -75,14 +75,14 @@ input, select, textarea { font-family: inherit; }
 }
 .logo { display: flex; align-items: center; gap: 14px; }
 .logo-mep {
-  width: 40px; height: 40px;
-  border-radius: 50%;
+  width: 44px; height: 44px;
+  border-radius: 12px;
   background: white;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   box-shadow: 0 0 0 2px rgba(255,255,255,0.3), 0 2px 8px rgba(0,0,0,0.2);
 }
-.logo-mep img { width: 34px; height: 34px; object-fit: contain; }
+.logo-mep img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
 .logo-name {
   font-family: var(--font-head);
   font-size: 20px; color: white;
@@ -849,7 +849,7 @@ input, select, textarea { font-family: inherit; }
 
   /* Topbar */
   .topbar { padding: 0 14px; height: 58px; }
-  .logo-mep { width: 34px; height: 34px; }
+  .logo-mep { width: 38px; height: 38px; }
   .logo-name { font-size: 16px; }
   .logo-sub { display: none; }
   .alert-pill { font-size: 11px; padding: 5px 12px; }
@@ -894,6 +894,7 @@ input, select, textarea { font-family: inherit; }
 .user-chip-foto img {
   width: 100%; height: 100%;
   object-fit: cover;
+  object-position: center 20%;
   border-radius: 50%;
   border: 2px solid #00aaff;
   animation: neonGlow 2s ease-in-out infinite;
@@ -903,6 +904,7 @@ input, select, textarea { font-family: inherit; }
   width: 42px; height: 42px;
   border-radius: 50%;
   object-fit: cover;
+  object-position: center 20%;
   border: 2px solid #00aaff;
   animation: neonGlow 2s ease-in-out infinite;
 }
@@ -910,6 +912,7 @@ input, select, textarea { font-family: inherit; }
   width: 34px; height: 34px;
   border-radius: 50%;
   object-fit: cover;
+  object-position: center 20%;
   border: 2px solid #00aaff;
   animation: neonGlow 2s ease-in-out infinite;
 }
@@ -917,6 +920,7 @@ input, select, textarea { font-family: inherit; }
   width: 110px; height: 110px;
   border-radius: 50%;
   object-fit: cover;
+  object-position: center 20%;
   border: 3px solid #00aaff;
   animation: neonGlow 2s ease-in-out infinite;
   cursor: pointer;
@@ -946,6 +950,129 @@ input, select, textarea { font-family: inherit; }
   width: 38px; height: 38px;
   border-radius: 50%;
   object-fit: cover;
+  object-position: center 20%;
   border: 2px solid #00aaff;
   animation: neonGlow 2s ease-in-out infinite;
+}
+
+/* ── SOLICITAR LAYOUT (carrito) ── */
+.solicitar-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 22px;
+  align-items: start;
+}
+.cart-sidebar {
+  position: sticky;
+  top: 86px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.cart-item:last-child { border-bottom: none; }
+.cart-item-info { flex: 1; min-width: 0; }
+.cart-item-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cart-item-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.cart-item-qty {
+  width: 28px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ── CONFIGURACIÓN ── */
+.config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.config-card {
+  text-align: center;
+  padding: 30px 20px;
+}
+.config-preview {
+  width: 140px;
+  height: 140px;
+  border-radius: 18px;
+  margin: 0 auto 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 3px solid #00aaff;
+  animation: neonGlow 2s ease-in-out infinite;
+  background: var(--off-white);
+}
+.config-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+}
+.config-preview-fav {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  margin: 0 auto 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid var(--border);
+  background: var(--off-white);
+}
+.config-preview-fav img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Logo neon para topbar y login */
+.logo-neon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: contain;
+  border: 2px solid #00aaff;
+  animation: neonGlow 2s ease-in-out infinite;
+}
+.logo-neon-login {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  object-fit: contain;
+  border: 3px solid #00aaff;
+  animation: neonGlow 2s ease-in-out infinite;
+}
+
+/* Badge orange */
+.badge.orange {
+  background: var(--orange-light);
+  color: var(--orange-dark);
+}
+
+@media (max-width: 900px) {
+  .solicitar-layout { grid-template-columns: 1fr; }
+  .cart-sidebar { position: static; max-height: none; }
+  .config-grid { grid-template-columns: 1fr; }
 }
