@@ -7,19 +7,20 @@ const dns = require('dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const { MongoClient } = require('mongodb');
+const bcrypt = require('bcryptjs');
 
 const MONGO_URI = 'mongodb+srv://isaacalejandroarguedasleiton_db_user:66414826@cluster0.2lyxuqg.mongodb.net/?retryWrites=true&w=majority';
 const DB_NAME = 'biblioteca';
 
 const libros = [
-  { id: 1, titulo: 'Matemáticas 7°',           autor: 'MEP',            materia: 'Matemáticas',       nivel: 'III Ciclo',     ejemplares: 5, editorial: 'MEP',        isbn: '',                  c: 0, icon: '\u{1F9EE}' },
-  { id: 2, titulo: 'Español — Comunicación',    autor: 'MEP',            materia: 'Español',           nivel: 'III Ciclo',     ejemplares: 4, editorial: 'MEP',        isbn: '',                  c: 4, icon: '\u270F\uFE0F' },
-  { id: 3, titulo: 'Ciencias 9° — Santillana',  autor: 'Santillana',     materia: 'Ciencias',          nivel: 'III Ciclo',     ejemplares: 3, editorial: 'Santillana', isbn: '978-9977-64-123-4', c: 2, icon: '\u{1F52C}' },
-  { id: 4, titulo: 'El Principito',             autor: 'Saint-Exupéry',  materia: 'Literatura',        nivel: 'General',       ejemplares: 6, editorial: 'Epasa',      isbn: '',                  c: 1, icon: '\u{1F4D6}' },
-  { id: 5, titulo: 'Historia de Costa Rica',    autor: 'MEP',            materia: 'Estudios Sociales', nivel: 'III Ciclo',     ejemplares: 4, editorial: 'MEP',        isbn: '',                  c: 5, icon: '\u{1F30E}' },
-  { id: 6, titulo: 'Inglés 8° — MEP',           autor: 'MEP',            materia: 'Inglés',            nivel: 'III Ciclo',     ejemplares: 3, editorial: 'MEP',        isbn: '',                  c: 3, icon: '\u{1F5E3}\uFE0F' },
-  { id: 7, titulo: 'Matemáticas 10°',           autor: 'Ulate Montoya',  materia: 'Matemáticas',       nivel: 'Diversificado', ejemplares: 4, editorial: 'EUNED',      isbn: '',                  c: 0, icon: '\u{1F4D0}' },
-  { id: 8, titulo: 'Cuentos Costarricenses',    autor: 'Varios autores', materia: 'Literatura',        nivel: 'General',       ejemplares: 5, editorial: 'EUNED',      isbn: '',                  c: 1, icon: '\u{1F4DD}' },
+  { id: 1, titulo: 'Matemáticas 7°',           autor: 'MEP',            materia: 'Matemáticas',       nivel: 'III Ciclo',     ejemplares: 5, editorial: 'MEP',        isbn: '',                  c: 0, icon: '\u{1F9EE}', eliminado: false },
+  { id: 2, titulo: 'Español — Comunicación',    autor: 'MEP',            materia: 'Español',           nivel: 'III Ciclo',     ejemplares: 4, editorial: 'MEP',        isbn: '',                  c: 4, icon: '\u270F\uFE0F', eliminado: false },
+  { id: 3, titulo: 'Ciencias 9° — Santillana',  autor: 'Santillana',     materia: 'Ciencias',          nivel: 'III Ciclo',     ejemplares: 3, editorial: 'Santillana', isbn: '978-9977-64-123-4', c: 2, icon: '\u{1F52C}', eliminado: false },
+  { id: 4, titulo: 'El Principito',             autor: 'Saint-Exupéry',  materia: 'Literatura',        nivel: 'General',       ejemplares: 6, editorial: 'Epasa',      isbn: '',                  c: 1, icon: '\u{1F4D6}', eliminado: false },
+  { id: 5, titulo: 'Historia de Costa Rica',    autor: 'MEP',            materia: 'Estudios Sociales', nivel: 'III Ciclo',     ejemplares: 4, editorial: 'MEP',        isbn: '',                  c: 5, icon: '\u{1F30E}', eliminado: false },
+  { id: 6, titulo: 'Inglés 8° — MEP',           autor: 'MEP',            materia: 'Inglés',            nivel: 'III Ciclo',     ejemplares: 3, editorial: 'MEP',        isbn: '',                  c: 3, icon: '\u{1F5E3}\uFE0F', eliminado: false },
+  { id: 7, titulo: 'Matemáticas 10°',           autor: 'Ulate Montoya',  materia: 'Matemáticas',       nivel: 'Diversificado', ejemplares: 4, editorial: 'EUNED',      isbn: '',                  c: 0, icon: '\u{1F4D0}', eliminado: false },
+  { id: 8, titulo: 'Cuentos Costarricenses',    autor: 'Varios autores', materia: 'Literatura',        nivel: 'General',       ejemplares: 5, editorial: 'EUNED',      isbn: '',                  c: 1, icon: '\u{1F4DD}', eliminado: false },
 ];
 
 const estudiantes = [
@@ -58,7 +59,7 @@ async function seed() {
     console.log('Conectado a MongoDB Atlas');
 
     // Limpiar colecciones existentes
-    const collections = ['libros', 'estudiantes', 'docentes', 'prestamos', 'counters'];
+    const collections = ['libros', 'estudiantes', 'docentes', 'prestamos', 'counters', 'usuarios'];
     for (const name of collections) {
       await db.collection(name).deleteMany({});
     }
@@ -70,12 +71,20 @@ async function seed() {
     await db.collection('docentes').insertMany(docentes);
     await db.collection('prestamos').insertMany(prestamos);
 
+    // Usuarios con contraseñas hasheadas
+    const usuarios = [
+      { id: 1, usuario: 'admin',  password: await bcrypt.hash('admin123', 10), nombre: 'Administrador', rol: 'admin' },
+      { id: 2, usuario: 'candy',  password: await bcrypt.hash('66414826', 10), nombre: 'Candy', rol: 'usuario' },
+    ];
+    await db.collection('usuarios').insertMany(usuarios);
+
     // Contadores para auto-increment
     await db.collection('counters').insertMany([
       { _id: 'libros', seq: 8 },
       { _id: 'estudiantes', seq: 8 },
       { _id: 'docentes', seq: 103 },
       { _id: 'prestamos', seq: 8 },
+      { _id: 'usuarios', seq: 2 },
     ]);
 
     console.log('Datos insertados:');
@@ -83,6 +92,12 @@ async function seed() {
     console.log('  - Estudiantes:', estudiantes.length);
     console.log('  - Docentes:', docentes.length);
     console.log('  - Préstamos:', prestamos.length);
+    console.log('  - Usuarios:', usuarios.length);
+    console.log('');
+    console.log('Usuarios creados:');
+    console.log('  - admin / admin123 (administrador)');
+    console.log('  - candy / 66414826 (usuario estándar)');
+    console.log('');
     console.log('Seed completado exitosamente');
   } finally {
     await client.close();

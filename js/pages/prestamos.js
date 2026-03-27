@@ -58,15 +58,16 @@
         + '<td style="color:var(--text3)">' + B.esc(B.fmt(p.fp)) + '</td>'
         + '<td style="color:var(--text3)">' + B.esc(B.fmt(p.fd)) + '</td>'
         + '<td>' + B.badgeEstado(p) + '</td>'
-        + '<td><button class="btn sm primary" data-devp="' + p.id + '">Devolver</button></td>'
+        + '<td><div class="action-btns">'
+        +   '<button class="btn sm" data-editp="' + p.id + '">Editar</button>'
+        +   '<button class="btn sm primary" data-devp="' + p.id + '">Devolver</button>'
+        + '</div></td>'
         + '</tr>';
     }).join('');
   }
 
-  /* Renderer de la página */
   B.pageRenderers.prestamos = renderTable;
 
-  /* Buscar y filtrar */
   document.addEventListener('input', function (e) {
     if (e.target.id === 'searchPrestamo') renderTable();
   });
@@ -90,6 +91,46 @@
         B.showToast('Error al registrar devoluci\u00F3n', true);
       });
     }
+  });
+
+  /* Editar préstamo */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-editp]');
+    if (!btn) return;
+    var id = parseInt(btn.getAttribute('data-editp'), 10);
+    var p = B.prestamos.find(function (x) { return x.id === id; });
+    if (!p) return;
+    B.$('ep-id').value = id;
+    B.$('ep-fecha').value = p.fp;
+    B.$('ep-devolucion').value = p.fd;
+    B.$('ep-notas').value = p.n || '';
+    B.openModal('modalEditPrestamo');
+  });
+
+  /* Guardar edición de préstamo */
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#btnGuardarEditPrestamo')) return;
+    var id = parseInt(B.$('ep-id').value);
+    var fp = B.val('ep-fecha');
+    var fd = B.val('ep-devolucion');
+    var n = B.val('ep-notas');
+
+    if (!B.isValidDate(fp) || !B.isValidDate(fd)) {
+      B.showToast('Fechas inv\u00E1lidas', true);
+      return;
+    }
+
+    B.apiUpdatePrestamo(id, { fp: fp, fd: fd, n: n }).then(function () {
+      B.closeModal('modalEditPrestamo');
+      B.showToast('\u2713 Pr\u00E9stamo actualizado');
+      renderTable();
+    }).catch(function () {
+      B.showToast('Error al actualizar', true);
+    });
+  });
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#btnCancelEditPrestamo')) B.closeModal('modalEditPrestamo');
   });
 
   /* Abrir modal nuevo préstamo */
@@ -124,12 +165,13 @@
           + '</option>';
       }).join('');
 
-    var dd = new Date(B.HOY);
+    var hoy = new Date().toISOString().slice(0, 10);
+    var dd = new Date();
     dd.setDate(dd.getDate() + 14);
     var devEl = B.$('p-devolucion');
     if (devEl) devEl.value = dd.toISOString().slice(0, 10);
     var fpEl = B.$('p-fecha');
-    if (fpEl) fpEl.value = '2026-03-26';
+    if (fpEl) fpEl.value = hoy;
   }
 
   /* Guardar préstamo */
@@ -146,7 +188,6 @@
       return;
     }
 
-    /* Validar fechas */
     if (!B.isValidDate(fd) || !B.isValidDate(fp)) {
       B.showToast('Fechas inv\u00E1lidas', true);
       return;
@@ -161,6 +202,15 @@
     var tipo = parts[0];
     var pid  = parseInt(parts[1], 10);
     if ((tipo !== 'e' && tipo !== 'd') || isNaN(pid)) return;
+
+    /* Verificar préstamo duplicado */
+    var duplicado = B.prestamos.some(function (p) {
+      return !p.dev && p.pId === pid && p.pT === tipo && p.lId === lId;
+    });
+    if (duplicado) {
+      B.showToast('Esta persona ya tiene prestado este libro', true);
+      return;
+    }
 
     var prestamoData = {
       pId: pid,
@@ -182,7 +232,6 @@
     });
   });
 
-  /* Cerrar modal */
   document.addEventListener('click', function (e) {
     if (e.target.closest('#btnCancelPrestamo')) B.closeModal('modalPrestamo');
   });

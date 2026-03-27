@@ -1,0 +1,135 @@
+/* ============================================================
+   usuarios.js — Gestión de usuarios (admin)
+   ============================================================ */
+'use strict';
+
+(function (B) {
+
+  var usuariosList = [];
+
+  function renderUsuarios() {
+    var body = B.$('usuariosBody');
+    if (!body) return;
+
+    if (!usuariosList.length) {
+      body.innerHTML = '<tr><td colspan="4"><div class="empty">Cargando usuarios...</div></td></tr>';
+      return;
+    }
+
+    body.innerHTML = usuariosList.map(function (u) {
+      var rolBadge = u.rol === 'admin'
+        ? '<span class="badge danger">Admin</span>'
+        : '<span class="badge info">Usuario</span>';
+      var actions = u.id === 1
+        ? '<span style="font-size:11px;color:var(--text3)">Protegido</span>'
+        : '<button class="btn sm primary" data-edit-user="' + u.id + '">Editar</button> '
+        + '<button class="btn sm" data-del-user="' + u.id + '" style="color:var(--danger);border-color:var(--danger)">Eliminar</button>';
+
+      return ''
+        + '<tr>'
+        + '<td style="font-weight:700">' + B.esc(u.usuario) + '</td>'
+        + '<td>' + B.esc(u.nombre) + '</td>'
+        + '<td>' + rolBadge + '</td>'
+        + '<td>' + actions + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  B.pageRenderers.usuarios = function () {
+    if (!B.isAdmin()) return;
+    B.apiGetUsuarios().then(function (data) {
+      usuariosList = data;
+      renderUsuarios();
+    }).catch(function () {
+      B.showToast('Error al cargar usuarios', true);
+    });
+  };
+
+  /* Nuevo usuario */
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#btnNuevoUsuario')) return;
+    B.$('u-id').value = '';
+    B.$('modalUsuarioTitle').textContent = 'Nuevo usuario';
+    B.clearFields(['u-usuario', 'u-password', 'u-nombre']);
+    B.$('u-rol').value = 'usuario';
+    B.$('u-usuario').disabled = false;
+    B.openModal('modalUsuario');
+  });
+
+  /* Editar usuario */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-edit-user]');
+    if (!btn) return;
+    var id = parseInt(btn.getAttribute('data-edit-user'));
+    var u = usuariosList.find(function (x) { return x.id === id; });
+    if (!u) return;
+    B.$('u-id').value = id;
+    B.$('modalUsuarioTitle').textContent = 'Editar usuario';
+    B.$('u-usuario').value = u.usuario;
+    B.$('u-usuario').disabled = true;
+    B.$('u-password').value = '';
+    B.$('u-nombre').value = u.nombre;
+    B.$('u-rol').value = u.rol;
+    B.openModal('modalUsuario');
+  });
+
+  /* Guardar usuario */
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#btnGuardarUsuario')) return;
+    var id = B.$('u-id').value;
+    var usuario = B.val('u-usuario');
+    var password = B.$('u-password').value;
+    var nombre = B.val('u-nombre');
+    var rol = B.val('u-rol');
+
+    if (!nombre) {
+      B.showToast('Complete los campos obligatorios', true);
+      return;
+    }
+
+    if (id) {
+      var data = { nombre: nombre, rol: rol };
+      if (password) data.password = password;
+      B.apiEditUsuario(parseInt(id), data).then(function () {
+        B.closeModal('modalUsuario');
+        B.showToast('\u2713 Usuario actualizado');
+        B.pageRenderers.usuarios();
+      }).catch(function (err) {
+        B.showToast(err.message || 'Error', true);
+      });
+    } else {
+      if (!usuario || !password) {
+        B.showToast('Complete usuario y contrase\u00F1a', true);
+        return;
+      }
+      B.apiAddUsuario({ usuario: usuario, password: password, nombre: nombre, rol: rol }).then(function () {
+        B.closeModal('modalUsuario');
+        B.showToast('\u2713 Usuario creado');
+        B.pageRenderers.usuarios();
+      }).catch(function (err) {
+        B.showToast(err.message || 'Error', true);
+      });
+    }
+  });
+
+  /* Eliminar usuario */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-del-user]');
+    if (!btn) return;
+    var id = parseInt(btn.getAttribute('data-del-user'));
+    B.confirm('\u00BFEliminar este usuario?', 'Esta acci\u00F3n no se puede deshacer', function () {
+      B.apiDeleteUsuario(id).then(function () {
+        B.showToast('\u2713 Usuario eliminado');
+        B.pageRenderers.usuarios();
+      }).catch(function (err) {
+        B.showToast(err.message || 'Error', true);
+      });
+    });
+  });
+
+  /* Cancelar */
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#btnCancelUsuario')) B.closeModal('modalUsuario');
+  });
+
+})(window.BiblioApp);

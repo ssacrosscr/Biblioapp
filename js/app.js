@@ -7,10 +7,30 @@
 
   document.addEventListener('DOMContentLoaded', function () {
 
-    /* Inicializar modales (click fuera para cerrar) */
+    /* ── Verificar autenticación ── */
+    if (!localStorage.getItem('biblio_token')) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    /* Mostrar nombre del usuario en topbar */
+    var user = B.getUser();
+    var userChip = document.querySelector('.user-chip');
+    if (userChip && user) {
+      userChip.textContent = '\u{1F464} ' + user.nombre + ' \u00B7 ' + (user.rol === 'admin' ? 'Admin' : 'Usuario');
+    }
+
+    /* Mostrar/ocultar elementos solo para admin */
+    if (!B.isAdmin()) {
+      document.querySelectorAll('[data-admin]').forEach(function (el) {
+        el.style.display = 'none';
+      });
+    }
+
+    /* Inicializar modales */
     B.initModals();
 
-    /* Inicializar router y protección de URL */
+    /* Inicializar router */
     B.initRouter();
 
     /* Alerta de préstamos vencidos */
@@ -21,7 +41,15 @@
       });
     }
 
-    /* Inicializar vista previa de libro en "Agregar" */
+    /* Logout */
+    var logoutBtn = B.$('btnLogout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function () {
+        B.logout();
+      });
+    }
+
+    /* Vista previa de libro en "Agregar" */
     var previewWrap = B.$('previewWrap');
     if (previewWrap) {
       previewWrap.innerHTML = B.cover(
@@ -43,11 +71,10 @@
       var startPage = location.hash.replace('#', '') || 'inicio';
       B.goPage(startPage);
     }).catch(function (err) {
-      B.showToast('Error al conectar con la base de datos', true);
-      console.error('apiLoad error:', err);
-      /* Renderizar de todos modos con arrays vacíos */
-      var startPage = location.hash.replace('#', '') || 'inicio';
-      B.goPage(startPage);
+      if (err.message !== 'No autorizado') {
+        B.showToast('Error al conectar con la base de datos', true);
+        console.error('apiLoad error:', err);
+      }
     });
 
   });

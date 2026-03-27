@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-Content-Security-Policy"
-        content="default-src 'self'; connect-src 'self' http://localhost:3000 https://biblioapp-nclh.onrender.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' https://www.mep.go.cr data:;">
-  <title>Biblioteca Escolar — MEP</title>
+  <title>LuKiBooks</title>
   <link rel="icon" href="https://www.mep.go.cr/favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
@@ -17,31 +15,37 @@
      ═══════════════════════════════════════════════════════════ -->
 <header class="topbar">
   <div class="logo">
+    <button class="hamburger" id="btnHamburger" aria-label="Men&uacute;">&#9776;</button>
     <div class="logo-mep">
       <img src="https://www.mep.go.cr/sites/default/files/favicon_0.ico" alt="MEP"
            onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:14px;font-weight:800;color:#003DA5>MEP</span>'">
     </div>
-    <div>
-      <div class="logo-name">Biblioteca Escolar</div>
+    <div class="logo-text">
+      <div class="logo-name">LuKiBooks</div>
       <div class="logo-sub">Ministerio de Educaci&oacute;n P&uacute;blica &middot; Costa Rica</div>
     </div>
   </div>
   <div class="topbar-right">
     <button class="alert-pill" id="alertBtn">&#9888; Pr&eacute;stamos vencidos</button>
-    <span class="user-chip">&#128100; MB &middot; Bibliotec&oacute;loga</span>
+    <span class="user-chip">&#128100; Usuario</span>
+    <button class="btn-logout" id="btnLogout" title="Cerrar sesi&oacute;n">&#10148;</button>
   </div>
 </header>
+
+<!-- Overlay para sidebar móvil -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <div class="layout">
 
 <!-- ═══════════════════════════════════════════════════════════
      SIDEBAR
      ═══════════════════════════════════════════════════════════ -->
-<nav class="sidebar">
+<nav class="sidebar" id="sidebar">
   <div class="nav-section">Principal</div>
   <div class="nav-item active" data-page="inicio"><span class="ni">&#127968;</span> Inicio</div>
   <div class="nav-item" data-page="prestamos"><span class="ni">&#128228;</span> Pr&eacute;stamos</div>
   <div class="nav-item" data-page="devoluciones"><span class="ni">&#128229;</span> Devoluciones</div>
+  <div class="nav-item" data-page="historial"><span class="ni">&#128203;</span> Historial</div>
 
   <div class="nav-section">Cat&aacute;logo</div>
   <div class="nav-item" data-page="catalogo"><span class="ni">&#128218;</span> Cat&aacute;logo</div>
@@ -54,8 +58,11 @@
   <div class="nav-section">Informes</div>
   <div class="nav-item" data-page="estadisticas"><span class="ni">&#128202;</span> Estad&iacute;sticas</div>
 
+  <div class="nav-section" data-admin>Administraci&oacute;n</div>
+  <div class="nav-item" data-page="usuarios" data-admin><span class="ni">&#128101;</span> Usuarios</div>
+
   <div class="sidebar-foot">
-    <div class="sidebar-date">Jueves, 26 de marzo 2026<br>Sistema Biblioteca MEP v2.0</div>
+    <div class="sidebar-date">LuKiBooks v2.0</div>
   </div>
 </nav>
 
@@ -66,11 +73,9 @@
   <div class="hero-banner">
     <div class="hero-deco">&#128218;</div>
     <div class="hero-title">Panel de control</div>
-    <div class="hero-sub">Resumen del d&iacute;a &mdash; jueves, 26 de marzo 2026</div>
+    <div class="hero-sub">Resumen del d&iacute;a</div>
   </div>
-
   <div class="metrics" id="metrics-home"></div>
-
   <div>
     <p class="qa-section-title">Acciones r&aacute;pidas</p>
     <div class="qg">
@@ -88,7 +93,6 @@
       </div>
     </div>
   </div>
-
   <div class="two-col">
     <div class="card">
       <div class="ch">
@@ -108,7 +112,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     PRÉSTAMOS
+     PR&Eacute;STAMOS
      ═══════════════════════════════════════════════════════════ -->
 <section class="main" id="page-prestamos">
   <div class="ph">
@@ -128,15 +132,17 @@
         <option value="vencido">Vencido</option>
       </select>
     </div>
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Persona</th><th>Libro</th><th>Pr&eacute;stamo</th>
-          <th>Devolver antes de</th><th>Estado</th><th>Acci&oacute;n</th>
-        </tr>
-      </thead>
-      <tbody id="prestamosBody"></tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Persona</th><th>Libro</th><th>Pr&eacute;stamo</th>
+            <th>Devolver antes de</th><th>Estado</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="prestamosBody"></tbody>
+      </table>
+    </div>
   </div>
 </section>
 
@@ -161,7 +167,41 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     CATÁLOGO
+     HISTORIAL
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-historial">
+  <div class="ph">
+    <div>
+      <div class="pt">Historial de pr&eacute;stamos</div>
+      <div class="ps">Trazabilidad completa de todos los pr&eacute;stamos</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="srow">
+      <input class="fi" type="text" placeholder="&#128269;  Buscar por persona, libro..." id="searchHistorial">
+      <select class="fi" id="filterHistEstado" style="width:180px">
+        <option value="">Todos</option>
+        <option value="devuelto">Devueltos</option>
+        <option value="activo">Activos</option>
+        <option value="vencido">Vencidos</option>
+      </select>
+    </div>
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Persona</th><th>Libro</th><th>Pr&eacute;stamo</th>
+            <th>Devoluci&oacute;n</th><th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="historialBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CAT&Aacute;LOGO
      ═══════════════════════════════════════════════════════════ -->
 <section class="main" id="page-catalogo">
   <div class="ph">
@@ -197,7 +237,7 @@
     <div class="pt">Agregar libro</div>
     <div class="ps">Registrar un nuevo ejemplar al cat&aacute;logo</div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 280px;gap:24px;align-items:start">
+  <div class="agregar-layout">
     <div class="card">
       <div class="form-grid">
         <div class="fg full">
@@ -261,7 +301,7 @@
         <button class="btn primary" id="btnGuardarLibro">Guardar libro</button>
       </div>
     </div>
-    <div class="card" style="text-align:center;padding:22px">
+    <div class="card preview-card">
       <div class="ct" style="margin-bottom:14px">Vista previa de portada</div>
       <div id="previewWrap" style="width:150px;height:196px;margin:0 auto;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);"></div>
       <p style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5">La portada se genera autom&aacute;ticamente con los datos ingresados</p>
@@ -289,15 +329,17 @@
         <option>10&deg;</option><option>11&deg;</option>
       </select>
     </div>
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th>Estudiante</th><th>C&eacute;dula / Carn&eacute;</th><th>Grado</th>
-          <th>Secci&oacute;n</th><th>Pr&eacute;stamos activos</th><th>Estado</th>
-        </tr>
-      </thead>
-      <tbody id="estudiantesBody"></tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Estudiante</th><th>C&eacute;dula / Carn&eacute;</th><th>Grado</th>
+            <th>Secci&oacute;n</th><th>Pr&eacute;stamos activos</th><th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="estudiantesBody"></tbody>
+      </table>
+    </div>
   </div>
 </section>
 
@@ -316,15 +358,17 @@
     <div class="srow">
       <input class="fi" type="text" placeholder="&#128269;  Buscar por nombre..." id="searchDocente">
     </div>
-    <table class="tbl">
-      <thead><tr><th>Docente</th><th>C&eacute;dula</th><th>Materia</th><th>Pr&eacute;stamos activos</th></tr></thead>
-      <tbody id="docentesBody"></tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead><tr><th>Docente</th><th>C&eacute;dula</th><th>Materia</th><th>Pr&eacute;stamos activos</th></tr></thead>
+        <tbody id="docentesBody"></tbody>
+      </table>
+    </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     ESTADÍSTICAS
+     ESTAD&Iacute;STICAS
      ═══════════════════════════════════════════════════════════ -->
 <section class="main" id="page-estadisticas">
   <div>
@@ -354,6 +398,31 @@
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════════════════
+     USUARIOS (Admin)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-usuarios" data-admin>
+  <div class="ph">
+    <div>
+      <div class="pt">Gesti&oacute;n de usuarios</div>
+      <div class="ps">Administrar accesos al sistema</div>
+    </div>
+    <button class="btn primary" id="btnNuevoUsuario">+ Nuevo usuario</button>
+  </div>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Usuario</th><th>Nombre</th><th>Rol</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="usuariosBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 </div><!-- /.layout -->
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -376,7 +445,7 @@
       </div>
       <div class="fg">
         <label class="fl">Fecha de pr&eacute;stamo</label>
-        <input class="fi" type="date" id="p-fecha" value="2026-03-26">
+        <input class="fi" type="date" id="p-fecha">
       </div>
       <div class="fg">
         <label class="fl">Fecha de devoluci&oacute;n *</label>
@@ -390,6 +459,33 @@
     <div class="mf">
       <button class="btn" id="btnCancelPrestamo">Cancelar</button>
       <button class="btn primary" id="btnGuardarPrestamo">Registrar pr&eacute;stamo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar Préstamo -->
+<div class="modal-overlay" id="modalEditPrestamo">
+  <div class="modal">
+    <div class="modal-title">Editar pr&eacute;stamo</div>
+    <div class="modal-sub">Modificar datos del pr&eacute;stamo</div>
+    <input type="hidden" id="ep-id">
+    <div class="form-grid">
+      <div class="fg">
+        <label class="fl">Fecha de pr&eacute;stamo</label>
+        <input class="fi" type="date" id="ep-fecha">
+      </div>
+      <div class="fg">
+        <label class="fl">Fecha de devoluci&oacute;n</label>
+        <input class="fi" type="date" id="ep-devolucion">
+      </div>
+      <div class="fg full">
+        <label class="fl">Notas</label>
+        <input class="fi" type="text" id="ep-notas" maxlength="200">
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelEditPrestamo">Cancelar</button>
+      <button class="btn primary" id="btnGuardarEditPrestamo">Guardar cambios</button>
     </div>
   </div>
 </div>
@@ -463,11 +559,109 @@
   </div>
 </div>
 
+<!-- Modal: Editar Libro -->
+<div class="modal-overlay" id="modalEditLibro">
+  <div class="modal">
+    <div class="modal-title">Editar libro</div>
+    <div class="modal-sub">Modificar datos del libro</div>
+    <input type="hidden" id="el-id">
+    <div class="form-grid">
+      <div class="fg full">
+        <label class="fl">T&iacute;tulo *</label>
+        <input class="fi" type="text" id="el-titulo" maxlength="200">
+      </div>
+      <div class="fg">
+        <label class="fl">Autor</label>
+        <input class="fi" type="text" id="el-autor" maxlength="200">
+      </div>
+      <div class="fg">
+        <label class="fl">ISBN</label>
+        <input class="fi" type="text" id="el-isbn" maxlength="30">
+      </div>
+      <div class="fg">
+        <label class="fl">Materia *</label>
+        <select class="fi" id="el-materia">
+          <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
+          <option>Ciencias</option><option>Estudios Sociales</option>
+          <option>Ingl&eacute;s</option><option>Literatura</option><option>General</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Nivel</label>
+        <select class="fi" id="el-nivel">
+          <option value="">General</option>
+          <option>I Ciclo (1&deg;&ndash;3&deg;)</option><option>II Ciclo (4&deg;&ndash;6&deg;)</option>
+          <option>III Ciclo (7&deg;&ndash;9&deg;)</option><option>Diversificado (10&deg;&ndash;11&deg;)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Ejemplares</label>
+        <input class="fi" type="number" id="el-ejemplares" min="0" max="999">
+      </div>
+      <div class="fg">
+        <label class="fl">Editorial</label>
+        <input class="fi" type="text" id="el-editorial" maxlength="200">
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelEditLibro">Cancelar</button>
+      <button class="btn primary" id="btnGuardarEditLibro">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo/Editar Usuario -->
+<div class="modal-overlay" id="modalUsuario">
+  <div class="modal">
+    <div class="modal-title" id="modalUsuarioTitle">Nuevo usuario</div>
+    <div class="modal-sub">Gestionar acceso al sistema</div>
+    <input type="hidden" id="u-id">
+    <div class="form-grid">
+      <div class="fg">
+        <label class="fl">Usuario *</label>
+        <input class="fi" type="text" id="u-usuario" maxlength="50" autocomplete="off">
+      </div>
+      <div class="fg">
+        <label class="fl">Contrase&ntilde;a *</label>
+        <input class="fi" type="password" id="u-password" maxlength="50" autocomplete="new-password">
+      </div>
+      <div class="fg">
+        <label class="fl">Nombre completo *</label>
+        <input class="fi" type="text" id="u-nombre" maxlength="200">
+      </div>
+      <div class="fg">
+        <label class="fl">Rol</label>
+        <select class="fi" id="u-rol">
+          <option value="usuario">Usuario</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelUsuario">Cancelar</button>
+      <button class="btn primary" id="btnGuardarUsuario">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Confirmación de eliminación -->
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal" style="max-width:400px;text-align:center">
+    <div style="font-size:44px;margin-bottom:12px">&#9888;&#65039;</div>
+    <div class="modal-title" style="font-size:20px" id="confirmTitle">Confirmar</div>
+    <div class="modal-sub" id="confirmMsg">Esta acci&oacute;n no se puede deshacer</div>
+    <div class="mf" style="justify-content:center">
+      <button class="btn" id="btnConfirmCancel">Cancelar</button>
+      <button class="btn or" id="btnConfirmOk">Eliminar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast de notificaciones -->
 <div class="toast" id="toast"></div>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SCRIPTS — Orden de carga importa
+     SCRIPTS
      ═══════════════════════════════════════════════════════════ -->
 <script defer src="js/sanitize.js"></script>
 <script defer src="js/data.js"></script>
@@ -484,6 +678,8 @@
 <script defer src="js/pages/estudiantes.js"></script>
 <script defer src="js/pages/docentes.js"></script>
 <script defer src="js/pages/estadisticas.js"></script>
+<script defer src="js/pages/historial.js"></script>
+<script defer src="js/pages/usuarios.js"></script>
 <script defer src="js/app.js"></script>
 </body>
 </html>

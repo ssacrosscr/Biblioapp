@@ -8,10 +8,8 @@ window.BiblioApp = window.BiblioApp || {};
 (function (B) {
 
   var toastTimer = null;
+  var confirmCallback = null;
 
-  /**
-   * Muestra un toast de notificación.
-   */
   B.showToast = function (msg, isError) {
     var t = document.getElementById('toast');
     if (!t) return;
@@ -24,25 +22,16 @@ window.BiblioApp = window.BiblioApp || {};
     }, 3200);
   };
 
-  /**
-   * Abre un modal por ID.
-   */
   B.openModal = function (id) {
     var el = document.getElementById(id);
     if (el) el.classList.add('open');
   };
 
-  /**
-   * Cierra un modal por ID.
-   */
   B.closeModal = function (id) {
     var el = document.getElementById(id);
     if (el) el.classList.remove('open');
   };
 
-  /**
-   * Cierra modal al hacer click fuera del contenido.
-   */
   B.initModals = function () {
     document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
       overlay.addEventListener('click', function (e) {
@@ -51,29 +40,74 @@ window.BiblioApp = window.BiblioApp || {};
         }
       });
     });
+
+    /* Hamburger menu */
+    var hamburger = document.getElementById('btnHamburger');
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebarOverlay');
+
+    if (hamburger && sidebar) {
+      hamburger.addEventListener('click', function () {
+        sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('open');
+      });
+    }
+    if (overlay && sidebar) {
+      overlay.addEventListener('click', function () {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      });
+    }
+
+    /* Cerrar sidebar al navegar en móvil */
+    document.querySelectorAll('.nav-item').forEach(function (n) {
+      n.addEventListener('click', function () {
+        if (window.innerWidth <= 800 && sidebar) {
+          sidebar.classList.remove('open');
+          if (overlay) overlay.classList.remove('open');
+        }
+      });
+    });
+
+    /* Confirm modal */
+    var btnConfirmOk = document.getElementById('btnConfirmOk');
+    var btnConfirmCancel = document.getElementById('btnConfirmCancel');
+    if (btnConfirmOk) {
+      btnConfirmOk.addEventListener('click', function () {
+        B.closeModal('modalConfirm');
+        if (confirmCallback) confirmCallback();
+        confirmCallback = null;
+      });
+    }
+    if (btnConfirmCancel) {
+      btnConfirmCancel.addEventListener('click', function () {
+        B.closeModal('modalConfirm');
+        confirmCallback = null;
+      });
+    }
   };
 
-  /**
-   * Obtiene el valor limpio de un input/select.
-   */
+  B.confirm = function (title, msg, callback) {
+    var titleEl = document.getElementById('confirmTitle');
+    var msgEl = document.getElementById('confirmMsg');
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = msg;
+    confirmCallback = callback;
+    B.openModal('modalConfirm');
+  };
+
   B.val = function (id) {
     var el = document.getElementById(id);
     if (!el) return '';
     return B.cleanInput(el.value, 300);
   };
 
-  /**
-   * Obtiene el valor numérico de un input.
-   */
   B.valNum = function (id) {
     var el = document.getElementById(id);
     if (!el) return 0;
     return parseInt(el.value, 10) || 0;
   };
 
-  /**
-   * Limpia los valores de un array de IDs.
-   */
   B.clearFields = function (ids) {
     ids.forEach(function (id) {
       var el = document.getElementById(id);
@@ -81,17 +115,11 @@ window.BiblioApp = window.BiblioApp || {};
     });
   };
 
-  /**
-   * Setea el innerHTML de un elemento.
-   */
   B.setHTML = function (id, html) {
     var el = document.getElementById(id);
     if (el) el.innerHTML = html;
   };
 
-  /**
-   * Devuelve referencia a un elemento por ID (shortcut).
-   */
   B.$ = function (id) {
     return document.getElementById(id);
   };

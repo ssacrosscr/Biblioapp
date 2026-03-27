@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesi&oacute;n — LuKiBooks</title>
+  <link rel="icon" href="https://www.mep.go.cr/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #001540 0%, #003DA5 50%, #1A52B5 100%);
+      padding: 20px;
+    }
+    .login-wrap {
+      width: 100%; max-width: 420px;
+      background: white;
+      border-radius: 20px;
+      padding: 44px 36px;
+      box-shadow: 0 24px 80px rgba(0,15,50,0.3);
+      animation: fadeIn .4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .login-logo-icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #003DA5, #1A52B5);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 24px rgba(0,61,165,0.25);
+      margin-bottom: 14px;
+    }
+    .login-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      color: #002880;
+      text-align: center;
+    }
+    .login-sub {
+      font-size: 13px;
+      color: #7A90B8;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .fg { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+    .fl { font-size: 12px; font-weight: 700; color: #3D5075; letter-spacing: .02em; }
+    .fi {
+      font-family: inherit;
+      font-size: 14px;
+      padding: 12px 16px;
+      border: 1.5px solid #E1E8F5;
+      border-radius: 10px;
+      background: #F3F6FC;
+      color: #0A1628;
+      outline: none;
+      transition: all .2s;
+    }
+    .fi:focus {
+      border-color: #003DA5;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(0,61,165,0.08);
+    }
+    .fi::placeholder { color: #7A90B8; }
+    .btn-login {
+      width: 100%;
+      font-family: inherit;
+      font-size: 14px; font-weight: 700;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #003DA5, #002880);
+      color: white;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 8px;
+    }
+    .btn-login:hover {
+      background: linear-gradient(135deg, #002880, #001A6E);
+      box-shadow: 0 8px 24px rgba(0,61,165,0.3);
+    }
+    .btn-login:active { transform: scale(0.98); }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error-msg {
+      background: #FCEAEA;
+      color: #9B1919;
+      font-size: 13px; font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+      text-align: center;
+    }
+    .error-msg.show { display: block; }
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 11px;
+      color: #7A90B8;
+    }
+    @media (max-width: 480px) {
+      .login-wrap { padding: 32px 24px; }
+      .login-title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="login-logo-icon">&#128218;</div>
+    </div>
+    <div class="login-title">LuKiBooks</div>
+    <div class="login-sub">Ministerio de Educaci&oacute;n P&uacute;blica &middot; Costa Rica</div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <form id="loginForm">
+      <div class="fg">
+        <label class="fl">Usuario</label>
+        <input class="fi" type="text" id="inputUser" placeholder="Ingrese su usuario" autocomplete="username" required>
+      </div>
+      <div class="fg">
+        <label class="fl">Contrase&ntilde;a</label>
+        <input class="fi" type="password" id="inputPass" placeholder="Ingrese su contrase&ntilde;a" autocomplete="current-password" required>
+      </div>
+      <button class="btn-login" type="submit" id="btnLogin">Iniciar sesi&oacute;n</button>
+    </form>
+
+    <div class="login-footer">
+      LuKiBooks v2.0
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+      var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      var BASE = isLocal ? 'http://localhost:3000/api' : 'https://biblioapp-nclh.onrender.com/api';
+
+      // Si ya hay token, redirigir al inicio
+      if (localStorage.getItem('biblio_token')) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      var form = document.getElementById('loginForm');
+      var errEl = document.getElementById('errorMsg');
+      var btn = document.getElementById('btnLogin');
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errEl.classList.remove('show');
+        btn.disabled = true;
+        btn.textContent = 'Ingresando...';
+
+        var usuario = document.getElementById('inputUser').value.trim();
+        var password = document.getElementById('inputPass').value;
+
+        fetch(BASE + '/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario: usuario, password: password })
+        })
+        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+        .then(function (r) {
+          if (!r.ok) {
+            errEl.textContent = r.data.error || 'Credenciales incorrectas';
+            errEl.classList.add('show');
+            btn.disabled = false;
+            btn.textContent = 'Iniciar sesi\u00F3n';
+            return;
+          }
+          localStorage.setItem('biblio_token', r.data.token);
+          localStorage.setItem('biblio_user', JSON.stringify(r.data.user));
+          window.location.href = 'index.html';
+        })
+        .catch(function () {
+          errEl.textContent = 'Error de conexi\u00F3n con el servidor';
+          errEl.classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Iniciar sesi\u00F3n';
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

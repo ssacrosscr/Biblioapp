@@ -10,7 +10,8 @@ window.BiblioApp = window.BiblioApp || {};
   /* Páginas permitidas (whitelist estricta) */
   var PAGES = [
     'inicio', 'prestamos', 'devoluciones', 'catalogo',
-    'agregar', 'estudiantes', 'docentes', 'estadisticas'
+    'agregar', 'estudiantes', 'docentes', 'estadisticas',
+    'historial', 'usuarios'
   ];
 
   /* Funciones de renderizado por página (se registran desde cada módulo) */

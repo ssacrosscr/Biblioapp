@@ -44,7 +44,10 @@
         +     '</div>'
         +   '</div>'
         +   '<div class="bft">' + chip
-        +     '<span style="font-size:11px;color:var(--text3)">' + l.ejemplares + ' ej.</span>'
+        +     '<div class="action-btns">'
+        +       '<button class="btn sm" data-edit-libro="' + l.id + '" title="Editar">&#9998;</button>'
+        +       '<button class="btn sm" data-del-libro="' + l.id + '" title="Eliminar" style="color:var(--danger);border-color:var(--danger)">&#128465;</button>'
+        +     '</div>'
         +   '</div>'
         + '</div>';
     }).join('');
@@ -57,6 +60,79 @@
   });
   document.addEventListener('change', function (e) {
     if (e.target.id === 'filterMateria') renderCatalogo();
+  });
+
+  /* Editar libro */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-edit-libro]');
+    if (!btn) return;
+    e.stopPropagation();
+    var id = parseInt(btn.getAttribute('data-edit-libro'));
+    var l = B.getLibro(id);
+    if (!l) return;
+    B.$('el-id').value = id;
+    B.$('el-titulo').value = l.titulo;
+    B.$('el-autor').value = l.autor || '';
+    B.$('el-isbn').value = l.isbn || '';
+    B.$('el-materia').value = l.materia;
+    B.$('el-nivel').value = l.nivel || '';
+    B.$('el-ejemplares').value = l.ejemplares;
+    B.$('el-editorial').value = l.editorial || '';
+    B.openModal('modalEditLibro');
+  });
+
+  /* Guardar edición */
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#btnGuardarEditLibro')) return;
+    var id = parseInt(B.$('el-id').value);
+    var titulo = B.cleanInput(B.val('el-titulo'), 200);
+    var materia = B.val('el-materia');
+    if (!titulo || !materia) {
+      B.showToast('T\u00EDtulo y materia son obligatorios', true);
+      return;
+    }
+    var data = {
+      titulo: titulo,
+      autor: B.cleanInput(B.val('el-autor'), 200),
+      isbn: B.cleanInput(B.val('el-isbn'), 30),
+      materia: materia,
+      nivel: B.val('el-nivel') || 'General',
+      ejemplares: Math.max(0, B.valNum('el-ejemplares')),
+      editorial: B.cleanInput(B.val('el-editorial'), 200),
+    };
+    B.apiEditLibro(id, data).then(function () {
+      B.closeModal('modalEditLibro');
+      B.showToast('\u2713 Libro actualizado');
+      renderCatalogo();
+    }).catch(function () {
+      B.showToast('Error al actualizar', true);
+    });
+  });
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#btnCancelEditLibro')) B.closeModal('modalEditLibro');
+  });
+
+  /* Eliminar libro (soft delete) */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-del-libro]');
+    if (!btn) return;
+    e.stopPropagation();
+    var id = parseInt(btn.getAttribute('data-del-libro'));
+    var l = B.getLibro(id);
+    if (!l) return;
+    B.confirm(
+      '\u00BFEliminar "' + l.titulo + '"?',
+      'El libro se mover\u00E1 a eliminados y no aparecer\u00E1 en el cat\u00E1logo.',
+      function () {
+        B.apiDeleteLibro(id).then(function () {
+          B.showToast('\u2713 Libro eliminado');
+          renderCatalogo();
+        }).catch(function () {
+          B.showToast('Error al eliminar', true);
+        });
+      }
+    );
   });
 
 })(window.BiblioApp);
