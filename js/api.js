@@ -36,6 +36,10 @@ window.BiblioApp = window.BiblioApp || {};
         window.location.href = 'login.html';
         return Promise.reject(new Error('No autorizado'));
       }
+      var ct = (res.headers.get('content-type') || '');
+      if (ct.indexOf('application/json') === -1) {
+        throw new Error('El servidor no respondió correctamente. Verifique que el backend esté activo.');
+      }
       if (!res.ok) return res.json().then(function (d) { throw new Error(d.error || 'Error ' + res.status); });
       return res.json();
     });
