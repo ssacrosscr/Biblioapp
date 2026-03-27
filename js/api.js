@@ -10,7 +10,7 @@ window.BiblioApp = window.BiblioApp || {};
   var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   var BASE = isLocal
     ? 'http://localhost:3000/api'
-    : 'https://biblioapp-api.onrender.com/api';
+    : 'https://biblioapp-nclh.onrender.com/api';
 
   function request(method, path, body) {
     var opts = {
