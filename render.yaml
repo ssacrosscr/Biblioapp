@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: biblioapp-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production

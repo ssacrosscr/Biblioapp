@@ -7,7 +7,10 @@ window.BiblioApp = window.BiblioApp || {};
 
 (function (B) {
 
-  var BASE = window.location.origin + '/api';
+  var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  var BASE = isLocal
+    ? 'http://localhost:3000/api'
+    : 'https://biblioapp-api.onrender.com/api';
 
   function request(method, path, body) {
     var opts = {
