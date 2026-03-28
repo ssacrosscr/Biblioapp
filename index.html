@@ -626,26 +626,43 @@
 
   <!-- Panel: Estadísticas -->
   <div class="vis-panel" id="visPanel-stats" style="display:none">
-    <div class="srow" style="gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end">
-      <div class="fg" style="margin:0">
-        <label class="fl">Desde</label>
-        <input class="fi" type="date" id="statsDesde" style="width:145px">
+    <!-- Filtro de fechas -->
+    <div class="card" style="padding:14px 18px;margin-bottom:16px">
+      <div class="srow" style="gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div class="fg" style="margin:0">
+          <label class="fl">Desde</label>
+          <input class="fi" type="date" id="statsDesde" style="width:145px">
+        </div>
+        <div class="fg" style="margin:0">
+          <label class="fl">Hasta</label>
+          <input class="fi" type="date" id="statsHasta" style="width:145px">
+        </div>
+        <button class="btn primary" id="btnCargarStats">&#128202; Actualizar</button>
+        <button class="btn" id="btnStatsLimpiar">Limpiar fechas</button>
       </div>
-      <div class="fg" style="margin:0">
-        <label class="fl">Hasta</label>
-        <input class="fi" type="date" id="statsHasta" style="width:145px">
-      </div>
-      <button class="btn primary" id="btnCargarStats">Actualizar</button>
     </div>
+    <!-- KPI cards -->
     <div class="vis-stats-grid" id="visStatsGrid"></div>
-    <div class="vis-charts-grid">
-      <div class="card">
-        <div class="vis-chart-title">Uso por docente (minutos)</div>
-        <canvas id="chartDocente" height="280"></canvas>
+    <!-- Gráfica 1: barras por docente (ancho completo) -->
+    <div class="card vis-chart-card-full" style="margin-bottom:16px">
+      <div class="vis-chart-title">&#128100; Visitas y estudiantes por docente</div>
+      <div style="position:relative;height:320px">
+        <canvas id="chartDocente"></canvas>
       </div>
-      <div class="card">
-        <div class="vis-chart-title">Distribución por secci&oacute;n</div>
-        <canvas id="chartSeccion" height="280"></canvas>
+    </div>
+    <!-- Gráficas 2 y 3: lado a lado -->
+    <div class="vis-charts-grid">
+      <div class="card vis-chart-card">
+        <div class="vis-chart-title">&#127979; Distribución por secci&oacute;n</div>
+        <div style="position:relative;height:280px">
+          <canvas id="chartSeccion"></canvas>
+        </div>
+      </div>
+      <div class="card vis-chart-card">
+        <div class="vis-chart-title">&#9200; Tiempo promedio por secci&oacute;n (min)</div>
+        <div style="position:relative;height:280px">
+          <canvas id="chartTiempo"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -977,7 +994,7 @@
   <div class="modal">
     <div class="modal-title">Mi perfil</div>
     <div class="modal-sub">Editar mis datos personales</div>
-    <div id="mp-foto-wrap" style="text-align:center;margin-bottom:8px">
+    <div id="mp-foto-wrap" style="display:flex;flex-direction:column;align-items:center;margin-bottom:8px">
       <div class="profile-foto-placeholder" id="mp-foto-preview" title="Cambiar foto">&#128100;</div>
       <input type="file" id="mp-foto-input" accept="image/*" style="display:none">
       <input type="hidden" id="mp-foto-data">

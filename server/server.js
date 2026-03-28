@@ -648,6 +648,11 @@ app.get('/api/visitas', auth, biblioOnly, async (req, res) => {
     if (req.query.docenteId)  query.docenteId  = parseInt(req.query.docenteId);
     if (req.query.seccion)    query.seccion    = req.query.seccion;
     if (req.query.estado)     query.estado     = req.query.estado;
+    if (req.query.desde || req.query.hasta) {
+      query.fecha = {};
+      if (req.query.desde) query.fecha.$gte = req.query.desde;
+      if (req.query.hasta) query.fecha.$lte = req.query.hasta;
+    }
     const visitas = await db.collection('visitas').find(query).sort({ id: -1 }).toArray();
     res.json(toClientArray(visitas));
   } catch (err) {
@@ -746,38 +751,51 @@ app.delete('/api/visitas/:id', auth, adminOnly, async (req, res) => {
 app.get('/api/visitas/stats', auth, biblioOnly, async (req, res) => {
   try {
     const { desde, hasta } = req.query;
-    const query = { estado: 'completado' };
+    const query = {};
     if (desde || hasta) {
       query.fecha = {};
       if (desde) query.fecha.$gte = desde;
       if (hasta) query.fecha.$lte = hasta;
     }
     const visitas = await db.collection('visitas').find(query).toArray();
+    const completadas = visitas.filter(v => v.estado === 'completado');
 
-    // Por docente
-    const porDocente = {};
+    // Obtener nombres de docentes
+    const docenteIds = [...new Set(visitas.map(v => v.docenteId).filter(Boolean))];
+    const docentesDocs = await db.collection('docentes').find({ id: { $in: docenteIds } }).toArray();
+    const docenteMap = {};
+    docentesDocs.forEach(d => { docenteMap[d.id] = d.nombre; });
+
+    // Por docente (array ordenado por visitas desc)
+    const porDocenteMap = {};
     visitas.forEach(v => {
-      const k = v.docenteNombre || ('Docente ' + v.docenteId);
-      if (!porDocente[k]) porDocente[k] = { minutos: 0, visitas: 0 };
-      porDocente[k].minutos += v.tiempoTotal || 0;
-      porDocente[k].visitas++;
+      const k = v.docenteId;
+      if (!porDocenteMap[k]) porDocenteMap[k] = { docenteId: k, nombre: docenteMap[k] || ('Docente #' + k), totalVisitas: 0, totalEstudiantes: 0, totalMinutos: 0 };
+      porDocenteMap[k].totalVisitas++;
+      porDocenteMap[k].totalEstudiantes += v.cantEstudiantes || 0;
+      porDocenteMap[k].totalMinutos += v.tiempoTotal || 0;
     });
+    const porDocente = Object.values(porDocenteMap).sort((a, b) => b.totalVisitas - a.totalVisitas);
 
-    // Por sección
-    const porSeccion = {};
+    // Por sección (array ordenado por visitas desc)
+    const porSeccionMap = {};
     visitas.forEach(v => {
-      if (!porSeccion[v.seccion]) porSeccion[v.seccion] = { minutos: 0, visitas: 0 };
-      porSeccion[v.seccion].minutos += v.tiempoTotal || 0;
-      porSeccion[v.seccion].visitas++;
+      const k = v.seccion || 'Sin sección';
+      if (!porSeccionMap[k]) porSeccionMap[k] = { _id: k, totalVisitas: 0, totalEstudiantes: 0, totalMinutos: 0 };
+      porSeccionMap[k].totalVisitas++;
+      porSeccionMap[k].totalEstudiantes += v.cantEstudiantes || 0;
+      porSeccionMap[k].totalMinutos += v.tiempoTotal || 0;
     });
+    const porSeccion = Object.values(porSeccionMap).sort((a, b) => b.totalVisitas - a.totalVisitas);
 
-    const totalMin = visitas.reduce((a, v) => a + (v.tiempoTotal || 0), 0);
-    const promMin  = visitas.length ? Math.round(totalMin / visitas.length) : 0;
+    const totalMin = completadas.reduce((a, v) => a + (v.tiempoTotal || 0), 0);
+    const totalEst = visitas.reduce((a, v) => a + (v.cantEstudiantes || 0), 0);
 
     res.json({
-      totalVisitas: visitas.length,
-      totalMinutos: totalMin,
-      promedioMinutos: promMin,
+      totalVisitas:     visitas.length,
+      totalEstudiantes: totalEst,
+      totalMinutos:     totalMin,
+      tiempoPromedioMin: completadas.length ? Math.round(totalMin / completadas.length) : 0,
       porDocente,
       porSeccion
     });
