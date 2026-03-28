@@ -644,108 +644,324 @@
   }
 
   /* ────────────────────────────────────────────────────────────
-     CANVAS — Fondo animado con orbs y partículas
-     requestAnimationFrame loop, todo en GPU (transform/opacity)
+     CANVAS — Universo espacial realista: 60fps, parallax, nebulosas
   ──────────────────────────────────────────────────────────── */
   var canvas = document.getElementById('bgCanvas');
   var ctx    = canvas.getContext('2d');
-  var W, H;
-  var mouseX = 0, mouseY = 0;
-  var mouseTargetX = 0, mouseTargetY = 0;
+  var W, H, t0 = performance.now();
+  var mouseX = 0, mouseY = 0, mTX = 0, mTY = 0;
 
   function resizeCanvas() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    mouseX = mouseTargetX = W * .5;
-    mouseY = mouseTargetY = H * .5;
+    mTX = mouseX = W * .5;
+    mTY = mouseY = H * .5;
+    buildStars(); /* reconstruir al resize */
   }
-  resizeCanvas();
+
+  document.addEventListener('mousemove', function (e) { mTX = e.clientX; mTY = e.clientY; });
   window.addEventListener('resize', resizeCanvas);
 
-  document.addEventListener('mousemove', function (e) {
-    mouseTargetX = e.clientX;
-    mouseTargetY = e.clientY;
-  });
+  /* ── Estrellas: 3 capas de profundidad (parallax real) ── */
+  var STAR_LAYERS = [];
 
-  /* Ambient orbs — each reacts to mouse (parallax) */
-  var ORBS = [
-    { bx: .12, by: .18, r: 300, rgb: [0,  70, 210], a: .12, px: .016, py: .014, phase: 0,   spd: .00035 },
-    { bx: .88, by: .12, r: 240, rgb: [0, 150, 255], a: .08, px: .011, py: .009, phase: 1.8, spd: .00028 },
-    { bx: .78, by: .82, r: 280, rgb: [0,  40, 170], a: .10, px: .014, py: .012, phase: 3.2, spd: .00042 },
-    { bx: .18, by: .78, r: 220, rgb: [220, 70,  0], a: .05, px: .009, py: .008, phase: 5.1, spd: .00032 },
-    { bx: .50, by: .50, r: 360, rgb: [0,  25, 110], a: .07, px: .007, py: .006, phase: 2.6, spd: .00024 },
-  ];
-
-  /* Sparkles — tiny twinkling dots */
-  var SPARKLES = (function () {
-    var arr = [];
-    var COLORS = [
-      [255, 255, 255],
-      [160, 210, 255],
-      [255, 160,  80],
+  function buildStars() {
+    STAR_LAYERS = [
+      /* Capa lejana: muchas, pequeñas, lentas */
+      buildLayer(280, .15, 1.1,  .003),
+      /* Capa media */
+      buildLayer(130, .5,  1.8,  .008),
+      /* Capa cercana: pocas, grandes, rápidas */
+      buildLayer(40,  .9,  2.8,  .018),
     ];
-    for (var i = 0; i < 60; i++) {
-      arr.push({
-        x:    Math.random(),       /* 0-1 relative */
+  }
+
+  function buildLayer(count, baseAlpha, maxSize, parallaxFactor) {
+    var stars = [];
+    for (var i = 0; i < count; i++) {
+      var size = Math.random() * maxSize + .3;
+      stars.push({
+        x:    Math.random(),
         y:    Math.random(),
-        s:    Math.random() * 1.4 + .4,
-        peak: Math.random() * .6 + .2,
-        phase: Math.random() * Math.PI * 2,
-        spd:  Math.random() * .0055 + .002,
-        rgb:  COLORS[Math.floor(Math.random() * COLORS.length)]
+        size: size,
+        alpha: baseAlpha * (.4 + Math.random() * .6),
+        twinklePhase: Math.random() * Math.PI * 2,
+        twinkleSpd:   Math.random() * .0028 + .0008,
+        /* Color: mayoría blancas, algunas azul-hielo, pocas cálidas */
+        r: 255,
+        g: Math.random() > .85 ? 200 + Math.floor(Math.random()*55) : 255,
+        b: Math.random() > .7  ? 220 + Math.floor(Math.random()*35) : 255,
+        px: parallaxFactor,
       });
     }
-    return arr;
-  })();
+    return stars;
+  }
 
-  /* Main draw loop */
-  var t0 = performance.now();
+  /* ── Nebulosas: capas de color profundo con parallax lento ── */
+  var NEBULAE = [
+    /* Nebulosa azul-violeta arriba-izquierda */
+    { bx:.08, by:.12, rx:480, ry:320, rgb:[30,60,200],  a:.13, px:.006, py:.005, phase:0,   spd:.00018 },
+    /* Nebulosa azul cian arriba-derecha */
+    { bx:.85, by:.08, rx:360, ry:260, rgb:[0,120,240],  a:.09, px:.004, py:.003, phase:2.1, spd:.00022 },
+    /* Nebulosa índigo centro */
+    { bx:.5,  by:.45, rx:520, ry:380, rgb:[10,20,110],  a:.10, px:.003, py:.002, phase:4.5, spd:.00014 },
+    /* Nebulosa naranja-rojo (estrella lejana) abajo-derecha */
+    { bx:.82, by:.82, rx:300, ry:220, rgb:[180,50,10],  a:.06, px:.007, py:.006, phase:1.3, spd:.00026 },
+    /* Nebulosa violeta abajo-izquierda */
+    { bx:.15, by:.78, rx:340, ry:250, rgb:[80,20,180],  a:.07, px:.005, py:.004, phase:3.7, spd:.00019 },
+    /* Nebulosa cyan pálida (tenue, grande) */
+    { bx:.42, by:.18, rx:400, ry:300, rgb:[0,180,220],  a:.05, px:.002, py:.002, phase:5.2, spd:.00012 },
+  ];
 
+  /* ── Planeta (esfera realista con gradiente 3D) ── */
+  var PLANET = {
+    bx: .82, by: .15,       /* posición base relativa */
+    r:  W > 768 ? 68 : 0,   /* radio (0 en móvil pequeño) */
+    px: .022, py: .018,
+    ringAngle: -0.28,        /* inclinación del anillo en radianes */
+  };
+
+  /* ── Shooting stars ── */
+  var SHOOTS = [];
+  function spawnShoot() {
+    var edge = Math.random();
+    SHOOTS.push({
+      x:    edge * W,
+      y:    Math.random() * H * .5,
+      len:  Math.random() * 120 + 60,
+      spd:  Math.random() * 6 + 5,
+      ang:  Math.PI / 4 + (Math.random() - .5) * .4,
+      alpha: 0,
+      life:  0,
+      maxLife: Math.random() * 40 + 30,
+    });
+  }
+  /* Shoot star timer */
+  var lastShoot = 0;
+  var nextShootDelay = 3000 + Math.random() * 5000;
+
+  /* ── Draw nebula with elliptical gradient ── */
+  function drawNebula(o, t, mx, my) {
+    var pulse = Math.sin(t * o.spd * 1000 + o.phase) * .08;
+    var ox = o.bx * W - mx * W * o.px;
+    var oy = o.by * H - my * H * o.py;
+    var rx = o.rx * (1 + pulse);
+    var ry = o.ry * (1 + pulse * .7);
+    var al = o.a + pulse * .02;
+
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.scale(1, ry / rx);
+    var g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+    g.addColorStop(0,   'rgba(' + o.rgb[0] + ',' + o.rgb[1] + ',' + o.rgb[2] + ',' + (al * 1.4) + ')');
+    g.addColorStop(.35, 'rgba(' + o.rgb[0] + ',' + o.rgb[1] + ',' + o.rgb[2] + ',' + al + ')');
+    g.addColorStop(1,   'rgba(' + o.rgb[0] + ',' + o.rgb[1] + ',' + o.rgb[2] + ',0)');
+    ctx.beginPath();
+    ctx.arc(0, 0, rx, 0, 6.2832);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /* ── Draw planet ── */
+  function drawPlanet(mx, my, t) {
+    var pr = PLANET.r;
+    if (pr <= 0) return;
+    var px = PLANET.bx * W - mx * W * PLANET.px;
+    var py = PLANET.by * H - my * H * PLANET.py;
+
+    /* Sombra difusa detrás del planeta */
+    var shadow = ctx.createRadialGradient(px, py, pr * .6, px, py, pr * 2.2);
+    shadow.addColorStop(0, 'rgba(0,20,80,.22)');
+    shadow.addColorStop(1, 'rgba(0,20,80,0)');
+    ctx.beginPath();
+    ctx.arc(px, py, pr * 2.2, 0, 6.2832);
+    ctx.fillStyle = shadow;
+    ctx.fill();
+
+    /* Cuerpo del planeta — gradiente esférico 3D */
+    var light = ctx.createRadialGradient(
+      px - pr * .32, py - pr * .3, pr * .08,
+      px, py, pr
+    );
+    light.addColorStop(0,   'rgba(80,140,255, .95)');
+    light.addColorStop(.35, 'rgba(30,70,200,  .92)');
+    light.addColorStop(.72, 'rgba(10,30,130,  .96)');
+    light.addColorStop(1,   'rgba(2,8,60,     1)');
+    ctx.beginPath();
+    ctx.arc(px, py, pr, 0, 6.2832);
+    ctx.fillStyle = light;
+    ctx.fill();
+
+    /* Brillo atmosférico en el borde */
+    var atm = ctx.createRadialGradient(px, py, pr * .82, px, py, pr * 1.14);
+    atm.addColorStop(0, 'rgba(80,180,255,0)');
+    atm.addColorStop(.6, 'rgba(60,160,255,.09)');
+    atm.addColorStop(1, 'rgba(30,100,255,.18)');
+    ctx.beginPath();
+    ctx.arc(px, py, pr * 1.14, 0, 6.2832);
+    ctx.fillStyle = atm;
+    ctx.fill();
+
+    /* Anillo — elipse inclinada con clip para ocultar la parte trasera */
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(PLANET.ringAngle);
+
+    /* Parte trasera del anillo (detrás del planeta) */
+    ctx.beginPath();
+    ctx.ellipse(0, 0, pr * 2.1, pr * .38, 0, Math.PI, 0);
+    ctx.strokeStyle = 'rgba(180,210,255,.28)';
+    ctx.lineWidth = 7;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(120,170,255,.15)';
+    ctx.lineWidth = 14;
+    ctx.stroke();
+
+    /* Clip al círculo del planeta para tapar la parte del anillo que cruza */
+    ctx.beginPath();
+    ctx.arc(0, 0, pr, 0, 6.2832);
+    ctx.clip();
+    ctx.clearRect(-pr, -pr, pr * 2, pr * 2);
+
+    /* Redibuja planeta encima del clip para no borrarlo */
+    var light2 = ctx.createRadialGradient(
+      -pr * .32, -pr * .3, pr * .08, 0, 0, pr
+    );
+    light2.addColorStop(0,   'rgba(80,140,255,.95)');
+    light2.addColorStop(.35, 'rgba(30,70,200, .92)');
+    light2.addColorStop(.72, 'rgba(10,30,130, .96)');
+    light2.addColorStop(1,   'rgba(2,8,60,    1)');
+    ctx.beginPath();
+    ctx.arc(0, 0, pr, 0, 6.2832);
+    ctx.fillStyle = light2;
+    ctx.fill();
+    ctx.restore();
+
+    /* Parte delantera del anillo (delante del planeta) */
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(PLANET.ringAngle);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, pr * 2.1, pr * .38, 0, 0, Math.PI);
+    ctx.strokeStyle = 'rgba(200,225,255,.35)';
+    ctx.lineWidth = 7;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(160,200,255,.18)';
+    ctx.lineWidth = 14;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /* ── Draw shooting star ── */
+  function drawShoot(s) {
+    var ex = s.x + Math.cos(s.ang) * s.len;
+    var ey = s.y + Math.sin(s.ang) * s.len;
+    var g = ctx.createLinearGradient(s.x, s.y, ex, ey);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(.6, 'rgba(200,230,255,' + s.alpha * .7 + ')');
+    g.addColorStop(1, 'rgba(255,255,255,' + s.alpha + ')');
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(ex, ey);
+    ctx.strokeStyle = g;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    /* Punta brillante */
+    ctx.beginPath();
+    ctx.arc(ex, ey, 1.2, 0, 6.2832);
+    ctx.fillStyle = 'rgba(255,255,255,' + s.alpha + ')';
+    ctx.fill();
+  }
+
+  /* ── Main loop ── */
   function frame(now) {
-    var t = (now - t0) * .001; /* seconds */
+    var t   = (now - t0) * .001;
+    var dt  = now - (frame._last || now);
+    frame._last = now;
 
-    /* Lerp mouse for smooth parallax */
-    mouseX += (mouseTargetX - mouseX) * .04;
-    mouseY += (mouseTargetY - mouseY) * .04;
-
-    var mx = (mouseX / W - .5); /* -0.5 → 0.5 */
+    /* Smooth mouse lerp */
+    mouseX += (mTX - mouseX) * .035;
+    mouseY += (mTY - mouseY) * .035;
+    var mx = (mouseX / W - .5);
     var my = (mouseY / H - .5);
 
-    ctx.clearRect(0, 0, W, H);
-
-    /* Base fill */
-    ctx.fillStyle = '#00071A';
+    /* Fondo: negro espacio profundo */
+    ctx.fillStyle = '#00020E';
     ctx.fillRect(0, 0, W, H);
 
-    /* Ambient orbs */
-    ORBS.forEach(function (o) {
-      var pulse = Math.sin(t * o.spd * 1000 + o.phase) * .1;
-      var r  = o.r * (1 + pulse);
-      var ox = o.bx * W - mx * W * o.px;
-      var oy = o.by * H - my * H * o.py;
-      var al = o.a + pulse * .025;
+    /* 1. Nebulosas (capa más profunda) */
+    NEBULAE.forEach(function (o) { drawNebula(o, t, mx, my); });
 
-      var g = ctx.createRadialGradient(ox, oy, 0, ox, oy, r);
-      g.addColorStop(0, 'rgba(' + o.rgb[0] + ',' + o.rgb[1] + ',' + o.rgb[2] + ',' + al + ')');
-      g.addColorStop(1, 'rgba(' + o.rgb[0] + ',' + o.rgb[1] + ',' + o.rgb[2] + ',0)');
+    /* 2. Estrellas por capa (parallax diferencial) */
+    STAR_LAYERS.forEach(function (layer) {
+      layer.forEach(function (s) {
+        var tw = Math.sin(t * s.twinkleSpd * 1000 + s.twinklePhase);
+        /* Twinkle: varía alpha y tamaño levemente */
+        var a  = s.alpha * (.65 + .35 * (tw * .5 + .5));
+        var sz = s.size  * (.88 + .12 * (tw * .5 + .5));
+        /* Parallax: estrellas lejanas se mueven menos */
+        var sx = s.x * W - mx * W * s.px;
+        var sy = s.y * H - my * H * s.px;
 
-      ctx.beginPath();
-      ctx.arc(ox, oy, r, 0, 6.2832);
-      ctx.fillStyle = g;
-      ctx.fill();
+        /* Estrellas grandes: pequeño halo de difracción */
+        if (sz > 1.8) {
+          ctx.beginPath();
+          ctx.arc(sx, sy, sz * 2.4, 0, 6.2832);
+          ctx.fillStyle = 'rgba(' + s.r + ',' + s.g + ',' + s.b + ',' + (a * .12) + ')';
+          ctx.fill();
+          /* Rayos de difracción (estrellas muy brillantes) */
+          if (sz > 2.2) {
+            ctx.save();
+            ctx.globalAlpha = a * .18;
+            ctx.strokeStyle = 'rgba(' + s.r + ',' + s.g + ',' + s.b + ',1)';
+            ctx.lineWidth = .6;
+            for (var ang = 0; ang < 4; ang++) {
+              var ra = ang * Math.PI / 4 + t * .08;
+              ctx.beginPath();
+              ctx.moveTo(sx + Math.cos(ra) * sz, sy + Math.sin(ra) * sz);
+              ctx.lineTo(sx + Math.cos(ra) * sz * 5, sy + Math.sin(ra) * sz * 5);
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+        }
+
+        ctx.beginPath();
+        ctx.arc(sx, sy, sz, 0, 6.2832);
+        ctx.fillStyle = 'rgba(' + s.r + ',' + s.g + ',' + s.b + ',' + a + ')';
+        ctx.fill();
+      });
     });
 
-    /* Sparkles */
-    SPARKLES.forEach(function (s) {
-      var alpha = s.peak * (Math.sin(t * s.spd * 1000 + s.phase) * .5 + .5);
-      ctx.beginPath();
-      ctx.arc(s.x * W, s.y * H, s.s, 0, 6.2832);
-      ctx.fillStyle = 'rgba(' + s.rgb[0] + ',' + s.rgb[1] + ',' + s.rgb[2] + ',' + alpha + ')';
-      ctx.fill();
-    });
+    /* 3. Planeta */
+    drawPlanet(mx, my, t);
+
+    /* 4. Shooting stars */
+    if (now - lastShoot > nextShootDelay) {
+      spawnShoot();
+      lastShoot      = now;
+      nextShootDelay = 4000 + Math.random() * 7000;
+    }
+    for (var i = SHOOTS.length - 1; i >= 0; i--) {
+      var s = SHOOTS[i];
+      s.life++;
+      /* Fade in/out sobre el ciclo de vida */
+      var progress = s.life / s.maxLife;
+      s.alpha = progress < .25
+        ? progress / .25
+        : 1 - (progress - .25) / .75;
+      s.alpha = Math.max(0, Math.min(1, s.alpha)) * .85;
+      s.x += Math.cos(s.ang) * s.spd;
+      s.y += Math.sin(s.ang) * s.spd;
+      drawShoot(s);
+      if (s.life >= s.maxLife) SHOOTS.splice(i, 1);
+    }
 
     requestAnimationFrame(frame);
   }
+
+  resizeCanvas();
   requestAnimationFrame(frame);
 
   /* ────────────────────────────────────────────────────────────
