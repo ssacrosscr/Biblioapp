@@ -487,6 +487,7 @@
       <select class="fi" id="filterMisSolEstado" style="width:190px">
         <option value="">Todos los estados</option>
         <option value="pendiente">Pendiente</option>
+        <option value="en_espera">En espera</option>
         <option value="aprobada">Aprobada</option>
         <option value="rechazada">Rechazada</option>
       </select>
@@ -494,7 +495,7 @@
     <div class="table-responsive">
       <table class="tbl">
         <thead>
-          <tr><th>#</th><th>Fecha</th><th>Libros</th><th>Estado</th><th>Acciones</th></tr>
+          <tr><th>#</th><th>Fecha</th><th>Libros</th><th>Notas</th><th>Estado</th><th>Respuesta</th><th>Acciones</th></tr>
         </thead>
         <tbody id="misSolicitudesBody"></tbody>
       </table>
@@ -559,6 +560,7 @@
         <tbody id="solicitudesBody"></tbody>
       </table>
     </div>
+    <div id="solPaginacion"></div>
   </div>
 </section>
 
@@ -1062,9 +1064,12 @@
 <!-- Modal: Previsualización PDF -->
 <div class="modal-overlay" id="modalPdfPreview">
   <div class="modal pdf-preview-modal">
-    <div class="modal-title">&#128196; Vista previa — Boleta de Solicitud</div>
+    <div class="modal-title">&#128196; Boleta de Solicitud</div>
     <div class="pdf-preview-sub" id="pdfPreviewSub"></div>
-    <iframe id="pdfPreviewFrame" class="pdf-preview-iframe" title="Vista previa PDF"></iframe>
+    <div id="pdfIframeWrap">
+      <iframe id="pdfPreviewFrame" class="pdf-preview-iframe" title="Vista previa PDF"></iframe>
+      <div class="pdf-iframe-hint">Si no carga la vista previa, use el bot&oacute;n Descargar</div>
+    </div>
     <div class="mf">
       <button class="btn" id="btnCerrarPdfPreview">Cerrar</button>
       <button class="btn primary" id="btnDescargarPdf">&#11015; Descargar PDF</button>
@@ -1171,12 +1176,12 @@
 <!-- ═══════════════════════════════════════════════════════════
      SCRIPTS
      ═══════════════════════════════════════════════════════════ -->
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script defer src="js/sanitize.js"></script>
 <script defer src="js/data.js"></script>
 <script defer src="js/api.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script defer src="js/helpers.js"></script>
 <script defer src="js/covers.js"></script>
 <script defer src="js/ui.js"></script>

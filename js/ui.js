@@ -128,21 +128,27 @@ window.BiblioApp = window.BiblioApp || {};
    * Muestra modal de detalle de solicitud.
    */
   B.showSolicitudModal = function (s) {
+    var nombreDoc = s.solicitanteNombre || s.docenteNombre || s.usuarioNombre || '';
     B.$('solModalSub').textContent = 'Solicitud #' + s.id + ' \u2014 ' + B.fmt(s.fecha);
     B.setHTML('solModalInfo', ''
-      + '<div style="margin-bottom:8px"><strong>Docente:</strong> ' + B.esc(s.docenteNombre) + '</div>'
+      + '<div style="margin-bottom:8px"><strong>Solicitante:</strong> ' + B.esc(nombreDoc) + '</div>'
       + '<div><strong>Estado:</strong> ' + B.badgeSolicitud(s.estado) + '</div>'
     );
     B.setHTML('solModalItems', s.items.map(function (i) {
       return '<tr><td>' + B.esc(i.titulo) + '</td><td style="text-align:center">' + i.cantidad + '</td></tr>';
     }).join(''));
-    B.setHTML('solModalNotas', s.notas
-      ? '<div style="margin-top:8px"><strong>Notas del docente:</strong> ' + B.esc(s.notas) + '</div>'
+    var notasSol = s.motivacion || s.notas || '';
+    B.setHTML('solModalNotas', notasSol
+      ? '<div style="margin-top:8px"><strong>Notas:</strong> ' + B.esc(notasSol) + '</div>'
       : '');
-    B.setHTML('solModalRespuesta', s.respondidoPor
-      ? '<div style="margin-top:8px"><strong>Respondido por:</strong> ' + B.esc(s.respondidoPor)
-        + ' (' + B.fmt(s.fechaRespuesta) + ')</div>'
-        + (s.notasRespuesta ? '<div><strong>Notas:</strong> ' + B.esc(s.notasRespuesta) + '</div>' : '')
+    var notasResp = s.respuesta || s.notasRespuesta || '';
+    B.setHTML('solModalRespuesta', (s.respondidoPor || notasResp || s.fechaRespuesta)
+      ? '<div style="margin-top:8px">'
+        + (s.respondidoPor ? '<strong>Respondido por:</strong> ' + B.esc(s.respondidoPor)
+          + ' (' + B.fmt(s.fechaRespuesta) + ')<br>' : '')
+        + (s.fechaRespuesta && !s.respondidoPor ? '<strong>Fecha respuesta:</strong> ' + B.fmt(s.fechaRespuesta) + '<br>' : '')
+        + (notasResp ? '<strong>Respuesta:</strong> ' + B.esc(notasResp) : '')
+        + '</div>'
       : '');
     B.openModal('modalSolicitud');
   };

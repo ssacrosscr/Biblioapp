@@ -7,6 +7,7 @@
 (function (B) {
 
   var cart = [];
+  var submitting = false;
 
   function updateCartCount() {
     var el = B.$('cartCount');
@@ -41,6 +42,23 @@
     }).join('');
   }
 
+  function populateMateriaFilter() {
+    var sel = B.$('filterSolMateria');
+    if (!sel) return;
+    var materias = [];
+    B.libros.forEach(function (l) {
+      if (l.materia && materias.indexOf(l.materia) === -1) materias.push(l.materia);
+    });
+    materias.sort();
+    // Preservar selección actual
+    var current = sel.value;
+    sel.innerHTML = '<option value="">Todas las materias</option>'
+      + materias.map(function (m) {
+          return '<option value="' + B.esc(m) + '"' + (m === current ? ' selected' : '') + '>'
+            + B.esc(m) + '</option>';
+        }).join('');
+  }
+
   function renderBookGrid() {
     var q = (B.val('searchSolicitar')).toLowerCase();
     var m = B.val('filterSolMateria');
@@ -63,9 +81,18 @@
 
     g.innerHTML = data.map(function (l) {
       var inCart = cart.some(function (c) { return c.libroId === l.id; });
-      var btnHtml = inCart
-        ? '<button class="btn sm" disabled style="opacity:.5">&#10003; En carrito</button>'
-        : '<button class="btn sm primary" data-add-cart="' + l.id + '">+ Agregar</button>';
+      var noStock = l.ejemplares < 1;
+      var btnHtml;
+      if (noStock) {
+        btnHtml = '<button class="btn sm" disabled style="opacity:.45">Sin ejemplares</button>';
+      } else if (inCart) {
+        btnHtml = '<button class="btn sm" disabled style="opacity:.5">&#10003; En carrito</button>';
+      } else {
+        btnHtml = '<button class="btn sm primary" data-add-cart="' + l.id + '">+ Agregar</button>';
+      }
+
+      var dispNum = l.ejemplares;
+      var dispClass = noStock ? 'danger' : 'ok';
 
       return ''
         + '<div class="book-card">'
@@ -78,7 +105,7 @@
         +     '</div>'
         +   '</div>'
         +   '<div class="bft">'
-        +     '<span class="chip av">' + l.ejemplares + ' ej.</span>'
+        +     '<span class="chip ' + dispClass + '">' + dispNum + ' ej.</span>'
         +     btnHtml
         +   '</div>'
         + '</div>';
@@ -86,6 +113,7 @@
   }
 
   B.pageRenderers.solicitar = function () {
+    populateMateriaFilter();
     renderBookGrid();
     renderCart();
   };
@@ -104,6 +132,10 @@
     var id = parseInt(btn.getAttribute('data-add-cart'));
     var l = B.getLibro(id);
     if (!l) return;
+    if (l.ejemplares < 1) {
+      B.showToast('Este libro no tiene ejemplares disponibles', true);
+      return;
+    }
     if (cart.some(function (c) { return c.libroId === id; })) return;
     cart.push({ libroId: id, titulo: l.titulo, cantidad: 1 });
     B.showToast('\u2713 ' + l.titulo + ' agregado al carrito');
@@ -139,14 +171,20 @@
   /* Enviar solicitud */
   document.addEventListener('click', function (e) {
     if (!e.target.closest('#btnEnviarSolicitud')) return;
+    if (submitting) return;
     if (!cart.length) {
       B.showToast('Agregue al menos un libro al carrito', true);
       return;
     }
+    var btn = B.$('btnEnviarSolicitud');
     var notas = B.cleanInput(B.$('sol-notas') ? B.$('sol-notas').value : '', 500);
     var items = cart.map(function (c) {
-      return { libroId: c.libroId, titulo: c.titulo, cantidad: c.cantidad };
+      return { libroId: c.libroId, cantidad: c.cantidad };
     });
+
+    submitting = true;
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+
     B.apiAddSolicitud({ items: items, notas: notas }).then(function () {
       cart = [];
       if (B.$('sol-notas')) B.$('sol-notas').value = '';
@@ -155,6 +193,14 @@
       renderCart();
     }).catch(function (err) {
       B.showToast(err.message || 'Error al enviar solicitud', true);
+    }).finally(function () {
+      submitting = false;
+      if (btn) {
+        btn.disabled = false;
+        updateCartCount();
+        btn.innerHTML = '&#128230; Enviar solicitud (<span id="cartCount">'
+          + cart.reduce(function (s, c) { return s + c.cantidad; }, 0) + '</span>)';
+      }
     });
   });
 

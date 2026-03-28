@@ -7,7 +7,7 @@ window.BiblioApp = window.BiblioApp || {};
 
 (function (B) {
 
-  B.HOY = new Date('2026-03-26');
+  B.HOY = new Date();
 
   B.PAL = [
     { a: 'linear-gradient(155deg,#003DA5 0%,#1A52B5 55%,#002880 100%)', ac: '#FF9940' },

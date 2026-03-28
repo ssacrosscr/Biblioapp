@@ -81,8 +81,11 @@ window.BiblioApp = window.BiblioApp || {};
    * Retorna el doc y el filename, o null si jsPDF no está disponible.
    */
   B._buildPDF = function (solicitud) {
-    var jsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || null;
-    if (!jsPDF) { B.showToast('Error: jsPDF no disponible. Recargue la página.', true); return null; }
+    var jsPDF = (window.jspdf && window.jspdf.jsPDF)
+             || (window.jspdf && window.jspdf.default)
+             || window.jsPDF
+             || null;
+    if (!jsPDF) { B.showToast('Error: jsPDF no disponible. Recargue la p\u00E1gina.', true); return null; }
     var doc = new jsPDF();
 
     doc.setFontSize(18);
@@ -102,43 +105,73 @@ window.BiblioApp = window.BiblioApp || {};
 
     var TIPO_LABEL = { docente: 'Docente', estudiante: 'Estudiante', visitante: 'Visitante' };
     var PRIO_LABEL = { alta: 'Alta', media: 'Media', baja: 'Baja' };
-    var nombreSol = solicitud.solicitanteNombre || solicitud.docenteNombre || '';
+    var nombreSol = solicitud.solicitanteNombre || solicitud.docenteNombre || solicitud.usuarioNombre || '';
     var tipoSol   = TIPO_LABEL[solicitud.tipoSolicitante] || 'Docente';
-    var prioSol   = PRIO_LABEL[solicitud.prioridad] || 'Media';
+    var prioSol   = solicitud.prioridad ? (PRIO_LABEL[solicitud.prioridad] || 'Media') : '';
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    doc.text('Fecha: ' + solicitud.fecha, 20, 52);
+    doc.text('Fecha: ' + B.fmt(solicitud.fecha), 20, 52);
     doc.text('Solicitante: ' + nombreSol + ' (' + tipoSol + ')', 20, 59);
-    doc.text('Estado: ' + solicitud.estado.toUpperCase() + '  |  Prioridad: ' + prioSol, 20, 66);
+    var estadoLine = 'Estado: ' + solicitud.estado.toUpperCase();
+    if (prioSol) estadoLine += '  |  Prioridad: ' + prioSol;
+    doc.text(estadoLine, 20, 66);
     var infoY = 73;
     if (solicitud.respondidoPor) {
       doc.text('Respondido por: ' + solicitud.respondidoPor + ' (' + (solicitud.fechaRespuesta || '') + ')', 20, infoY);
       infoY += 7;
+    } else if (solicitud.fechaRespuesta) {
+      doc.text('Fecha de respuesta: ' + B.fmt(solicitud.fechaRespuesta), 20, infoY);
+      infoY += 7;
     }
 
-    doc.autoTable({
-      startY: infoY + 5,
-      head: [['#', 'T\u00EDtulo del libro', 'Cantidad']],
-      body: solicitud.items.map(function (item, i) {
-        return [i + 1, item.titulo, item.cantidad];
-      }),
-      styles: { fontSize: 10, cellPadding: 4 },
-      headStyles: { fillColor: [0, 61, 165], textColor: 255 },
-      alternateRowStyles: { fillColor: [235, 241, 255] },
-      margin: { left: 20, right: 20 }
-    });
+    var tableStartY = infoY + 5;
+    var finalY;
 
-    var finalY = doc.lastAutoTable.finalY + 10;
-    if (solicitud.notas) {
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({
+        startY: tableStartY,
+        head: [['#', 'T\u00EDtulo del libro', 'Cantidad']],
+        body: solicitud.items.map(function (item, i) {
+          return [i + 1, item.titulo || '', item.cantidad || 1];
+        }),
+        styles: { fontSize: 10, cellPadding: 4 },
+        headStyles: { fillColor: [0, 61, 165], textColor: 255 },
+        alternateRowStyles: { fillColor: [235, 241, 255] },
+        margin: { left: 20, right: 20 }
+      });
+      finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY)
+             ? doc.lastAutoTable.finalY + 10
+             : tableStartY + solicitud.items.length * 10 + 10;
+    } else {
+      /* Fallback: tabla manual sin plugin */
       doc.setFontSize(10);
-      doc.text('Notas del solicitante: ' + solicitud.notas, 20, finalY);
-      finalY += 10;
+      doc.setFont('helvetica', 'bold');
+      doc.text('#', 20, tableStartY);
+      doc.text('T\u00EDtulo del libro', 32, tableStartY);
+      doc.text('Cant.', 170, tableStartY);
+      doc.setFont('helvetica', 'normal');
+      solicitud.items.forEach(function (item, i) {
+        var y = tableStartY + 8 + i * 7;
+        doc.text(String(i + 1), 20, y);
+        doc.text(doc.splitTextToSize(item.titulo || '', 130)[0], 32, y);
+        doc.text(String(item.cantidad || 1), 170, y);
+      });
+      finalY = tableStartY + 8 + solicitud.items.length * 7 + 10;
     }
-    if (solicitud.notasRespuesta) {
+    var notasSol = solicitud.motivacion || solicitud.notas || '';
+    var notasResp = solicitud.respuesta || solicitud.notasRespuesta || '';
+    if (notasSol) {
       doc.setFontSize(10);
-      doc.text('Notas de respuesta: ' + solicitud.notasRespuesta, 20, finalY);
-      finalY += 10;
+      var notasLines = doc.splitTextToSize('Notas del solicitante: ' + notasSol, 170);
+      doc.text(notasLines, 20, finalY);
+      finalY += notasLines.length * 6 + 4;
+    }
+    if (notasResp) {
+      doc.setFontSize(10);
+      var respLines = doc.splitTextToSize('Notas de respuesta: ' + notasResp, 170);
+      doc.text(respLines, 20, finalY);
+      finalY += respLines.length * 6 + 4;
     }
 
     finalY += 20;
@@ -156,49 +189,77 @@ window.BiblioApp = window.BiblioApp || {};
   };
 
   /**
-   * Muestra la previsualización del PDF en el modal y permite descargarlo.
+   * Genera y descarga el PDF de una boleta de solicitud.
+   * Muestra previsualización en modal si está disponible; de lo contrario descarga directo.
    */
   B.generatePDF = function (solicitud) {
-    var result = B._buildPDF(solicitud);
+    var result;
+    try {
+      result = B._buildPDF(solicitud);
+    } catch (err) {
+      console.error('Error generando PDF:', err);
+      B.showToast('Error al generar PDF: ' + (err.message || 'revise la consola'), true);
+      return;
+    }
     if (!result) return;
 
-    var blob    = result.doc.output('blob');
-    var url     = URL.createObjectURL(blob);
-    var iframe  = document.getElementById('pdfPreviewFrame');
-    var dlBtn   = document.getElementById('btnDescargarPdf');
-    var subEl   = document.getElementById('pdfPreviewSub');
-    var modal   = document.getElementById('modalPdfPreview');
-    var cerrar  = document.getElementById('btnCerrarPdfPreview');
+    var nombre = solicitud.solicitanteNombre || solicitud.docenteNombre || solicitud.usuarioNombre || '';
+    var modal  = document.getElementById('modalPdfPreview');
+    var iframe = document.getElementById('pdfPreviewFrame');
+    var dlBtn  = document.getElementById('btnDescargarPdf');
+    var subEl  = document.getElementById('pdfPreviewSub');
+    var cerrar = document.getElementById('btnCerrarPdfPreview');
 
-    if (!modal) { result.doc.save(result.filename); return; }
+    /* Sin modal: descarga directa */
+    if (!modal) {
+      result.doc.save(result.filename);
+      return;
+    }
 
-    /* Subtítulo con datos clave */
+    /* Subtítulo */
     if (subEl) {
-      var nombre = solicitud.solicitanteNombre || solicitud.docenteNombre || '';
-      subEl.textContent = 'Solicitud #' + solicitud.id + ' \u2014 ' + nombre + ' \u2014 ' + solicitud.fecha;
+      subEl.textContent = 'Solicitud #' + solicitud.id
+        + (nombre ? ' \u2014 ' + nombre : '')
+        + ' \u2014 ' + B.fmt(solicitud.fecha);
     }
 
-    /* Cargar PDF en el iframe */
-    if (iframe) iframe.src = url;
-
-    /* Botón descargar */
+    /* Botón descargar — siempre funcional */
     if (dlBtn) {
-      dlBtn.onclick = function () { result.doc.save(result.filename); };
+      dlBtn.onclick = function () {
+        try { result.doc.save(result.filename); }
+        catch (e) { B.showToast('Error al descargar', true); }
+      };
     }
 
-    /* Abrir modal */
-    if (modal) modal.classList.add('active');
+    /* Intentar cargar previsualización en iframe */
+    if (iframe) {
+      try {
+        var pdfBlob = result.doc.output('blob');
+        var blobUrl = URL.createObjectURL(pdfBlob);
+        iframe.src  = blobUrl;
 
-    /* Cerrar y limpiar blob URL */
-    function closePdfModal() {
-      if (modal) modal.classList.remove('active');
-      if (iframe) { iframe.src = ''; }
-      URL.revokeObjectURL(url);
+        /* Limpiar blob URL al cerrar */
+        var cleaned = false;
+        function cleanBlob() {
+          if (!cleaned) { cleaned = true; URL.revokeObjectURL(blobUrl); }
+        }
+
+        function closePdfModal() {
+          B.closeModal('modalPdfPreview');
+          iframe.src = '';
+          cleanBlob();
+        }
+        if (cerrar) cerrar.onclick = closePdfModal;
+        modal.addEventListener('click', function onBg(e) {
+          if (e.target === modal) { closePdfModal(); modal.removeEventListener('click', onBg); }
+        }, { once: true });
+      } catch (e) {
+        /* Si blob falla, solo funciona el botón descargar */
+        iframe.style.display = 'none';
+      }
     }
-    if (cerrar) cerrar.onclick = closePdfModal;
-    modal.addEventListener('click', function onBg(e) {
-      if (e.target === modal) { closePdfModal(); modal.removeEventListener('click', onBg); }
-    }, { once: true });
+
+    B.openModal('modalPdfPreview');
   };
 
 })(window.BiblioApp);

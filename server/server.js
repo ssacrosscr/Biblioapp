@@ -399,12 +399,28 @@ app.get('/api/solicitudes', auth, async (req, res) => {
   try {
     let filter = {};
     if (req.user.rol === 'docente') {
-      filter.docenteId = req.user.id;
+      // Compatibilidad: seed usa "usuarioId", nuevas solicitudes usan "docenteId"/"solicitanteId"
+      filter.$or = [
+        { docenteId:     req.user.id },
+        { solicitanteId: req.user.id },
+        { usuarioId:     req.user.id }
+      ];
     } else if (req.user.rol !== 'admin' && req.user.rol !== 'bibliotecologo') {
       return res.status(403).json({ error: 'Sin acceso' });
     }
-    const solicitudes = await db.collection('solicitudes').find(filter).sort({ id: -1 }).toArray();
-    res.json(toClientArray(solicitudes));
+    const rawDocs = await db.collection('solicitudes').find(filter).sort({ id: -1 }).toArray();
+    // Normalizar campos: compatibilidad con datos del seed (usuarioNombre, motivacion, respuesta)
+    const solicitudes = rawDocs.map(doc => {
+      const n = toClient(doc);
+      if (!n.solicitanteNombre) n.solicitanteNombre = n.docenteNombre || n.usuarioNombre || '';
+      if (!n.tipoSolicitante)   n.tipoSolicitante   = 'docente';
+      if (!n.notas)             n.notas             = n.motivacion || '';
+      if (!n.notasRespuesta)    n.notasRespuesta     = n.respuesta  || '';
+      if (n.convertido === undefined) n.convertido  = false;
+      if (!n.prioridad)         n.prioridad         = null;
+      return n;
+    });
+    res.json(solicitudes);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
