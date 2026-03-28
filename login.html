@@ -502,27 +502,10 @@
       text-align: center;
       margin-bottom: 30px;
     }
-    /* Halo exterior pulsante detrás del cuadro */
     .lp-logo-wrap {
       position: relative;
       display: inline-block;
       margin-bottom: 18px;
-    }
-    .lp-logo-wrap::before {
-      content: '';
-      position: absolute;
-      inset: -18px;
-      border-radius: 50%;
-      background: radial-gradient(circle,
-        rgba(0,200,255,.18) 0%,
-        rgba(140,0,255,.10) 45%,
-        transparent 70%);
-      animation: logo-halo 3.5s ease-in-out infinite;
-      pointer-events: none;
-    }
-    @keyframes logo-halo {
-      0%,100% { transform: scale(1);    opacity: .7; }
-      50%      { transform: scale(1.2); opacity: 1;  }
     }
 
     .lp-logo-box {
@@ -535,53 +518,39 @@
       border-radius: 30%;
       overflow: visible;
       animation: logo-float 4s ease-in-out infinite;
-      box-shadow: 0 8px 28px rgba(0,0,0,.5);
+      /* Sombra suave debajo */
+      box-shadow: 0 10px 32px rgba(0,0,0,.55);
     }
     @keyframes logo-float {
       0%,100% { transform: translateY(0);   }
       50%      { transform: translateY(-7px); }
     }
 
-    /* Borde neon giratorio */
+    /* Aura LED azul — capa difusa amplia, detrás del cuadro */
     .lp-logo-box::before {
       content: '';
       position: absolute;
-      inset: -3px;
-      border-radius: 33%;
-      background: conic-gradient(
-        from 0deg,
-        rgba(0,220,255,0)     0%,
-        rgba(0,210,255,.95)  18%,
-        rgba(160,0,255,.85)  38%,
-        rgba(255,0,200,.85)  55%,
-        rgba(0,255,160,.9)   72%,
-        rgba(255,200,0,.85)  88%,
-        rgba(0,220,255,0)   100%
-      );
-      animation: neon-spin 2.8s linear infinite;
+      inset: -14px;
+      border-radius: 36%;
+      background: rgba(0, 185, 255, 0.55);
+      filter: blur(18px);
       z-index: -1;
-      filter: blur(3px);
+      animation: led-breathe 2.8s ease-in-out infinite;
     }
-    /* Segundo anillo más suave y grande */
+    /* Núcleo LED — capa más intensa y pequeña justo detrás */
     .lp-logo-box::after {
       content: '';
       position: absolute;
-      inset: -8px;
-      border-radius: 35%;
-      background: conic-gradient(
-        from 180deg,
-        rgba(0,220,255,0)    0%,
-        rgba(0,180,255,.28) 25%,
-        rgba(200,0,255,.22) 50%,
-        rgba(0,255,160,.22) 75%,
-        rgba(0,220,255,0)  100%
-      );
-      animation: neon-spin 5s linear infinite reverse;
-      z-index: -2;
-      filter: blur(6px);
+      inset: -5px;
+      border-radius: 33%;
+      background: rgba(0, 210, 255, 0.45);
+      filter: blur(7px);
+      z-index: -1;
+      animation: led-breathe 2.8s ease-in-out infinite;
     }
-    @keyframes neon-spin {
-      to { transform: rotate(360deg); }
+    @keyframes led-breathe {
+      0%,100% { opacity: .65; transform: scale(1);    }
+      50%      { opacity: 1;   transform: scale(1.06); }
     }
 
     /* Contenedor circular interior — recorta y rellena */
