@@ -314,18 +314,24 @@
   /* PDF desde modal detalle */
   document.addEventListener('click', function (e) {
     if (!e.target.closest('#btnPdfSolicitud')) return;
-    var id = parseInt(B.$('btnPdfSolicitud').getAttribute('data-pdf-id'));
-    var s  = solicitudes.find(function (x) { return x.id === id; });
-    if (s) B.generatePDF(s);
+    try {
+      var id = parseInt(B.$('btnPdfSolicitud').getAttribute('data-pdf-id'));
+      var s  = solicitudes.find(function (x) { return x.id === id; });
+      if (s) B.generatePDF(s);
+      else B.showToast('No se encontró la solicitud #' + id, true);
+    } catch (err) { B.showToast('Error: ' + err.message, true); }
   });
 
   /* PDF desde tabla */
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-pdf-sol]');
     if (!btn) return;
-    var id = parseInt(btn.getAttribute('data-pdf-sol'));
-    var s  = solicitudes.find(function (x) { return x.id === id; });
-    if (s) B.generatePDF(s);
+    try {
+      var id = parseInt(btn.getAttribute('data-pdf-sol'));
+      var s  = solicitudes.find(function (x) { return x.id === id; });
+      if (s) B.generatePDF(s);
+      else B.showToast('No se encontró la solicitud #' + id, true);
+    } catch (err) { B.showToast('Error: ' + err.message, true); }
   });
 
   document.addEventListener('click', function (e) {

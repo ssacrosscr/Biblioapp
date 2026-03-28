@@ -189,77 +189,18 @@ window.BiblioApp = window.BiblioApp || {};
   };
 
   /**
-   * Genera y descarga el PDF de una boleta de solicitud.
-   * Muestra previsualización en modal si está disponible; de lo contrario descarga directo.
+   * Genera y descarga el PDF directamente (sin modal/iframe).
    */
   B.generatePDF = function (solicitud) {
-    var result;
     try {
-      result = B._buildPDF(solicitud);
-    } catch (err) {
-      console.error('Error generando PDF:', err);
-      B.showToast('Error al generar PDF: ' + (err.message || 'revise la consola'), true);
-      return;
-    }
-    if (!result) return;
-
-    var nombre = solicitud.solicitanteNombre || solicitud.docenteNombre || solicitud.usuarioNombre || '';
-    var modal  = document.getElementById('modalPdfPreview');
-    var iframe = document.getElementById('pdfPreviewFrame');
-    var dlBtn  = document.getElementById('btnDescargarPdf');
-    var subEl  = document.getElementById('pdfPreviewSub');
-    var cerrar = document.getElementById('btnCerrarPdfPreview');
-
-    /* Sin modal: descarga directa */
-    if (!modal) {
+      var result = B._buildPDF(solicitud);
+      if (!result) return;
       result.doc.save(result.filename);
-      return;
+      B.showToast('\u2713 PDF descargado: ' + result.filename);
+    } catch (err) {
+      console.error('generatePDF error:', err);
+      B.showToast('Error al generar PDF: ' + (err.message || String(err)), true);
     }
-
-    /* Subtítulo */
-    if (subEl) {
-      subEl.textContent = 'Solicitud #' + solicitud.id
-        + (nombre ? ' \u2014 ' + nombre : '')
-        + ' \u2014 ' + B.fmt(solicitud.fecha);
-    }
-
-    /* Botón descargar — siempre funcional */
-    if (dlBtn) {
-      dlBtn.onclick = function () {
-        try { result.doc.save(result.filename); }
-        catch (e) { B.showToast('Error al descargar', true); }
-      };
-    }
-
-    /* Intentar cargar previsualización en iframe */
-    if (iframe) {
-      try {
-        var pdfBlob = result.doc.output('blob');
-        var blobUrl = URL.createObjectURL(pdfBlob);
-        iframe.src  = blobUrl;
-
-        /* Limpiar blob URL al cerrar */
-        var cleaned = false;
-        function cleanBlob() {
-          if (!cleaned) { cleaned = true; URL.revokeObjectURL(blobUrl); }
-        }
-
-        function closePdfModal() {
-          B.closeModal('modalPdfPreview');
-          iframe.src = '';
-          cleanBlob();
-        }
-        if (cerrar) cerrar.onclick = closePdfModal;
-        modal.addEventListener('click', function onBg(e) {
-          if (e.target === modal) { closePdfModal(); modal.removeEventListener('click', onBg); }
-        }, { once: true });
-      } catch (e) {
-        /* Si blob falla, solo funciona el botón descargar */
-        iframe.style.display = 'none';
-      }
-    }
-
-    B.openModal('modalPdfPreview');
   };
 
 })(window.BiblioApp);

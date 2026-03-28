@@ -106,9 +106,12 @@
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-pdf-misol]');
     if (!btn) return;
-    var id = parseInt(btn.getAttribute('data-pdf-misol'));
-    var s  = misSolicitudes.find(function (x) { return x.id === id; });
-    if (s) B.generatePDF(s);
+    try {
+      var id = parseInt(btn.getAttribute('data-pdf-misol'));
+      var s  = misSolicitudes.find(function (x) { return x.id === id; });
+      if (s) B.generatePDF(s);
+      else B.showToast('No se encontr\u00F3 la solicitud #' + id, true);
+    } catch (err) { B.showToast('Error: ' + err.message, true); }
   });
 
   document.addEventListener('click', function (e) {
