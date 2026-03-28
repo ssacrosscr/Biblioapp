@@ -37,15 +37,18 @@
       position: fixed;
       inset: 0;
       z-index: 200;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0;
       overflow: hidden;
       will-change: opacity, filter;
       transition: opacity .9s cubic-bezier(.4,0,.2,1),
                   filter   .9s cubic-bezier(.4,0,.2,1);
+    }
+    /* Contenedor de texto en la parte inferior */
+    #spContent {
+      position: absolute;
+      bottom: 7vh; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+      z-index: 2; width: 100%;
     }
     #splash.exit {
       opacity: 0;
@@ -61,254 +64,8 @@
       pointer-events: none;
     }
 
-    /* ── MASCOTA ── */
-    #spMascotWrap {
-      position: relative;
-      width: 200px; height: 200px;
-      z-index: 2;
-      opacity: 0;
-      transform: scale(.3) translateY(30px);
-      will-change: opacity, transform;
-      transition: opacity 1.1s cubic-bezier(.22,1,.36,1),
-                  transform 1.1s cubic-bezier(.22,1,.36,1);
-      margin-bottom: 32px;
-    }
-    #spMascotWrap.reveal { opacity: 1; transform: scale(1) translateY(0); }
+    /* ── SISTEMA SOLAR (dibujado en canvas) ── */
 
-    /* Bob en elemento hijo para no interferir con reveal */
-    .sp-bob {
-      position: relative;
-      width: 100%; height: 100%;
-      animation: sp-bob 4.8s ease-in-out infinite;
-    }
-    @keyframes sp-bob {
-      0%,100% { transform: translateY(0) rotate(0deg); }
-      30%     { transform: translateY(-16px) rotate(-1.5deg); }
-      70%     { transform: translateY(-10px) rotate(1.2deg); }
-    }
-
-    /* Halo exterior grande */
-    .sp-halo {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .sp-halo-1 {
-      inset: -70px;
-      background: radial-gradient(circle,
-        rgba(140,60,255,.52) 0%,
-        rgba(0,140,255,.28) 40%,
-        transparent 70%);
-      filter: blur(1px);
-      animation: halo-breathe 4s ease-in-out infinite;
-    }
-    .sp-halo-2 {
-      inset: -35px;
-      background: radial-gradient(circle,
-        rgba(255,180,0,.38) 0%,
-        rgba(255,100,0,.18) 45%,
-        transparent 70%);
-      animation: halo-breathe 5.2s ease-in-out infinite reverse;
-    }
-    .sp-halo-3 {
-      inset: -110px;
-      background: radial-gradient(circle,
-        rgba(0,255,220,.18) 0%,
-        rgba(0,160,255,.10) 45%,
-        transparent 68%);
-      animation: halo-breathe 7s ease-in-out infinite;
-    }
-    @keyframes halo-breathe {
-      0%,100% { transform: scale(1);    opacity: .75; }
-      50%     { transform: scale(1.22); opacity: 1; }
-    }
-
-    /* Anillos mágicos */
-    .sp-ring {
-      position: absolute;
-      border-radius: 50%;
-      border-style: solid;
-      top: 50%; left: 50%;
-      pointer-events: none;
-    }
-    /* Anillo dorado — grande, lento */
-    .sp-ring-gold {
-      width: 230px; height: 230px;
-      margin: -115px;
-      border-width: 1.5px;
-      border-color: rgba(255,220,0,.55);
-      box-shadow: 0 0 14px rgba(255,210,0,.5),
-                  0 0 28px rgba(255,180,0,.22),
-                  inset 0 0 14px rgba(255,200,0,.12);
-      animation: ring-spin-cw 18s linear infinite;
-    }
-    /* Anillo cian — mediano, velocidad media */
-    .sp-ring-cyan {
-      width: 190px; height: 190px;
-      margin: -95px;
-      border-width: 1.5px;
-      border-color: rgba(0,255,240,.6);
-      box-shadow: 0 0 12px rgba(0,240,255,.55),
-                  0 0 26px rgba(0,200,255,.28),
-                  inset 0 0 12px rgba(0,220,255,.15);
-      animation: ring-spin-ccw 12s linear infinite;
-    }
-    /* Anillo magenta — pequeño, rápido */
-    .sp-ring-magic {
-      width: 155px; height: 155px;
-      margin: -77px;
-      border-width: 1.5px;
-      border-color: rgba(255,0,220,.55);
-      box-shadow: 0 0 12px rgba(255,0,200,.5),
-                  0 0 24px rgba(220,0,255,.22),
-                  inset 0 0 10px rgba(200,0,255,.12);
-      animation: ring-spin-cw 8s linear infinite;
-    }
-    /* Anillo lima — extra grande, muy lento */
-    .sp-ring-lime {
-      width: 275px; height: 275px;
-      margin: -137px;
-      border-width: 1px;
-      border-color: rgba(0,255,120,.28);
-      box-shadow: 0 0 10px rgba(0,255,100,.22),
-                  0 0 22px rgba(0,220,80,.12);
-      animation: ring-spin-ccw 26s linear infinite;
-    }
-    @keyframes ring-spin-cw  { to { transform: rotate(360deg); } }
-    @keyframes ring-spin-ccw { to { transform: rotate(-360deg); } }
-
-    /* Puntos en los anillos */
-    .sp-ring-dot {
-      position: absolute;
-      border-radius: 50%;
-      top: -5px; left: 50%; transform: translateX(-50%);
-    }
-    .sp-ring-gold  .sp-ring-dot { width:11px;height:11px; background:#FFE500; box-shadow:0 0 14px #FFE500,0 0 28px rgba(255,200,0,.7),0 0 48px rgba(255,160,0,.3); }
-    .sp-ring-cyan  .sp-ring-dot { width:9px; height:9px;  background:#00FFEE; box-shadow:0 0 12px #00FFEE,0 0 24px rgba(0,240,255,.7),0 0 42px rgba(0,200,255,.3); top:-4px; }
-    .sp-ring-magic .sp-ring-dot { width:8px; height:8px;  background:#FF00DD; box-shadow:0 0 11px #FF00DD,0 0 22px rgba(255,0,200,.7),0 0 40px rgba(200,0,255,.3); top:-4px; }
-    .sp-ring-lime  .sp-ring-dot { width:7px; height:7px;  background:#00FF80; box-shadow:0 0 10px #00FF80,0 0 20px rgba(0,255,100,.6),0 0 36px rgba(0,220,80,.25); top:-3px; }
-
-    /* Segundo punto en anillo dorado (en posición opuesta) */
-    .sp-ring-gold .sp-ring-dot-2 {
-      top: auto; bottom: -5px;
-      width: 8px; height: 8px;
-      background: #FF9940;
-      box-shadow: 0 0 12px #FF9940, 0 0 24px rgba(255,140,0,.6);
-    }
-
-    /* ── NÚCLEO DE ENERGÍA — centro del splash ── */
-    .sp-circle {
-      position: relative;
-      z-index: 3;
-      width: 200px; height: 200px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    /* Luz pura: sin esfera sólida, sin aspecto de burbuja.
-       Aparece gradualmente tras 0.4s para integrarse con los anillos. */
-    .sp-core {
-      width: 108px; height: 108px;
-      border-radius: 50%;
-      position: relative;
-      /* Gradiente de luz — transparente en los bordes, sin "corte" visible */
-      background: radial-gradient(circle at 50% 50%,
-        rgba(255,255,255,1)    0%,
-        rgba(210,238,255,.88)  7%,
-        rgba(110,190,255,.62)  18%,
-        rgba(60,100,255,.28)   33%,
-        rgba(40,60,200,.06)    50%,
-        transparent            68%);
-      box-shadow:
-        0 0 20px 8px   rgba(160,215,255,.95),
-        0 0 50px 20px  rgba(80,150,255,.65),
-        0 0 100px 42px rgba(40,80,255,.38),
-        0 0 170px 65px rgba(20,50,200,.18);
-      /* core-appear: opacidad 0→1 (sin conflicto de transform con core-pulse) */
-      animation:
-        core-pulse  3.5s ease-in-out infinite,
-        core-appear  .65s cubic-bezier(.22,1,.36,1) .40s both;
-    }
-    @keyframes core-appear {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-    @keyframes core-pulse {
-      0%,100% {
-        transform: scale(1);
-        box-shadow: 0 0 20px 8px rgba(160,215,255,.95), 0 0 50px 20px rgba(80,150,255,.65), 0 0 100px 42px rgba(40,80,255,.38);
-      }
-      50% {
-        transform: scale(1.11);
-        box-shadow: 0 0 30px 13px rgba(190,230,255,1), 0 0 70px 30px rgba(100,170,255,.82), 0 0 140px 58px rgba(60,100,255,.52);
-      }
-    }
-    /* Rotación cónica interna — da sensación de energía girando */
-    .sp-core::before {
-      content: '';
-      position: absolute;
-      inset: 16%;
-      border-radius: 50%;
-      background: conic-gradient(
-        from 0deg,
-        transparent           0%,
-        rgba(255,255,255,.48) 18%,
-        rgba(140,220,255,.58) 32%,
-        transparent           48%,
-        rgba(200,140,255,.32) 70%,
-        rgba(255,255,255,.38) 87%,
-        transparent           100%
-      );
-      animation: core-spin 3.2s linear infinite;
-      mix-blend-mode: screen;
-    }
-    /* Destello fijo tipo lente */
-    .sp-core::after {
-      content: '';
-      position: absolute;
-      width: 30px; height: 18px;
-      background: radial-gradient(ellipse, rgba(255,255,255,.95) 0%, transparent 100%);
-      top: 15%; left: 18%;
-      border-radius: 50%;
-      transform: rotate(-30deg);
-      filter: blur(2.5px);
-      pointer-events: none;
-    }
-    @keyframes core-spin { to { transform: rotate(360deg); } }
-
-    /* Partículas orbitales alrededor del núcleo */
-    .sp-orb-particle {
-      position: absolute;
-      border-radius: 50%;
-      animation: orb-particle linear infinite;
-      pointer-events: none;
-    }
-    @keyframes orb-particle {
-      0%   { transform: rotate(0deg)   translateX(var(--r)) scale(1);   opacity: .85; }
-      50%  { opacity: 1; }
-      100% { transform: rotate(360deg) translateX(var(--r)) scale(.5); opacity: 0;   }
-    }
-
-    /* ── ESTRELLAS DESTELLANTES CSS ── */
-    .sp-sparkle {
-      position: absolute;
-      z-index: 1;
-      pointer-events: none;
-      opacity: 0;
-      animation: sp-sparkle-anim ease-in-out infinite;
-    }
-    .sp-sparkle::before, .sp-sparkle::after {
-      content: '';
-      position: absolute;
-      background: currentColor;
-      border-radius: 99px;
-    }
-    .sp-sparkle::before { width: 100%; height: 2px; top: 50%; left: 0; transform: translateY(-50%); }
-    .sp-sparkle::after  { width: 2px; height: 100%; top: 0; left: 50%; transform: translateX(-50%); }
-    @keyframes sp-sparkle-anim {
-      0%,100% { opacity:0;  transform: scale(.4) rotate(0deg); }
-      40%,60% { opacity:1;  transform: scale(1)  rotate(45deg); }
-    }
 
     /* ── TÍTULO ── */
     #spTitleWrap {
@@ -318,6 +75,7 @@
       will-change: opacity;
       transition: opacity .5s ease;
       margin-bottom: 14px;
+      pointer-events: none;
     }
     #spTitleWrap.reveal { opacity: 1; }
 
@@ -804,64 +562,22 @@
 ══════════════════════════════════════════════════ -->
 <div id="splash">
 
-  <!-- Canvas de partículas mágicas (fireflies, polvo de hadas) -->
+  <!-- Sistema solar animado en canvas -->
   <canvas id="spCanvas"></canvas>
 
-  <!-- Estrellas CSS decorativas (posicionadas desde JS) -->
-  <div id="spSparkles"></div>
-
-  <!-- Mascota central con anillos mágicos -->
-  <div id="spMascotWrap">
-    <div class="sp-bob">
-      <!-- Halos de luz -->
-      <div class="sp-halo sp-halo-1"></div>
-      <div class="sp-halo sp-halo-2"></div>
-      <div class="sp-halo sp-halo-3"></div>
-      <!-- Anillo lima (exterior) -->
-      <div class="sp-ring sp-ring-lime">
-        <div class="sp-ring-dot"></div>
-      </div>
-      <!-- Anillo dorado -->
-      <div class="sp-ring sp-ring-gold">
-        <div class="sp-ring-dot"></div>
-        <div class="sp-ring-dot sp-ring-dot-2"></div>
-      </div>
-      <!-- Anillo cian -->
-      <div class="sp-ring sp-ring-cyan">
-        <div class="sp-ring-dot"></div>
-      </div>
-      <!-- Anillo mágico -->
-      <div class="sp-ring sp-ring-magic">
-        <div class="sp-ring-dot"></div>
-      </div>
-      <!-- Orbe mágico -->
-      <div class="sp-circle" id="spCircle">
-        <div class="sp-core" id="spOrb">
-          <div class="sp-orb-particle" style="--r:80px;width:8px;height:8px;background:#00FFEE;top:50%;left:50%;margin:-4px;animation-duration:3.2s;box-shadow:0 0 8px #00FFEE,0 0 16px rgba(0,255,220,.6)"></div>
-          <div class="sp-orb-particle" style="--r:74px;width:6px;height:6px;background:#FF00DD;top:50%;left:50%;margin:-3px;animation-duration:4.1s;animation-delay:-.8s;box-shadow:0 0 7px #FF00DD,0 0 14px rgba(255,0,200,.6)"></div>
-          <div class="sp-orb-particle" style="--r:86px;width:5px;height:5px;background:#FFE500;top:50%;left:50%;margin:-2px;animation-duration:2.7s;animation-delay:-1.4s;box-shadow:0 0 6px #FFE500,0 0 12px rgba(255,200,0,.6)"></div>
-          <div class="sp-orb-particle" style="--r:68px;width:7px;height:7px;background:#00FF80;top:50%;left:50%;margin:-3px;animation-duration:5s;animation-delay:-.3s;box-shadow:0 0 7px #00FF80,0 0 14px rgba(0,255,100,.6)"></div>
-          <div class="sp-orb-particle" style="--r:90px;width:5px;height:5px;background:#A060FF;top:50%;left:50%;margin:-2px;animation-duration:3.8s;animation-delay:-2.1s;box-shadow:0 0 6px #A060FF,0 0 12px rgba(160,60,255,.6)"></div>
-        </div>
-      </div>
+  <!-- Texto: título + tagline + progreso (abajo) -->
+  <div id="spContent">
+    <div id="spTitleWrap">
+      <div class="sp-title-main" id="spLetters"></div>
+      <div class="sp-mep">Ministerio de Educaci&oacute;n P&uacute;blica &middot; Costa Rica</div>
     </div>
-  </div>
-
-  <!-- Título con letras animadas -->
-  <div id="spTitleWrap">
-    <div class="sp-title-main" id="spLetters"></div>
-    <div class="sp-mep">Ministerio de Educaci&oacute;n P&uacute;blica &middot; Costa Rica</div>
-  </div>
-
-  <!-- Tagline palabra por palabra -->
-  <div id="spTagline"></div>
-
-  <!-- Barra de progreso -->
-  <div id="spProgWrap">
-    <div class="sp-prog-track">
-      <div id="spFill"></div>
+    <div id="spTagline"></div>
+    <div id="spProgWrap">
+      <div class="sp-prog-track">
+        <div id="spFill"></div>
+      </div>
+      <div class="sp-prog-label">Cargando sistema&hellip;</div>
     </div>
-    <div class="sp-prog-label">Cargando sistema&hellip;</div>
   </div>
 
 </div>
@@ -1360,135 +1076,238 @@
      SPLASH MÁGICO — secuencia cinematográfica por capas
   ──────────────────────────────────────────────────────────── */
 
-  /* ── Canvas de partículas mágicas (fireflies + polvo) ── */
-  (function initSplashCanvas() {
+  /* ── Sistema Solar animado ── */
+  (function initSolarSystem() {
     var sc  = document.getElementById('spCanvas');
     if (!sc) return;
-    var sctx = sc.getContext('2d');
-    var sw, sh;
+    var ctx = sc.getContext('2d');
+    var W, H, CX, CY;
 
-    function sResize() {
-      sw = sc.width  = window.innerWidth;
-      sh = sc.height = window.innerHeight;
+    function resize() {
+      W = sc.width  = window.innerWidth;
+      H = sc.height = window.innerHeight;
+      CX = W * 0.5;
+      CY = H * 0.38; /* Centro del sistema solar en 38% de la altura */
     }
-    sResize();
-    window.addEventListener('resize', sResize);
+    resize();
+    window.addEventListener('resize', resize);
 
-    /* Fireflies: partículas pequeñas con movimiento orgánico */
-    var FLIES = (function () {
-      var arr = [], CX = window.innerWidth * .5, CY = window.innerHeight * .5;
-      /* Colores mágicos: dorado, cian, blanco, magenta suave */
-      var COLS = [
-        [255, 215,  60],  /* dorado */
-        [  0, 220, 255],  /* cian */
-        [255, 255, 255],  /* blanco */
-        [200, 100, 255],  /* magenta */
-        [100, 255, 180],  /* mint */
-      ];
-      for (var i = 0; i < 70; i++) {
-        var angle  = Math.random() * Math.PI * 2;
-        var dist   = Math.random() * 220 + 30;
-        var col    = COLS[Math.floor(Math.random() * COLS.length)];
-        arr.push({
-          /* Posición base relativa al centro */
-          ox: CX + Math.cos(angle) * dist,
-          oy: CY + Math.sin(angle) * dist - 60, /* -60 para centrar en mascota */
-          /* Movimiento oscilatorio único */
-          ax: Math.random() * Math.PI * 2,
-          ay: Math.random() * Math.PI * 2,
-          fx: Math.random() * .0005 + .0002, /* frecuencia x */
-          fy: Math.random() * .0005 + .0003, /* frecuencia y */
-          rx: Math.random() * 28 + 8,  /* radio oscilación x */
-          ry: Math.random() * 20 + 6,  /* radio oscilación y */
-          r:  col,
-          size: Math.random() * 2 + .6,
-          peak: Math.random() * .7 + .25,
-          tp:   Math.random() * Math.PI * 2, /* fase de twinkle */
-          tspd: Math.random() * .003 + .001,
-          born: false, /* se activa tras delay inicial */
-          delay: Math.random() * 600 + 200, /* ms de aparición escalonada */
+    /* Estrellas de fondo */
+    var STARS = [];
+    for (var si = 0; si < 220; si++) {
+      STARS.push({
+        x:     Math.random(),
+        y:     Math.random(),
+        r:     Math.random() * 1.4 + 0.2,
+        base:  Math.random() * 0.55 + 0.15,
+        phase: Math.random() * 6.2832,
+        spd:   Math.random() * 1.8 + 0.4,
+      });
+    }
+
+    /* Planetas — col = [R,G,B] */
+    var TILT = 0.36; /* compresión Y para perspectiva */
+    var PLANETS = [
+      { orb: 55,  sz: 5,  col: [196,168,130], spd: 1.90, phase: 0.3                     }, /* Mercurio */
+      { orb: 88,  sz: 9,  col: [232,195,70],  spd: 1.12, phase: 1.7                     }, /* Venus    */
+      { orb: 126, sz: 10, col: [55,130,255],  spd: 0.68, phase: 3.0, moon: true         }, /* Tierra   */
+      { orb: 166, sz: 7,  col: [215,75,45],   spd: 0.40, phase: 4.5                     }, /* Marte    */
+      { orb: 214, sz: 19, col: [195,148,92],  spd: 0.19, phase: 1.1, bands: true        }, /* Júpiter  */
+      { orb: 270, sz: 13, col: [218,196,132], spd: 0.11, phase: 3.9, rings: true        }, /* Saturno  */
+    ];
+
+    var t0 = performance.now();
+
+    function frame(now) {
+      if (!document.getElementById('splash')) return;
+      var t = (now - t0) * 0.001;
+      ctx.clearRect(0, 0, W, H);
+
+      /* Estrellas titilantes */
+      for (var si = 0; si < STARS.length; si++) {
+        var s = STARS[si];
+        var a = s.base + 0.2 * Math.sin(t * s.spd + s.phase);
+        ctx.beginPath();
+        ctx.arc(s.x * W, s.y * H, s.r, 0, 6.2832);
+        ctx.fillStyle = 'rgba(255,255,255,' + a + ')';
+        ctx.fill();
+      }
+
+      /* Trayectorias orbitales */
+      ctx.setLineDash([]);
+      for (var pi = 0; pi < PLANETS.length; pi++) {
+        var p = PLANETS[pi];
+        ctx.beginPath();
+        ctx.ellipse(CX, CY, p.orb, p.orb * TILT, 0, 0, 6.2832);
+        ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      /* Posiciones de cada planeta */
+      var items = [];
+      for (var pi = 0; pi < PLANETS.length; pi++) {
+        var p  = PLANETS[pi];
+        var an = p.phase + t * p.spd;
+        items.push({
+          p: p,
+          x: CX + Math.cos(an) * p.orb,
+          y: CY + Math.sin(an) * p.orb * TILT,
+          a: an,
+          behind: Math.sin(an) < 0
         });
       }
-      return arr;
-    })();
 
-    var spStart = performance.now();
+      /* Planetas detrás del sol (dibujar primero) */
+      var behind = items.filter(function(it){ return it.behind; });
+      behind.sort(function(a,b){ return b.y - a.y; });
+      for (var i = 0; i < behind.length; i++) drawPlanet(behind[i], 0.62);
 
-    function splashFrame(now) {
-      if (!document.getElementById('splash')) return; /* splash eliminado */
-      sctx.clearRect(0, 0, sw, sh);
-      var t = (now - spStart) * .001;
+      /* Sol */
+      drawSun(t);
 
-      FLIES.forEach(function (f) {
-        /* Activar gradualmente */
-        if (!f.born) {
-          if ((now - spStart) < f.delay) return;
-          f.born = true;
-        }
-        /* Posición con oscilación suave */
-        var x = f.ox + Math.sin(t * f.fx * 1000 + f.ax) * f.rx;
-        var y = f.oy + Math.cos(t * f.fy * 1000 + f.ay) * f.ry;
+      /* Planetas enfrente del sol */
+      var front = items.filter(function(it){ return !it.behind; });
+      front.sort(function(a,b){ return a.y - b.y; });
+      for (var i = 0; i < front.length; i++) drawPlanet(front[i], 1.0);
 
-        /* Twinkle alpha */
-        var tw = Math.sin(t * f.tspd * 1000 + f.tp);
-        var a  = f.peak * (.5 + .5 * (tw * .5 + .5));
-
-        /* Halo difuso */
-        var g = sctx.createRadialGradient(x, y, 0, x, y, f.size * 4.5);
-        g.addColorStop(0, 'rgba(' + f.r[0] + ',' + f.r[1] + ',' + f.r[2] + ',' + (a * .35) + ')');
-        g.addColorStop(1, 'rgba(' + f.r[0] + ',' + f.r[1] + ',' + f.r[2] + ',0)');
-        sctx.beginPath();
-        sctx.arc(x, y, f.size * 4.5, 0, 6.2832);
-        sctx.fillStyle = g;
-        sctx.fill();
-
-        /* Núcleo */
-        sctx.beginPath();
-        sctx.arc(x, y, f.size, 0, 6.2832);
-        sctx.fillStyle = 'rgba(' + f.r[0] + ',' + f.r[1] + ',' + f.r[2] + ',' + a + ')';
-        sctx.fill();
-      });
-
-      requestAnimationFrame(splashFrame);
+      requestAnimationFrame(frame);
     }
-    requestAnimationFrame(splashFrame);
+
+    function drawSun(t) {
+      /* Halo exterior pulsante */
+      var hr = 58 + 7 * Math.sin(t * 1.3);
+      var hg = ctx.createRadialGradient(CX, CY, 14, CX, CY, hr);
+      hg.addColorStop(0,   'rgba(255,200,80,0.30)');
+      hg.addColorStop(0.5, 'rgba(255,130,0,0.14)');
+      hg.addColorStop(1,   'rgba(255,60,0,0)');
+      ctx.beginPath();
+      ctx.arc(CX, CY, hr, 0, 6.2832);
+      ctx.fillStyle = hg;
+      ctx.fill();
+
+      /* Corona interna */
+      var cr = 30 + 3 * Math.sin(t * 2.1);
+      var cg = ctx.createRadialGradient(CX, CY, 10, CX, CY, cr);
+      cg.addColorStop(0,   'rgba(255,255,200,0.50)');
+      cg.addColorStop(0.7, 'rgba(255,180,0,0.22)');
+      cg.addColorStop(1,   'rgba(255,80,0,0)');
+      ctx.beginPath();
+      ctx.arc(CX, CY, cr, 0, 6.2832);
+      ctx.fillStyle = cg;
+      ctx.fill();
+
+      /* Núcleo solar */
+      var sg = ctx.createRadialGradient(CX - 5, CY - 5, 0, CX, CY, 18);
+      sg.addColorStop(0,   'rgba(255,255,240,1)');
+      sg.addColorStop(0.35,'rgba(255,235,100,0.98)');
+      sg.addColorStop(0.75,'rgba(255,140,0,0.70)');
+      sg.addColorStop(1,   'rgba(220,60,0,0.20)');
+      ctx.beginPath();
+      ctx.arc(CX, CY, 18, 0, 6.2832);
+      ctx.fillStyle = sg;
+      ctx.fill();
+
+      /* Destellos de rayos solares */
+      ctx.save();
+      ctx.translate(CX, CY);
+      ctx.rotate(t * 0.18);
+      for (var ray = 0; ray < 8; ray++) {
+        var ra = (ray / 8) * 6.2832;
+        var rl = 26 + 6 * Math.sin(t * 2 + ray);
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(ra) * 20, Math.sin(ra) * 20);
+        ctx.lineTo(Math.cos(ra) * rl, Math.sin(ra) * rl);
+        ctx.strokeStyle = 'rgba(255,220,80,0.22)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawPlanet(it, alpha) {
+      var p = it.p, x = it.x, y = it.y;
+      var sz = p.sz * (it.behind ? 0.84 : 1.0);
+      var r = p.col[0], g = p.col[1], b = p.col[2];
+      var a = alpha;
+
+      /* Saturno: anillos traseros */
+      if (p.rings) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(1, TILT * 0.72);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, sz * 2.6, sz * 0.7, 0, 0, 6.2832);
+        ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (a * 0.40) + ')';
+        ctx.lineWidth = 6;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(0, 0, sz * 2.0, sz * 0.5, 0, 0, 6.2832);
+        ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (a * 0.28) + ')';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      /* Halo de brillo */
+      var gr = sz * 3.6;
+      var gl = ctx.createRadialGradient(x, y, 0, x, y, gr);
+      gl.addColorStop(0,   'rgba(' + r + ',' + g + ',' + b + ',' + (a * 0.42) + ')');
+      gl.addColorStop(1,   'rgba(' + r + ',' + g + ',' + b + ',0)');
+      ctx.beginPath();
+      ctx.arc(x, y, gr, 0, 6.2832);
+      ctx.fillStyle = gl;
+      ctx.fill();
+
+      /* Cuerpo del planeta con gradiente 3D */
+      var lr = Math.min(r + 85, 255), lg = Math.min(g + 85, 255), lb = Math.min(b + 85, 255);
+      var dr = Math.floor(r * 0.35), dg = Math.floor(g * 0.35), db = Math.floor(b * 0.35);
+      var pg = ctx.createRadialGradient(x - sz*0.38, y - sz*0.38, sz*0.04, x, y, sz*1.1);
+      pg.addColorStop(0,    'rgba(' + lr + ',' + lg + ',' + lb + ',' + a + ')');
+      pg.addColorStop(0.55, 'rgba(' + r  + ',' + g  + ',' + b  + ',' + a + ')');
+      pg.addColorStop(1,    'rgba(' + dr + ',' + dg + ',' + db + ',' + a + ')');
+      ctx.beginPath();
+      ctx.arc(x, y, sz, 0, 6.2832);
+      ctx.fillStyle = pg;
+      ctx.fill();
+
+      /* Bandas de Júpiter */
+      if (p.bands) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, sz, 0, 6.2832);
+        ctx.clip();
+        var offsets = [-0.55, -0.22, 0.10, 0.42];
+        var bcolors = [
+          'rgba(130,75,35,' + (a*0.30) + ')',
+          'rgba(195,140,80,' + (a*0.22) + ')',
+          'rgba(100,55,25,' + (a*0.28) + ')',
+          'rgba(180,120,60,' + (a*0.18) + ')',
+        ];
+        for (var bi = 0; bi < offsets.length; bi++) {
+          ctx.fillStyle = bcolors[bi];
+          ctx.fillRect(x - sz, y + offsets[bi] * sz, sz * 2, sz * 0.30);
+        }
+        ctx.restore();
+      }
+
+      /* Luna de la Tierra */
+      if (p.moon) {
+        var ma = it.a * 7.5;
+        var mr = sz * 2.5;
+        var mx = x + Math.cos(ma) * mr;
+        var my = y + Math.sin(ma) * mr * TILT;
+        /* Sombra de luna */
+        ctx.beginPath();
+        ctx.arc(mx, my, 3.5, 0, 6.2832);
+        ctx.fillStyle = 'rgba(180,195,210,' + (a * 0.85) + ')';
+        ctx.fill();
+      }
+    }
+
+    requestAnimationFrame(frame);
   })();
 
-  /* ── Estrellas CSS de 4 puntas (decorativas alrededor de la mascota) ── */
-  (function buildSparkles() {
-    var wrap = document.getElementById('spSparkles');
-    if (!wrap) return;
-    var CX = 50, CY = 42; /* % */
-    var COLORS = ['#FFD700','#00EEFF','#FF9940','#E080FF','#80FFD0','#fff'];
-    var configs = [
-      { angle:  20, dist: 140, size: 14, delay: 900,  dur: 2.8 },
-      { angle: 100, dist: 150, size: 10, delay: 1050, dur: 3.4 },
-      { angle: 195, dist: 135, size: 12, delay: 800,  dur: 2.5 },
-      { angle: 270, dist: 145, size: 8,  delay: 1150, dur: 3.8 },
-      { angle:  55, dist: 170, size: 9,  delay: 1300, dur: 2.9 },
-      { angle: 155, dist: 165, size: 11, delay: 1000, dur: 3.1 },
-      { angle: 310, dist: 155, size: 7,  delay: 1200, dur: 4.0 },
-      { angle: 235, dist: 178, size: 13, delay: 750,  dur: 2.6 },
-    ];
-    configs.forEach(function (cfg, i) {
-      var rad   = cfg.angle * Math.PI / 180;
-      var x     = CX + Math.cos(rad) * (cfg.dist / window.innerWidth * 100);
-      var y     = CY + Math.sin(rad) * (cfg.dist / window.innerHeight * 100);
-      var el    = document.createElement('div');
-      var color = COLORS[i % COLORS.length];
-      el.className = 'sp-sparkle';
-      el.style.cssText = [
-        'left:'   + x + '%',
-        'top:'    + y + '%',
-        'width:'  + cfg.size + 'px',
-        'height:' + cfg.size + 'px',
-        'color:'  + color,
-        'animation-delay:'    + cfg.delay + 'ms',
-        'animation-duration:' + cfg.dur + 's',
-      ].join(';');
-      wrap.appendChild(el);
-    });
-  })();
 
   /* ── Letras animadas del título ── */
   (function buildTitle() {
@@ -1530,9 +1349,8 @@
     }, delay);
   }
 
-  revealEl('spMascotWrap', 280);
-  revealEl('spTitleWrap',  820);
-  revealEl('spProgWrap',  1550);
+  revealEl('spTitleWrap',  600);
+  revealEl('spProgWrap',  1200);
 
   /* ── Barra de progreso suave con rAF ── */
   var progStart = null;
@@ -1605,9 +1423,7 @@
       if (cfg.logo) {
         var img = '<img style="width:100%;height:100%;object-fit:contain" src="' + cfg.logo + '" alt="Logo">';
         var box = document.getElementById('lpLogoBox');
-        var sp  = document.getElementById('spCircle');
         if (box) box.innerHTML = img;
-        if (sp)  sp.innerHTML  = img;
       }
 
       if (cfg.favicon) {
