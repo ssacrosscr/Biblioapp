@@ -517,43 +517,13 @@
       background: #fff;
       border-radius: 30%;
       overflow: visible;
-      animation: logo-float 4s ease-in-out infinite, led-pulse 2.8s ease-in-out infinite;
-      box-shadow:
-        /* LED strip pegado al borde */
-        0 0 0 2px rgba(0, 220, 255, 0.95),
-        /* Glow inmediato */
-        0 0 8px 3px rgba(0, 200, 255, 0.75),
-        /* Spread medio */
-        0 0 18px 5px rgba(0, 160, 255, 0.45),
-        /* Ambiente amplio */
-        0 0 36px 8px rgba(0, 100, 255, 0.22),
-        /* Sombra inferior */
-        0 10px 30px rgba(0, 0, 0, 0.5);
+      animation: logo-float 4s ease-in-out infinite;
+      box-shadow: 0 0 0 2px rgba(0,220,255,.95), 0 0 10px 3px rgba(0,200,255,.7), 0 0 22px 6px rgba(0,160,255,.4), 0 0 45px 10px rgba(0,100,255,.2), 0 10px 30px rgba(0,0,0,.5);
     }
     @keyframes logo-float {
       0%,100% { transform: translateY(0);   }
       50%      { transform: translateY(-7px); }
     }
-    @keyframes led-pulse {
-      0%,100% {
-        box-shadow:
-          0 0 0 2px rgba(0, 220, 255, 0.95),
-          0 0 8px 3px rgba(0, 200, 255, 0.75),
-          0 0 18px 5px rgba(0, 160, 255, 0.45),
-          0 0 36px 8px rgba(0, 100, 255, 0.22),
-          0 10px 30px rgba(0, 0, 0, 0.5);
-      }
-      50% {
-        box-shadow:
-          0 0 0 2px rgba(0, 240, 255, 1),
-          0 0 12px 4px rgba(0, 220, 255, 0.9),
-          0 0 28px 8px rgba(0, 180, 255, 0.6),
-          0 0 55px 12px rgba(0, 120, 255, 0.32),
-          0 10px 30px rgba(0, 0, 0, 0.5);
-      }
-    }
-
-    /* Sin pseudo-elementos — el LED va en box-shadow directo sobre el cuadro */
     .lp-logo-box::before, .lp-logo-box::after { display: none; }
 
     /* Contenedor circular interior — recorta y rellena */
@@ -1823,6 +1793,48 @@
       setLoading(false);
     });
   });
+
+  /* ────────────────────────────────────────────────────────────
+     LED ARCOÍRIS — colores animados alrededor del logo
+  ──────────────────────────────────────────────────────────── */
+  (function ledRainbow() {
+    var box = document.querySelector('.lp-logo-box');
+    if (!box) return;
+
+    var ledStart = performance.now();
+
+    function ledFrame(now) {
+      var t = (now - ledStart) * .001;
+
+      /* Hue principal girando despacio (vuelta completa en ~9s) */
+      var hue1 = (t * 40) % 360;
+      /* Segundo color con offset fijo para dar profundidad */
+      var hue2 = (hue1 + 50) % 360;
+      /* Tercer color para el ambiente */
+      var hue3 = (hue1 + 110) % 360;
+
+      /* Pulso de intensidad con dos frecuencias superpuestas */
+      var pulse = (Math.sin(t * 2.2) * .5 + .5) * .4
+                + (Math.sin(t * 3.7) * .5 + .5) * .6;
+
+      var strip  = .88 + pulse * .12;   /* LED strip: 88–100% */
+      var glow1  = .65 + pulse * .25;   /* glow inmediato */
+      var glow2  = .35 + pulse * .20;   /* spread medio */
+      var glow3  = .14 + pulse * .12;   /* ambiente */
+
+      box.style.boxShadow = [
+        '0 0 0 2.5px hsla(' + hue1 + ',100%,65%,' + strip  + ')',
+        '0 0 10px 3px  hsla(' + hue1 + ',100%,60%,' + glow1  + ')',
+        '0 0 24px 7px  hsla(' + hue2 + ',100%,55%,' + glow2  + ')',
+        '0 0 50px 12px hsla(' + hue3 + ',100%,50%,' + glow3  + ')',
+        '0 10px 32px rgba(0,0,0,.52)'
+      ].join(', ');
+
+      requestAnimationFrame(ledFrame);
+    }
+
+    requestAnimationFrame(ledFrame);
+  })();
 
 })();
 </script>
