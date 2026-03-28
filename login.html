@@ -94,24 +94,33 @@
       pointer-events: none;
     }
     .sp-halo-1 {
-      inset: -60px;
+      inset: -70px;
       background: radial-gradient(circle,
-        rgba(120,80,255,.14) 0%,
-        rgba(0,140,255,.10) 40%,
+        rgba(140,60,255,.52) 0%,
+        rgba(0,140,255,.28) 40%,
         transparent 70%);
+      filter: blur(1px);
       animation: halo-breathe 4s ease-in-out infinite;
     }
     .sp-halo-2 {
-      inset: -30px;
+      inset: -35px;
       background: radial-gradient(circle,
-        rgba(255,200,60,.10) 0%,
-        rgba(255,140,0,.06) 45%,
+        rgba(255,180,0,.38) 0%,
+        rgba(255,100,0,.18) 45%,
         transparent 70%);
       animation: halo-breathe 5.2s ease-in-out infinite reverse;
     }
+    .sp-halo-3 {
+      inset: -110px;
+      background: radial-gradient(circle,
+        rgba(0,255,220,.18) 0%,
+        rgba(0,160,255,.10) 45%,
+        transparent 68%);
+      animation: halo-breathe 7s ease-in-out infinite;
+    }
     @keyframes halo-breathe {
-      0%,100% { transform: scale(1);    opacity: .7; }
-      50%     { transform: scale(1.18); opacity: 1; }
+      0%,100% { transform: scale(1);    opacity: .75; }
+      50%     { transform: scale(1.22); opacity: 1; }
     }
 
     /* Anillos mágicos */
@@ -126,30 +135,44 @@
     .sp-ring-gold {
       width: 230px; height: 230px;
       margin: -115px;
-      border-width: 1px;
-      border-color: rgba(255,210,60,.18);
-      box-shadow: 0 0 12px rgba(255,200,50,.08),
-                  inset 0 0 12px rgba(255,200,50,.04);
+      border-width: 1.5px;
+      border-color: rgba(255,220,0,.55);
+      box-shadow: 0 0 14px rgba(255,210,0,.5),
+                  0 0 28px rgba(255,180,0,.22),
+                  inset 0 0 14px rgba(255,200,0,.12);
       animation: ring-spin-cw 18s linear infinite;
     }
     /* Anillo cian — mediano, velocidad media */
     .sp-ring-cyan {
       width: 190px; height: 190px;
       margin: -95px;
-      border-width: 1px;
-      border-color: rgba(0,220,255,.22);
-      box-shadow: 0 0 10px rgba(0,200,255,.1),
-                  inset 0 0 10px rgba(0,200,255,.05);
+      border-width: 1.5px;
+      border-color: rgba(0,255,240,.6);
+      box-shadow: 0 0 12px rgba(0,240,255,.55),
+                  0 0 26px rgba(0,200,255,.28),
+                  inset 0 0 12px rgba(0,220,255,.15);
       animation: ring-spin-ccw 12s linear infinite;
     }
     /* Anillo magenta — pequeño, rápido */
     .sp-ring-magic {
       width: 155px; height: 155px;
       margin: -77px;
-      border-width: 1px;
-      border-color: rgba(200,100,255,.20);
-      box-shadow: 0 0 8px rgba(180,80,255,.08);
+      border-width: 1.5px;
+      border-color: rgba(255,0,220,.55);
+      box-shadow: 0 0 12px rgba(255,0,200,.5),
+                  0 0 24px rgba(220,0,255,.22),
+                  inset 0 0 10px rgba(200,0,255,.12);
       animation: ring-spin-cw 8s linear infinite;
+    }
+    /* Anillo lima — extra grande, muy lento */
+    .sp-ring-lime {
+      width: 275px; height: 275px;
+      margin: -137px;
+      border-width: 1px;
+      border-color: rgba(0,255,120,.28);
+      box-shadow: 0 0 10px rgba(0,255,100,.22),
+                  0 0 22px rgba(0,220,80,.12);
+      animation: ring-spin-ccw 26s linear infinite;
     }
     @keyframes ring-spin-cw  { to { transform: rotate(360deg); } }
     @keyframes ring-spin-ccw { to { transform: rotate(-360deg); } }
@@ -160,16 +183,17 @@
       border-radius: 50%;
       top: -5px; left: 50%; transform: translateX(-50%);
     }
-    .sp-ring-gold  .sp-ring-dot { width:10px;height:10px; background:#FFD700; box-shadow:0 0 12px #FFD700,0 0 24px rgba(255,200,0,.5); }
-    .sp-ring-cyan  .sp-ring-dot { width:8px; height:8px;  background:#00EEFF; box-shadow:0 0 10px #00EEFF,0 0 20px rgba(0,220,255,.5); top:-4px; }
-    .sp-ring-magic .sp-ring-dot { width:7px; height:7px;  background:#E080FF; box-shadow:0 0 9px #E080FF,0 0 18px rgba(200,80,255,.5); top:-3px; }
+    .sp-ring-gold  .sp-ring-dot { width:11px;height:11px; background:#FFE500; box-shadow:0 0 14px #FFE500,0 0 28px rgba(255,200,0,.7),0 0 48px rgba(255,160,0,.3); }
+    .sp-ring-cyan  .sp-ring-dot { width:9px; height:9px;  background:#00FFEE; box-shadow:0 0 12px #00FFEE,0 0 24px rgba(0,240,255,.7),0 0 42px rgba(0,200,255,.3); top:-4px; }
+    .sp-ring-magic .sp-ring-dot { width:8px; height:8px;  background:#FF00DD; box-shadow:0 0 11px #FF00DD,0 0 22px rgba(255,0,200,.7),0 0 40px rgba(200,0,255,.3); top:-4px; }
+    .sp-ring-lime  .sp-ring-dot { width:7px; height:7px;  background:#00FF80; box-shadow:0 0 10px #00FF80,0 0 20px rgba(0,255,100,.6),0 0 36px rgba(0,220,80,.25); top:-3px; }
 
     /* Segundo punto en anillo dorado (en posición opuesta) */
     .sp-ring-gold .sp-ring-dot-2 {
       top: auto; bottom: -5px;
-      width: 7px; height: 7px;
+      width: 8px; height: 8px;
       background: #FF9940;
-      box-shadow: 0 0 9px #FF9940;
+      box-shadow: 0 0 12px #FF9940, 0 0 24px rgba(255,140,0,.6);
     }
 
     /* Imagen de la mascota */
@@ -422,23 +446,30 @@
       margin-bottom: 30px;
     }
     .lp-logo-box {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       width: 88px; height: 88px;
       margin-bottom: 14px;
       position: relative;
+      background: #fff;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 0 0 2px rgba(0,160,255,.3),
+                  0 0 18px rgba(0,140,255,.25),
+                  0 4px 14px rgba(0,0,0,.45);
+      transition: box-shadow .35s;
+    }
+    .lp-logo-box:hover {
+      box-shadow: 0 0 0 2px rgba(0,200,255,.5),
+                  0 0 28px rgba(0,180,255,.4),
+                  0 4px 18px rgba(0,0,0,.5);
     }
     .lp-logo-box img {
-      width: 100%; height: 100%;
+      width: 84px; height: 84px;
       object-fit: contain;
       display: block;
-      mix-blend-mode: screen;
-      filter: drop-shadow(0 0 18px rgba(0,160,255,.45))
-              drop-shadow(0 4px 12px rgba(0,0,0,.4));
-      transition: filter .35s;
-    }
-    .lp-logo-box:hover img {
-      filter: drop-shadow(0 0 28px rgba(0,200,255,.65))
-              drop-shadow(0 4px 16px rgba(0,0,0,.45));
+      padding: 6px;
     }
     .lp-brand {
       font-family: 'Playfair Display', serif;
@@ -677,6 +708,11 @@
       <!-- Halos de luz -->
       <div class="sp-halo sp-halo-1"></div>
       <div class="sp-halo sp-halo-2"></div>
+      <div class="sp-halo sp-halo-3"></div>
+      <!-- Anillo lima (exterior) -->
+      <div class="sp-ring sp-ring-lime">
+        <div class="sp-ring-dot"></div>
+      </div>
       <!-- Anillo dorado -->
       <div class="sp-ring sp-ring-gold">
         <div class="sp-ring-dot"></div>
@@ -1406,11 +1442,95 @@
   var btnEl   = document.getElementById('btnLogin');
   var userInp = document.getElementById('inputUser');
 
+  /* ── Bloqueo por intentos fallidos ── */
+  var MAX_ATTEMPTS  = 5;
+  var LOCK_DURATION = 10 * 60 * 1000; /* 10 minutos en ms */
+  var STORE_KEY     = 'biblio_login_lock';
+  var countdownTimer = null;
+
+  function getLockData() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; }
+  }
+  function saveLockData(d) {
+    localStorage.setItem(STORE_KEY, JSON.stringify(d));
+  }
+  function clearLockData() {
+    localStorage.removeItem(STORE_KEY);
+  }
+
+  function isLocked() {
+    var d = getLockData();
+    if (!d.lockedUntil) return false;
+    if (Date.now() < d.lockedUntil) return true;
+    clearLockData();
+    return false;
+  }
+
+  function remainingMs() {
+    var d = getLockData();
+    return d.lockedUntil ? Math.max(0, d.lockedUntil - Date.now()) : 0;
+  }
+
+  function registerFail() {
+    var d = getLockData();
+    d.attempts = (d.attempts || 0) + 1;
+    if (d.attempts >= MAX_ATTEMPTS) {
+      d.lockedUntil = Date.now() + LOCK_DURATION;
+    }
+    saveLockData(d);
+    return d.attempts;
+  }
+
+  function fmtTime(ms) {
+    var totalSec = Math.ceil(ms / 1000);
+    var m = Math.floor(totalSec / 60);
+    var s = totalSec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function startLockCountdown() {
+    if (countdownTimer) clearInterval(countdownTimer);
+    function tick() {
+      var rem = remainingMs();
+      if (rem <= 0) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        errBox.classList.remove('show');
+        setFormLocked(false);
+        clearLockData();
+        return;
+      }
+      errBox.textContent = 'Demasiados intentos fallidos. Espere ' + fmtTime(rem) + ' para intentarlo de nuevo.';
+      errBox.classList.add('show');
+    }
+    tick();
+    countdownTimer = setInterval(tick, 1000);
+  }
+
+  function setFormLocked(locked) {
+    userInp.disabled  = locked;
+    passInput.disabled = locked;
+    btnEl.disabled    = locked;
+    if (locked) {
+      btnEl.innerHTML = '&#128274; Acceso bloqueado';
+    } else {
+      btnEl.innerHTML = 'Iniciar sesi\u00F3n';
+    }
+  }
+
+  /* Verificar bloqueo al cargar */
+  if (isLocked()) {
+    setFormLocked(true);
+    startLockCountdown();
+  }
+
   /* Limpiar error al escribir */
   [userInp, passInput].forEach(function (inp) {
     inp.addEventListener('input', function () {
-      errBox.classList.remove('show');
-      inp.classList.remove('shake');
+      if (!isLocked()) {
+        errBox.classList.remove('show');
+        inp.classList.remove('shake');
+      }
     });
   });
 
@@ -1440,6 +1560,11 @@
     e.preventDefault();
     errBox.classList.remove('show');
 
+    if (isLocked()) {
+      startLockCountdown();
+      return;
+    }
+
     var usuario  = userInp.value.trim();
     var password = passInput.value;
 
@@ -1460,11 +1585,20 @@
     })
     .then(function (r) {
       if (!r.ok) {
-        showErr(r.d.error || 'Credenciales incorrectas');
-        setLoading(false);
+        var attempts = registerFail();
+        if (isLocked()) {
+          setFormLocked(true);
+          startLockCountdown();
+        } else {
+          var remaining = MAX_ATTEMPTS - attempts;
+          showErr((r.d.error || 'Credenciales incorrectas') +
+            (remaining > 0 ? ' (' + remaining + ' intento' + (remaining === 1 ? '' : 's') + ' restante' + (remaining === 1 ? '' : 's') + ')' : ''));
+          setLoading(false);
+        }
         return;
       }
-      /* Éxito */
+      /* Éxito: limpiar conteo */
+      clearLockData();
       btnEl.innerHTML = '&#10003; Acceso concedido';
       btnEl.classList.add('success');
       btnEl.disabled  = true;
