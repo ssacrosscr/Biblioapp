@@ -89,24 +89,22 @@
       50%      { transform: scale(1.25); opacity: 1; }
     }
 
-    /* Mascot circle */
+    /* Mascot circle — sin fondo, imagen con screen blend */
     .sp-circle {
       position: relative;
       z-index: 1;
       width: 164px; height: 164px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.04);
-      border: 1.5px solid rgba(255,255,255,.13);
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      box-shadow: inset 0 0 40px rgba(0,80,200,.12);
     }
     .sp-circle img {
-      width: 100%; height: 100%;
-      object-fit: cover;
+      width: 148px; height: 148px;
+      object-fit: contain;
       display: block;
+      mix-blend-mode: screen;
+      filter: drop-shadow(0 0 24px rgba(0,160,255,.5))
+              drop-shadow(0 0 48px rgba(0,80,200,.25));
     }
 
     /* Orbital ring */
@@ -285,21 +283,22 @@
     }
     .lp-logo-box {
       display: inline-block;
-      width: 76px; height: 76px;
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,.13);
-      overflow: hidden;
+      width: 88px; height: 88px;
       margin-bottom: 14px;
-      box-shadow: 0 0 44px rgba(0,100,255,.13);
-      transition: box-shadow .35s;
-    }
-    .lp-logo-box:hover {
-      box-shadow: 0 0 64px rgba(0,160,255,.22);
+      position: relative;
     }
     .lp-logo-box img {
       width: 100%; height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
+      mix-blend-mode: screen;
+      filter: drop-shadow(0 0 18px rgba(0,160,255,.45))
+              drop-shadow(0 4px 12px rgba(0,0,0,.4));
+      transition: filter .35s;
+    }
+    .lp-logo-box:hover img {
+      filter: drop-shadow(0 0 28px rgba(0,200,255,.65))
+              drop-shadow(0 4px 16px rgba(0,0,0,.45));
     }
     .lp-brand {
       font-family: 'Playfair Display', serif;
