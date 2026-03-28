@@ -81,7 +81,7 @@
     var rec = B.prestamos.filter(function (p) { return !p.dev; }).slice(0, 5);
     if (rec.length) {
       B.setHTML('home-loans', rec.map(function (p, i) {
-        var per = B.getPersona(p.pId, p.pT);
+        var per = B.getPersona(p.pId);
         var lib = B.getLibro(p.lId);
         var colors = B.avc(i);
         return ''
@@ -107,7 +107,7 @@
     });
     if (venc.length) {
       B.setHTML('home-overdue', venc.map(function (p) {
-        var per = B.getPersona(p.pId, p.pT);
+        var per = B.getPersona(p.pId);
         var lib = B.getLibro(p.lId);
         var dias = Math.abs(B.diff(p.fd));
         return ''

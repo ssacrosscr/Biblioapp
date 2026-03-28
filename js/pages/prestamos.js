@@ -17,7 +17,7 @@
     }
     if (q) {
       data = data.filter(function (p) {
-        var per = B.getPersona(p.pId, p.pT);
+        var per = B.getPersona(p.pId);
         var lib = B.getLibro(p.lId);
         return (per && per.nombre.toLowerCase().indexOf(q) !== -1) ||
                (lib && lib.titulo.toLowerCase().indexOf(q) !== -1);
@@ -33,11 +33,10 @@
     }
 
     body.innerHTML = data.map(function (p, i) {
-      var per = B.getPersona(p.pId, p.pT);
+      var per = B.getPersona(p.pId);
       var lib = B.getLibro(p.lId);
       var colors = B.avc(i);
-      var subtxt = p.pT === 'd' ? 'Docente'
-        : B.esc((per ? per.grado : '') + ' ' + (per ? per.seccion : ''));
+      var subtxt = per && per.materia ? B.esc(per.materia) : 'Docente';
 
       return ''
         + '<tr>'
@@ -145,17 +144,12 @@
     var selLibro   = B.$('p-libro');
     if (!selPersona || !selLibro) return;
 
-    selPersona.innerHTML =
-      B.estudiantes.map(function (est) {
-        return '<option value="e-' + est.id + '">'
-          + B.esc(est.nombre) + ' \u00B7 ' + B.esc(est.grado + est.seccion)
-          + '</option>';
-      }).join('') +
-      B.docentes.map(function (doc) {
-        return '<option value="d-' + doc.id + '">'
-          + B.esc(doc.nombre) + ' \u00B7 Docente'
-          + '</option>';
-      }).join('');
+    selPersona.innerHTML = B.docentes.map(function (doc) {
+      return '<option value="' + doc.id + '">'
+        + B.esc(doc.nombre)
+        + (doc.materia ? ' \u00B7 ' + B.esc(doc.materia) : '')
+        + '</option>';
+    }).join('');
 
     selLibro.innerHTML = B.libros
       .filter(function (l) { return B.disponibles(l.id) > 0; })
@@ -178,12 +172,12 @@
   document.addEventListener('click', function (e) {
     if (!e.target.closest('#btnGuardarPrestamo')) return;
 
-    var pv = B.val('p-persona');
+    var pid = B.valNum('p-persona');
     var lId = B.valNum('p-libro');
-    var fd = B.val('p-devolucion');
-    var fp = B.val('p-fecha');
+    var fd  = B.val('p-devolucion');
+    var fp  = B.val('p-fecha');
 
-    if (!pv || !lId || !fd) {
+    if (!pid || !lId || !fd) {
       B.showToast('Complete todos los campos obligatorios', true);
       return;
     }
@@ -197,24 +191,17 @@
       return;
     }
 
-    var parts = pv.split('-');
-    if (parts.length !== 2) return;
-    var tipo = parts[0];
-    var pid  = parseInt(parts[1], 10);
-    if ((tipo !== 'e' && tipo !== 'd') || isNaN(pid)) return;
-
     /* Verificar préstamo duplicado */
     var duplicado = B.prestamos.some(function (p) {
-      return !p.dev && p.pId === pid && p.pT === tipo && p.lId === lId;
+      return !p.dev && p.pId === pid && p.lId === lId;
     });
     if (duplicado) {
-      B.showToast('Esta persona ya tiene prestado este libro', true);
+      B.showToast('Este docente ya tiene prestado este libro', true);
       return;
     }
 
     var prestamoData = {
       pId: pid,
-      pT:  tipo,
       lId: lId,
       fp:  fp,
       fd:  fd,

@@ -19,7 +19,7 @@
 
     var activos = B.prestamos.filter(function (p) {
       if (p.dev) return false;
-      var per = B.getPersona(p.pId, p.pT);
+      var per = B.getPersona(p.pId);
       return per && per.nombre.toLowerCase().indexOf(q) !== -1;
     });
 
@@ -31,7 +31,7 @@
 
     cont.innerHTML = '<div class="card">'
       + activos.map(function (p) {
-          var per = B.getPersona(p.pId, p.pT);
+          var per = B.getPersona(p.pId);
           var lib = B.getLibro(p.lId);
           return ''
             + '<div class="lr" style="padding:14px 0">'

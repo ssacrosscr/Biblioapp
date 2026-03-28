@@ -103,7 +103,7 @@ window.BiblioApp = window.BiblioApp || {};
     doc.setFont('helvetica', 'bold');
     doc.text('Boleta de solicitud de libros #' + solicitud.id, 20, 42);
 
-    var TIPO_LABEL = { docente: 'Docente', estudiante: 'Estudiante', visitante: 'Visitante' };
+    var TIPO_LABEL = { docente: 'Docente' };
     var PRIO_LABEL = { alta: 'Alta', media: 'Media', baja: 'Baja' };
     var nombreSol = solicitud.solicitanteNombre || solicitud.docenteNombre || solicitud.usuarioNombre || '';
     var tipoSol   = TIPO_LABEL[solicitud.tipoSolicitante] || 'Docente';

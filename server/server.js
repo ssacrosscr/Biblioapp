@@ -315,44 +315,7 @@ app.delete('/api/libros/:id', auth, biblioOnly, async (req, res) => {
 });
 
 // ════════════════════════════════════════════════════════════
-//  ESTUDIANTES
-// ════════════════════════════════════════════════════════════
-
-app.get('/api/estudiantes', auth, biblioOnly, async (req, res) => {
-  try {
-    const estudiantes = await db.collection('estudiantes').find().sort({ id: 1 }).toArray();
-    res.json(toClientArray(estudiantes));
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/estudiantes', auth, biblioOnly, async (req, res) => {
-  try {
-    const { nombre, cedula, grado, seccion, tel } = req.body;
-    if (!nombre || !cedula) return res.status(400).json({ error: 'Nombre y cédula son requeridos' });
-    const counter = await db.collection('counters').findOneAndUpdate(
-      { _id: 'estudiantes' },
-      { $inc: { seq: 1 } },
-      { returnDocument: 'after', upsert: true }
-    );
-    const est = {
-      id:      counter.seq,
-      nombre:  String(nombre).slice(0, 200),
-      cedula:  String(cedula).slice(0, 30),
-      grado:   grado   ? String(grado).slice(0, 20)   : '7°',
-      seccion: seccion ? String(seccion).slice(0, 10)  : 'A',
-      tel:     tel     ? String(tel).slice(0, 20)      : '',
-    };
-    await db.collection('estudiantes').insertOne(est);
-    res.status(201).json(toClient(est));
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ════════════════════════════════════════════════════════════
-//  DOCENTES
+//  DOCENTES  (único tipo de persona con préstamos)
 // ════════════════════════════════════════════════════════════
 
 app.get('/api/docentes', auth, biblioOnly, async (req, res) => {
@@ -401,9 +364,9 @@ app.get('/api/prestamos', auth, biblioOnly, async (req, res) => {
 
 app.post('/api/prestamos', auth, biblioOnly, async (req, res) => {
   try {
-    const { pId, pT, lId, fp, fd, dev, n } = req.body;
-    if (!pId || !pT || !lId || !fp || !fd) {
-      return res.status(400).json({ error: 'Persona, libro y fechas son requeridos' });
+    const { pId, lId, fp, fd, dev, n } = req.body;
+    if (!pId || !lId || !fp || !fd) {
+      return res.status(400).json({ error: 'Docente, libro y fechas son requeridos' });
     }
     const counter = await db.collection('counters').findOneAndUpdate(
       { _id: 'prestamos' },
@@ -413,7 +376,7 @@ app.post('/api/prestamos', auth, biblioOnly, async (req, res) => {
     const prest = {
       id:  counter.seq,
       pId: parseInt(pId),
-      pT:  String(pT).slice(0, 20),
+      pT:  'd',
       lId: parseInt(lId),
       fp:  String(fp).slice(0, 30),
       fd:  String(fd).slice(0, 30),
@@ -512,8 +475,8 @@ app.post('/api/solicitudes', auth, async (req, res) => {
       if (!tipoSolicitante || !solicitanteNombre || !String(solicitanteNombre).trim()) {
         return res.status(400).json({ error: 'Tipo y nombre del solicitante son requeridos' });
       }
-      if (!['docente', 'estudiante', 'visitante'].includes(tipoSolicitante)) {
-        return res.status(400).json({ error: 'Tipo de solicitante inválido' });
+      if (tipoSolicitante !== 'docente') {
+        return res.status(400).json({ error: 'Solo se permiten solicitudes de docentes' });
       }
       finalTipo   = tipoSolicitante;
       finalId     = solicitanteId ? parseInt(solicitanteId) : null;
@@ -534,7 +497,7 @@ app.post('/api/solicitudes', auth, async (req, res) => {
     }
 
     // Prioridad automática por tipo
-    const PRIORIDAD_MAP = { docente: 'alta', estudiante: 'media', visitante: 'baja' };
+    const PRIORIDAD_MAP = { docente: 'alta' };
     const finalPrioridad = (prioridad && ['alta', 'media', 'baja'].includes(prioridad))
       ? prioridad : (PRIORIDAD_MAP[finalTipo] || 'media');
 
@@ -608,14 +571,12 @@ app.put('/api/solicitudes/:id', auth, biblioOnly, async (req, res) => {
 app.post('/api/solicitudes/:id/convertir', auth, biblioOnly, async (req, res) => {
   try {
     const id   = parseInt(req.params.id);
-    const { pId, pT, fd } = req.body;
+    const { pId, fd } = req.body;
 
-    if (!pId || !pT || !fd) {
-      return res.status(400).json({ error: 'Persona (pId, pT) y fecha de devolución (fd) son requeridos' });
+    if (!pId || !fd) {
+      return res.status(400).json({ error: 'Docente (pId) y fecha de devolución (fd) son requeridos' });
     }
-    if (pT !== 'e' && pT !== 'd') {
-      return res.status(400).json({ error: 'pT debe ser "e" (estudiante) o "d" (docente)' });
-    }
+    const pT = 'd';
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fd)) {
       return res.status(400).json({ error: 'Fecha de devolución inválida' });
     }

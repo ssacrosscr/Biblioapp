@@ -29,7 +29,6 @@ window.BiblioApp = window.BiblioApp || {};
 
   /* Arrays se llenan desde la API en app.js */
   B.libros      = [];
-  B.estudiantes = [];
   B.docentes    = [];
   B.prestamos   = [];
   B.solicitudes = [];
@@ -38,10 +37,8 @@ window.BiblioApp = window.BiblioApp || {};
 
   /* ── Funciones de acceso a datos ── */
 
-  B.getPersona = function (id, tipo) {
-    return tipo === 'e'
-      ? B.estudiantes.find(function (x) { return x.id === id; })
-      : B.docentes.find(function (x) { return x.id === id; });
+  B.getPersona = function (id) {
+    return B.docentes.find(function (x) { return x.id === id; });
   };
 
   B.getLibro = function (id) {
@@ -59,9 +56,9 @@ window.BiblioApp = window.BiblioApp || {};
     return libro ? Math.max(0, (parseInt(libro.ejemplares) || 0) - B.prestamosActivos(libroId)) : 0;
   };
 
-  B.prestamosActivosPersona = function (personaId, tipo) {
+  B.prestamosActivosPersona = function (docenteId) {
     return B.prestamos.filter(function (p) {
-      return !p.dev && p.pId === personaId && p.pT === tipo;
+      return !p.dev && p.pId === docenteId;
     }).length;
   };
 

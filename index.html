@@ -54,8 +54,7 @@
   <div class="nav-item" data-page="catalogo"><span class="ni">&#128218;</span> Cat&aacute;logo</div>
   <div class="nav-item" data-page="agregar" data-biblio><span class="ni">&#10133;</span> Agregar libro</div>
 
-  <div class="nav-section" data-biblio>Personas</div>
-  <div class="nav-item" data-page="estudiantes" data-biblio><span class="ni">&#127890;</span> Estudiantes</div>
+  <div class="nav-section" data-biblio>Docentes</div>
   <div class="nav-item" data-page="docentes" data-biblio><span class="ni">&#128105;&#8205;&#127979;</span> Docentes</div>
 
   <div class="nav-section" data-biblio>Informes</div>
@@ -136,7 +135,7 @@
   </div>
   <div class="card">
     <div class="srow">
-      <input class="fi" type="text" placeholder="&#128269;  Buscar por estudiante o libro..." id="searchPrestamo">
+      <input class="fi" type="text" placeholder="&#128269;  Buscar por docente o libro..." id="searchPrestamo">
       <select class="fi" id="filterEstado" style="width:180px">
         <option value="">Todos los estados</option>
         <option value="activo">Al d&iacute;a</option>
@@ -170,7 +169,7 @@
     <div class="card">
       <div class="ct" style="margin-bottom:14px">Buscar pr&eacute;stamo activo</div>
       <div class="fg">
-        <label class="fl">Nombre del estudiante o docente</label>
+        <label class="fl">Nombre del docente</label>
         <input class="fi" type="text" placeholder="Escriba para buscar..." id="devInput">
       </div>
     </div>
@@ -318,40 +317,6 @@
       <div class="ct" style="margin-bottom:14px">Vista previa de portada</div>
       <div id="previewWrap" style="width:150px;height:196px;margin:0 auto;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);"></div>
       <p style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5">La portada se genera autom&aacute;ticamente con los datos ingresados</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     ESTUDIANTES
-     ═══════════════════════════════════════════════════════════ -->
-<section class="main" id="page-estudiantes">
-  <div class="ph">
-    <div>
-      <div class="pt">Estudiantes</div>
-      <div class="ps">Registro de estudiantes activos</div>
-    </div>
-    <button class="btn or" id="btnNuevoEstudiante">+ Nuevo estudiante</button>
-  </div>
-  <div class="card">
-    <div class="srow">
-      <input class="fi" type="text" placeholder="&#128269;  Buscar por nombre o c&eacute;dula..." id="searchEstudiante">
-      <select class="fi" id="filterGrado" style="width:165px">
-        <option value="">Todos los grados</option>
-        <option>7&deg;</option><option>8&deg;</option><option>9&deg;</option>
-        <option>10&deg;</option><option>11&deg;</option>
-      </select>
-    </div>
-    <div class="table-responsive">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>Estudiante</th><th>C&eacute;dula / Carn&eacute;</th><th>Grado</th>
-            <th>Secci&oacute;n</th><th>Pr&eacute;stamos activos</th><th>Estado</th>
-          </tr>
-        </thead>
-        <tbody id="estudiantesBody"></tbody>
-      </table>
     </div>
   </div>
 </section>
@@ -526,8 +491,6 @@
       <select class="fi" id="filterSolTipo" style="width:155px">
         <option value="">Todos los tipos</option>
         <option value="docente">Docente</option>
-        <option value="estudiante">Estudiante</option>
-        <option value="visitante">Visitante</option>
       </select>
       <select class="fi" id="filterSolEstado" style="width:155px">
         <option value="">Todos los estados</option>
@@ -776,7 +739,7 @@
     <div class="modal-sub">Registrar la salida de un libro</div>
     <div class="form-grid">
       <div class="fg full">
-        <label class="fl">Estudiante o docente *</label>
+        <label class="fl">Docente *</label>
         <select class="fi" id="p-persona"></select>
       </div>
       <div class="fg full">
@@ -826,45 +789,6 @@
     <div class="mf">
       <button class="btn" id="btnCancelEditPrestamo">Cancelar</button>
       <button class="btn primary" id="btnGuardarEditPrestamo">Guardar cambios</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Nuevo Estudiante -->
-<div class="modal-overlay" id="modalEstudiante">
-  <div class="modal">
-    <div class="modal-title">Nuevo estudiante</div>
-    <div class="modal-sub">Agregar al registro de la biblioteca</div>
-    <div class="form-grid">
-      <div class="fg full">
-        <label class="fl">Nombre completo *</label>
-        <input class="fi" type="text" id="e-nombre" placeholder="Apellido Apellido, Nombre" maxlength="200">
-      </div>
-      <div class="fg">
-        <label class="fl">C&eacute;dula / Carn&eacute; *</label>
-        <input class="fi" type="text" id="e-cedula" placeholder="1-2345-6789" maxlength="15">
-      </div>
-      <div class="fg">
-        <label class="fl">Tel&eacute;fono</label>
-        <input class="fi" type="text" id="e-tel" placeholder="8888-8888" maxlength="15">
-      </div>
-      <div class="fg">
-        <label class="fl">Grado</label>
-        <select class="fi" id="e-grado">
-          <option>7&deg;</option><option>8&deg;</option><option>9&deg;</option>
-          <option>10&deg;</option><option>11&deg;</option>
-        </select>
-      </div>
-      <div class="fg">
-        <label class="fl">Secci&oacute;n</label>
-        <select class="fi" id="e-seccion">
-          <option>A</option><option>B</option><option>C</option><option>D</option>
-        </select>
-      </div>
-    </div>
-    <div class="mf">
-      <button class="btn" id="btnCancelEstudiante">Cancelar</button>
-      <button class="btn primary" id="btnGuardarEstudiante">Guardar</button>
     </div>
   </div>
 </div>
@@ -1101,29 +1025,11 @@
 <div class="modal-overlay" id="modalCrearSolicitud">
   <div class="modal" style="max-width:640px">
     <div class="modal-title">Nueva solicitud manual</div>
-    <div class="modal-sub">Registrar solicitud en nombre de un usuario de la biblioteca</div>
+    <div class="modal-sub">Registrar solicitud en nombre de un docente</div>
     <div class="form-grid">
-      <div class="fg">
-        <label class="fl">Tipo de solicitante *</label>
-        <select class="fi" id="ns-tipo">
-          <option value="">Seleccionar...</option>
-          <option value="docente">Docente</option>
-          <option value="estudiante">Estudiante</option>
-          <option value="visitante">Visitante</option>
-        </select>
-      </div>
-      <div class="fg">
-        <label class="fl" id="ns-persona-label">Persona *</label>
+      <div class="fg full">
+        <label class="fl">Docente *</label>
         <select class="fi" id="ns-persona-select"></select>
-        <input class="fi" id="ns-persona-text" type="text" placeholder="Nombre completo del visitante" maxlength="200" style="display:none;margin-top:6px">
-      </div>
-      <div class="fg">
-        <label class="fl">Prioridad</label>
-        <select class="fi" id="ns-prioridad">
-          <option value="alta">Alta</option>
-          <option value="media" selected>Media</option>
-          <option value="baja">Baja</option>
-        </select>
       </div>
     </div>
     <div style="margin:16px 0 8px;border-top:1.5px solid var(--border);padding-top:14px">
@@ -1192,7 +1098,6 @@
 <script defer src="js/pages/devoluciones.js?v=8"></script>
 <script defer src="js/pages/catalogo.js?v=8"></script>
 <script defer src="js/pages/agregar.js?v=8"></script>
-<script defer src="js/pages/estudiantes.js?v=8"></script>
 <script defer src="js/pages/docentes.js?v=8"></script>
 <script defer src="js/pages/estadisticas.js?v=8"></script>
 <script defer src="js/pages/historial.js?v=8"></script>

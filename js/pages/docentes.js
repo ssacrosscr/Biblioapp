@@ -16,7 +16,7 @@
     if (!body) return;
 
     body.innerHTML = data.map(function (doc, i) {
-      var ac = B.prestamosActivosPersona(doc.id, 'd');
+      var ac = B.prestamosActivosPersona(doc.id);
       var colors = B.avc(i);
 
       return ''

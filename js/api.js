@@ -82,22 +82,19 @@ window.BiblioApp = window.BiblioApp || {};
     var rol = B.getUserRol();
     if (rol === 'docente') {
       return request('GET', '/libros').then(function (result) {
-        B.libros = result;
-        B.estudiantes = [];
-        B.docentes = [];
+        B.libros    = result;
+        B.docentes  = [];
         B.prestamos = [];
       });
     }
     return Promise.all([
       request('GET', '/libros'),
-      request('GET', '/estudiantes'),
       request('GET', '/docentes'),
       request('GET', '/prestamos'),
     ]).then(function (results) {
-      B.libros      = results[0];
-      B.estudiantes = results[1];
-      B.docentes    = results[2];
-      B.prestamos   = results[3];
+      B.libros    = results[0];
+      B.docentes  = results[1];
+      B.prestamos = results[2];
     });
   };
 
@@ -120,14 +117,6 @@ window.BiblioApp = window.BiblioApp || {};
   B.apiDeleteLibro = function (id) {
     return request('DELETE', '/libros/' + id).then(function () {
       B.libros = B.libros.filter(function (l) { return l.id !== id; });
-    });
-  };
-
-  /* ── Estudiantes ── */
-  B.apiAddEstudiante = function (est) {
-    return request('POST', '/estudiantes', est).then(function (saved) {
-      B.estudiantes.push(saved);
-      return saved;
     });
   };
 

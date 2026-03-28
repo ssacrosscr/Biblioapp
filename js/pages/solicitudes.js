@@ -10,7 +10,7 @@
   var currentPage = 0;
   var PAGE_SIZE   = 15;
 
-  var TIPO_LABEL = { docente: 'Docente', estudiante: 'Estudiante', visitante: 'Visitante' };
+  var TIPO_LABEL = { docente: 'Docente' };
 
   /* ────────────────────────────────────────────────────────────
      DISPONIBILIDAD — Muestra conteos reales por item
@@ -83,7 +83,7 @@
     if (s.estado === 'pendiente' || s.estado === 'en_espera') {
       btns.push('<button class="btn sm primary" data-responder-sol="' + s.id + '">Responder</button>');
     }
-    if (s.estado === 'aprobada' && !s.convertido && s.tipoSolicitante !== 'visitante') {
+    if (s.estado === 'aprobada' && !s.convertido) {
       btns.push(
         '<button class="btn sm btn-convertir" data-convertir-sol="' + s.id + '">'
         + '&#8594;&nbsp;Pr&eacute;stamo</button>'
@@ -458,41 +458,15 @@
         + dBadge + '</div>';
     }).join(''));
 
-    /* Selector de persona */
-    var isDoc  = (s.tipoSolicitante === 'docente' || !s.tipoSolicitante);
-    var isEst  = (s.tipoSolicitante === 'estudiante');
+    /* Selector de docente para el préstamo */
     var convPer = B.$('conv-persona');
     convPer.innerHTML = '';
-
-    var lista = [];
-    if (isDoc) {
-      B.docentes.forEach(function (d) {
-        lista.push({ label: d.nombre + ' (Docente)', pT: 'd', pId: d.id });
-      });
-    } else if (isEst) {
-      B.estudiantes.forEach(function (est) {
-        lista.push({ label: est.nombre + ' (Estudiante)', pT: 'e', pId: est.id });
-      });
-    } else {
-      B.docentes.forEach(function (d) {
-        lista.push({ label: d.nombre + ' (Doc.)', pT: 'd', pId: d.id });
-      });
-      B.estudiantes.forEach(function (est) {
-        lista.push({ label: est.nombre + ' (Est.)', pT: 'e', pId: est.id });
-      });
-    }
-    if (!lista.length) {
-      B.docentes.forEach(function (d) {
-        lista.push({ label: d.nombre + ' (Doc.)', pT: 'd', pId: d.id });
-      });
-    }
-
     var nombreLow = nombre.toLowerCase();
-    lista.forEach(function (p) {
+    B.docentes.forEach(function (d) {
       var opt = document.createElement('option');
-      opt.value = p.pT + '-' + p.pId;
-      opt.textContent = p.label;
-      if (p.label.toLowerCase().indexOf(nombreLow) !== -1) opt.selected = true;
+      opt.value = d.id;
+      opt.textContent = d.nombre + (d.materia ? ' \u00B7 ' + d.materia : '');
+      if (d.nombre.toLowerCase().indexOf(nombreLow) !== -1) opt.selected = true;
       convPer.appendChild(opt);
     });
 
@@ -511,12 +485,10 @@
     if (!pVal || !fd) { B.showToast('Seleccione persona y fecha de devoluci\u00F3n', true); return; }
     if (!B.isValidDate(fd)) { B.showToast('Fecha inv\u00E1lida', true); return; }
 
-    var parts = pVal.split('-');
-    var pT    = parts[0];
-    var pId   = parseInt(parts.slice(1).join('-'));
-    if (isNaN(pId)) { B.showToast('Persona inv\u00E1lida', true); return; }
+    var pId = parseInt(pVal, 10);
+    if (isNaN(pId)) { B.showToast('Docente inv\u00E1lido', true); return; }
 
-    B.apiConvertirSolicitud(solId, { pId: pId, pT: pT, fd: fd })
+    B.apiConvertirSolicitud(solId, { pId: pId, fd: fd })
       .then(function (result) {
         B.closeModal('modalConvertir');
         var msg = '\u2713 ' + result.prestamosCreados.length + ' pr\u00E9stamo(s) registrado(s)';
@@ -539,7 +511,6 @@
     if (!e.target.closest('#btnNuevaSolicitud')) return;
     nsItems = [];
     renderNsItems();
-    B.$('ns-tipo').value      = '';
     B.$('ns-notas').value     = '';
     B.$('ns-libro-qty').value = '1';
     var sel = B.$('ns-libro-sel');
@@ -550,40 +521,21 @@
           + ' (' + disp + ' disp.)</option>';
       }).join('');
     }
-    updateNsPersona('');
+    updateNsPersona();
     B.openModal('modalCrearSolicitud');
   });
 
-  document.addEventListener('change', function (e) {
-    if (e.target.id !== 'ns-tipo') return;
-    var tipo = e.target.value;
-    updateNsPersona(tipo);
-    var prioMap = { docente: 'alta', estudiante: 'media', visitante: 'baja' };
-    var prioEl  = B.$('ns-prioridad');
-    if (prioEl && prioMap[tipo]) prioEl.value = prioMap[tipo];
-  });
-
-  function updateNsPersona(tipo) {
+  function updateNsPersona() {
     var sel = B.$('ns-persona-select');
-    var txt = B.$('ns-persona-text');
-    var lbl = B.$('ns-persona-label');
-    if (!sel || !txt) return;
-    if (tipo === 'visitante') {
-      sel.style.display = 'none';
-      txt.style.display = '';
-      txt.value = '';
-      if (lbl) lbl.textContent = 'Nombre del visitante *';
-    } else {
-      sel.style.display = '';
-      txt.style.display = 'none';
-      if (lbl) lbl.textContent = tipo === 'estudiante' ? 'Estudiante *' : 'Docente *';
-      var lista = tipo === 'estudiante' ? B.estudiantes : B.docentes;
-      sel.innerHTML = lista.length
-        ? lista.map(function (p) {
-            return '<option value="' + p.id + '">' + B.esc(p.nombre) + '</option>';
-          }).join('')
-        : '<option value="">No hay registros</option>';
-    }
+    if (!sel) return;
+    sel.innerHTML = B.docentes.length
+      ? B.docentes.map(function (d) {
+          return '<option value="' + d.id + '">'
+            + B.esc(d.nombre)
+            + (d.materia ? ' \u00B7 ' + B.esc(d.materia) : '')
+            + '</option>';
+        }).join('')
+      : '<option value="">No hay docentes registrados</option>';
   }
 
   document.addEventListener('click', function (e) {
@@ -625,28 +577,17 @@
 
   document.addEventListener('click', function (e) {
     if (!e.target.closest('#btnGuardarNuevaSolicitud')) return;
-    var tipo = B.$('ns-tipo').value;
-    if (!tipo)           { B.showToast('Seleccione el tipo de solicitante', true); return; }
     if (!nsItems.length) { B.showToast('Agregue al menos un libro', true); return; }
 
-    var solicitanteNombre, solicitanteId;
-    if (tipo === 'visitante') {
-      solicitanteNombre = B.cleanInput(B.$('ns-persona-text').value, 200);
-      if (!solicitanteNombre) { B.showToast('Ingrese el nombre del visitante', true); return; }
-      solicitanteId = null;
-    } else {
-      solicitanteId  = B.valNum('ns-persona-select');
-      var lista      = tipo === 'estudiante' ? B.estudiantes : B.docentes;
-      var persona    = lista.find(function (p) { return p.id === solicitanteId; });
-      if (!persona)  { B.showToast('Seleccione una persona v\u00E1lida', true); return; }
-      solicitanteNombre = persona.nombre;
-    }
+    var docenteId = B.valNum('ns-persona-select');
+    var docente   = B.docentes.find(function (d) { return d.id === docenteId; });
+    if (!docente) { B.showToast('Seleccione un docente v\u00E1lido', true); return; }
 
     var data = {
-      tipoSolicitante:   tipo,
-      solicitanteId:     solicitanteId,
-      solicitanteNombre: solicitanteNombre,
-      prioridad:         B.$('ns-prioridad').value || 'media',
+      tipoSolicitante:   'docente',
+      solicitanteId:     docente.id,
+      solicitanteNombre: docente.nombre,
+      prioridad:         'alta',
       notas:             B.cleanInput(B.$('ns-notas').value, 500),
       items: nsItems.map(function (i) { return { libroId: i.libroId, cantidad: i.cantidad }; })
     };

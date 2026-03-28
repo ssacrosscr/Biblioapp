@@ -17,7 +17,7 @@
 
     if (q) {
       data = data.filter(function (p) {
-        var per = B.getPersona(p.pId, p.pT);
+        var per = B.getPersona(p.pId);
         var lib = B.getLibro(p.lId);
         return (per && per.nombre.toLowerCase().indexOf(q) !== -1) ||
                (lib && lib.titulo.toLowerCase().indexOf(q) !== -1);
@@ -33,7 +33,7 @@
     }
 
     body.innerHTML = data.map(function (p, i) {
-      var per = B.getPersona(p.pId, p.pT);
+      var per = B.getPersona(p.pId);
       var lib = B.getLibro(p.lId);
       var colors = B.avc(i);
       var estado;
@@ -54,7 +54,7 @@
         +     B.esc(B.ini(per ? per.nombre : ''))
         +   '</div>'
         +   '<div><div style="font-weight:700">' + B.esc(per ? per.nombre : '\u2014') + '</div>'
-        +     '<div style="font-size:11px;color:var(--text3)">' + (p.pT === 'd' ? 'Docente' : B.esc((per ? per.grado : '') + ' ' + (per ? per.seccion : ''))) + '</div>'
+        +     '<div style="font-size:11px;color:var(--text3)">' + (per && per.materia ? B.esc(per.materia) : 'Docente') + '</div>'
         +   '</div>'
         + '</div></td>'
         + '<td style="font-weight:600">' + B.esc(lib ? lib.titulo : '\u2014') + '</td>'
