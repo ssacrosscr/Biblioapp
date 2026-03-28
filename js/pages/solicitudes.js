@@ -35,13 +35,13 @@
       if (counts[s.estado] !== undefined) counts[s.estado]++;
     });
     el.innerHTML = [
-      { label: 'Pendientes',  key: 'pendiente',  ico: '&#9203;', color: 'var(--orange-dark)' },
-      { label: 'En espera',   key: 'en_espera',  ico: '&#9208;', color: 'var(--warn)' },
-      { label: 'Aprobadas',   key: 'aprobada',   ico: '&#10003;', color: 'var(--ok)' },
-      { label: 'Rechazadas',  key: 'rechazada',  ico: '&#10007;', color: 'var(--danger)' }
+      { label: 'Pendientes', key: 'pendiente', ico: '⏳', cls: 'sol-metric--pendiente', color: '#D97706' },
+      { label: 'En espera',  key: 'en_espera', ico: '⏸',  cls: 'sol-metric--espera',    color: '#2563EB' },
+      { label: 'Aprobadas',  key: 'aprobada',  ico: '✅', cls: 'sol-metric--aprobada',   color: '#059669' },
+      { label: 'Rechazadas', key: 'rechazada', ico: '❌', cls: 'sol-metric--rechazada',  color: '#DC2626' }
     ].map(function (m) {
-      return '<div class="sol-metric">'
-        + '<div class="sol-metric-ico">' + m.ico + '</div>'
+      return '<div class="sol-metric ' + m.cls + '">'
+        + '<span class="sol-metric-ico">' + m.ico + '</span>'
         + '<div class="sol-metric-num" style="color:' + m.color + '">' + counts[m.key] + '</div>'
         + '<div class="sol-metric-label">' + m.label + '</div>'
         + '</div>';
