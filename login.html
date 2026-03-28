@@ -907,6 +907,84 @@
     { bx:.42, by:.18, rx:400, ry:300, rgb:[0,180,220],  a:.05, px:.002, py:.002, phase:5.2, spd:.00012 },
   ];
 
+  /* ── Partículas flotantes (luciérnagas — capa viva del fondo) ── */
+  var BGFLIES = (function () {
+    var arr = [];
+    var COLS = [
+      [255, 220,  50],  /* dorado */
+      [  0, 240, 255],  /* cian */
+      [255, 255, 255],  /* blanco */
+      [200,  80, 255],  /* magenta */
+      [  0, 255, 130],  /* lima */
+      [100, 160, 255],  /* azul suave */
+    ];
+    for (var i = 0; i < 90; i++) {
+      var col = COLS[Math.floor(Math.random() * COLS.length)];
+      arr.push({
+        /* Posición base aleatoria en toda la pantalla */
+        ox: Math.random(),
+        oy: Math.random(),
+        /* Oscilación independiente en X e Y */
+        ax: Math.random() * Math.PI * 2,
+        ay: Math.random() * Math.PI * 2,
+        fx: Math.random() * .00045 + .00015,
+        fy: Math.random() * .00045 + .00020,
+        rx: Math.random() * 55 + 20,   /* radio oscilación x */
+        ry: Math.random() * 40 + 15,   /* radio oscilación y */
+        /* Movimiento de deriva lenta (drift) */
+        dx: (Math.random() - .5) * .000012,
+        dy: (Math.random() - .5) * .000008,
+        /* Apariencia */
+        r: col,
+        sz:  Math.random() * 1.6 + .5,
+        alp: Math.random() * .5 + .15,
+        /* Pulso de brillo propio */
+        pulsePhase: Math.random() * Math.PI * 2,
+        pulseSpd:   Math.random() * .0012 + .0004,
+      });
+    }
+    return arr;
+  })();
+
+  function drawBgFlies(t, now) {
+    BGFLIES.forEach(function (f) {
+      /* Drift lento — posición base se mueve muy despacio */
+      f.ox += f.dx;
+      f.oy += f.dy;
+      /* Wrap alrededor de la pantalla */
+      if (f.ox < -.05) f.ox = 1.05;
+      if (f.ox > 1.05) f.ox = -.05;
+      if (f.oy < -.05) f.oy = 1.05;
+      if (f.oy > 1.05) f.oy = -.05;
+
+      /* Posición con oscilación orgánica */
+      var px = f.ox * W + Math.sin(now * f.fx + f.ax) * f.rx;
+      var py = f.oy * H + Math.cos(now * f.fy + f.ay) * f.ry;
+
+      /* Pulso de brillo */
+      var pulse = Math.sin(t * f.pulseSpd * 1000 + f.pulsePhase) * .5 + .5;
+      var al    = f.alp * (.5 + .5 * pulse);
+      var sz    = f.sz  * (.85 + .15 * pulse);
+
+      var c = f.r;
+      /* Halo exterior difuso */
+      var g = ctx.createRadialGradient(px, py, 0, px, py, sz * 5.5);
+      g.addColorStop(0,   'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + (al * .9) + ')');
+      g.addColorStop(.35, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + (al * .35) + ')');
+      g.addColorStop(1,   'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0)');
+      ctx.beginPath();
+      ctx.arc(px, py, sz * 5.5, 0, 6.2832);
+      ctx.fillStyle = g;
+      ctx.fill();
+
+      /* Núcleo brillante */
+      ctx.beginPath();
+      ctx.arc(px, py, sz, 0, 6.2832);
+      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + Math.min(al * 1.8, 1) + ')';
+      ctx.fill();
+    });
+  }
+
   /* ── Planeta (esfera realista con gradiente 3D) ── */
   var PLANET = {
     bx: .82, by: .15,       /* posición base relativa */
@@ -1131,11 +1209,14 @@
     /* 3. Planeta */
     drawPlanet(mx, my, t);
 
-    /* 4. Shooting stars */
+    /* 4. Partículas flotantes (luciérnagas de fondo) */
+    drawBgFlies(t, now);
+
+    /* 5. Shooting stars */
     if (now - lastShoot > nextShootDelay) {
       spawnShoot();
       lastShoot      = now;
-      nextShootDelay = 4000 + Math.random() * 7000;
+      nextShootDelay = 1800 + Math.random() * 3500;
     }
     for (var i = SHOOTS.length - 1; i >= 0; i--) {
       var s = SHOOTS[i];
