@@ -689,49 +689,114 @@ input, select, textarea { font-family: inherit; }
 }
 
 /* ── BOOK GRID ── */
+.cat-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 4px 2px;
+  flex-wrap: wrap;
+}
+.cat-stat {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--text3);
+}
+.cat-stat-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.cat-count {
+  font-size: 12px; color: var(--text3); font-weight: 600;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+  gap: 26px;
 }
+
 .book-card {
   background: white;
-  border: 1.5px solid var(--border);
-  border-radius: var(--r);
+  border-radius: 20px;
   overflow: hidden;
-  transition: all .28s ease;
+  box-shadow: 0 3px 14px rgba(0,30,80,0.08);
   display: flex; flex-direction: column;
+  transition: transform .26s cubic-bezier(.4,0,.2,1), box-shadow .26s ease;
 }
 .book-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-5px);
-  border-color: var(--blue-light);
+  transform: translateY(-8px) scale(1.015);
+  box-shadow: 0 22px 52px rgba(0,30,80,0.17);
 }
+
 .bc {
-  width: 100%; height: 200px;
+  width: 100%; height: 230px;
   position: relative;
   overflow: hidden; flex-shrink: 0;
 }
-.bc > div { width: 100% !important; }
-.bi { padding: 14px 16px; }
+.bc > div { width: 100% !important; height: 100% !important; }
+
+/* Materia flotante sobre la portada */
+.bc-mat {
+  position: absolute; top: 12px; right: 12px; z-index: 4;
+  background: rgba(0,0,0,0.42);
+  color: rgba(255,255,255,0.95);
+  font-size: 9px; font-weight: 800;
+  padding: 3px 9px; border-radius: 20px;
+  letter-spacing: .5px; text-transform: uppercase;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.2);
+  max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Chip de disponibilidad sobre portada */
+.bc-chip {
+  position: absolute; bottom: 12px; left: 12px; z-index: 4;
+}
+.bc-chip .chip {
+  font-size: 10.5px; font-weight: 700;
+  padding: 4px 11px; border-radius: 20px;
+  display: inline-flex; align-items: center; gap: 5px;
+  backdrop-filter: blur(4px);
+}
+.bc-chip .chip::before {
+  content: '';
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.bc-chip .chip.av { background: rgba(224,244,235,0.9); color: var(--ok); }
+.bc-chip .chip.av::before { background: var(--ok); }
+.bc-chip .chip.pa { background: rgba(255,244,214,0.9); color: var(--warn); }
+.bc-chip .chip.pa::before { background: #D48000; }
+.bc-chip .chip.un { background: rgba(252,234,234,0.9); color: var(--danger); }
+.bc-chip .chip.un::before { background: var(--danger); }
+
+/* Info */
+.bi { padding: 15px 16px 10px; flex: 1; }
 .bt {
   font-size: 13.5px; font-weight: 700;
-  color: var(--text); line-height: 1.3;
-  margin-bottom: 4px;
+  color: var(--text); line-height: 1.35;
+  margin-bottom: 5px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.bm { font-size: 11.5px; color: var(--text3); }
+.bm {
+  font-size: 11.5px; color: var(--text3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.b-nivel {
+  display: inline-block; margin-top: 8px;
+  font-size: 10px; font-weight: 700;
+  color: var(--blue); background: var(--blue-xlight);
+  padding: 2px 9px; border-radius: 20px; letter-spacing: .2px;
+}
+
+/* Footer */
 .bft {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 11px 16px;
+  display: flex; justify-content: flex-end; align-items: center;
+  gap: 6px; padding: 10px 12px;
   border-top: 1px solid var(--border);
   background: var(--off-white);
-  margin-top: auto;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 /* ── OVERDUE ROWS ── */
@@ -874,8 +939,8 @@ input, select, textarea { font-family: inherit; }
 
 @media (max-width: 480px) {
   .metrics { grid-template-columns: 1fr; }
-  .book-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-  .bc { height: 160px; }
+  .book-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .bc { height: 180px; }
   .btn { font-size: 12px; padding: 8px 14px; }
   .btn.sm { padding: 5px 10px; font-size: 11px; }
   .topbar { gap: 8px; }

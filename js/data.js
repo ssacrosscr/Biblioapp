@@ -56,7 +56,7 @@ window.BiblioApp = window.BiblioApp || {};
 
   B.disponibles = function (libroId) {
     var libro = B.getLibro(libroId);
-    return libro ? Math.max(0, libro.ejemplares - B.prestamosActivos(libroId)) : 0;
+    return libro ? Math.max(0, (parseInt(libro.ejemplares) || 0) - B.prestamosActivos(libroId)) : 0;
   };
 
   B.prestamosActivosPersona = function (personaId, tipo) {

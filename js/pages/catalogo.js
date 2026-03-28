@@ -6,16 +6,35 @@
 (function (B) {
 
   function renderCatalogo() {
-    var q = (B.val('searchCatalogo')).toLowerCase();
+    var q = (B.val('searchCatalogo') || '').toLowerCase();
     var m = B.val('filterMateria');
 
-    var data = B.libros;
+    var all  = B.libros;
+    var data = all.slice();
     if (m) data = data.filter(function (l) { return l.materia === m; });
     if (q) data = data.filter(function (l) {
-      return l.titulo.toLowerCase().indexOf(q) !== -1 ||
-             l.autor.toLowerCase().indexOf(q) !== -1 ||
-             l.materia.toLowerCase().indexOf(q) !== -1;
+      return (l.titulo  || '').toLowerCase().indexOf(q) !== -1 ||
+             (l.autor   || '').toLowerCase().indexOf(q) !== -1 ||
+             (l.materia || '').toLowerCase().indexOf(q) !== -1;
     });
+
+    /* Stats */
+    var totalDisp  = all.reduce(function (acc, l) { return acc + B.disponibles(l.id); }, 0);
+    var totalPrest = all.reduce(function (acc, l) { return acc + B.prestamosActivos(l.id); }, 0);
+    var statsEl = B.$('catStats');
+    if (statsEl) {
+      statsEl.innerHTML = ''
+        + '<div class="cat-stat"><span class="cat-stat-dot" style="background:var(--blue)"></span>'
+        +   all.length + ' libro' + (all.length !== 1 ? 's' : '') + ' en cat\u00E1logo</div>'
+        + '<div class="cat-stat"><span class="cat-stat-dot" style="background:var(--ok)"></span>'
+        +   totalDisp + ' disponible' + (totalDisp !== 1 ? 's' : '') + '</div>'
+        + (totalPrest > 0
+          ? '<div class="cat-stat"><span class="cat-stat-dot" style="background:var(--orange)"></span>'
+            + totalPrest + ' prestado' + (totalPrest !== 1 ? 's' : '') + '</div>'
+          : '')
+        + '<span class="cat-count">' + data.length
+        + (data.length !== all.length ? ' de ' + all.length : '') + ' libro' + (data.length !== 1 ? 's' : '') + '</span>';
+    }
 
     var g = B.$('bookGrid');
     if (!g) return;
@@ -28,29 +47,31 @@
 
     var esDocente = B.isDocente();
     g.innerHTML = data.map(function (l) {
-      var d = B.disponibles(l.id);
+      var d     = B.disponibles(l.id);
+      var total = parseInt(l.ejemplares) || 0;
       var chip;
-      if (d === 0)           chip = '<span class="chip un">Agotado</span>';
-      else if (d < l.ejemplares) chip = '<span class="chip pa">' + d + ' disp.</span>';
-      else                   chip = '<span class="chip av">' + d + ' disp.</span>';
+      if (d <= 0)        chip = '<span class="chip un">Agotado</span>';
+      else if (d < total) chip = '<span class="chip pa">' + d + '\u202Fdisp.</span>';
+      else                chip = '<span class="chip av">' + d + '\u202Fdisp.</span>';
 
-      var actionBtns = esDocente ? '' : ''
-        + '<div class="action-btns">'
-        +   '<button class="btn sm" data-edit-libro="' + l.id + '" title="Editar">&#9998;</button>'
-        +   '<button class="btn sm" data-del-libro="' + l.id + '" title="Eliminar" style="color:var(--danger);border-color:var(--danger)">&#128465;</button>'
+      var footer = esDocente ? '' :
+        '<div class="bft">'
+        + '<button class="btn sm" data-edit-libro="' + l.id + '" title="Editar">&#9998; Editar</button>'
+        + '<button class="btn sm" data-del-libro="' + l.id + '" title="Eliminar" style="color:var(--danger);border-color:var(--danger)">&#128465;</button>'
         + '</div>';
 
-      return ''
-        + '<div class="book-card">'
-        +   '<div class="bc">' + B.cover(l, 0, 200) + '</div>'
-        +   '<div class="bi">'
-        +     '<div class="bt">' + B.esc(l.titulo) + '</div>'
-        +     '<div class="bm">' + B.esc(l.autor) + '</div>'
-        +     '<div style="margin-top:7px">'
-        +       '<span class="badge info" style="font-size:10px">' + B.esc(l.materia) + '</span>'
-        +     '</div>'
-        +   '</div>'
-        +   '<div class="bft">' + chip + actionBtns + '</div>'
+      return '<div class="book-card">'
+        + '<div class="bc">'
+        +   B.cover(l, 0, 230)
+        +   '<span class="bc-mat">' + B.esc(l.materia || '') + '</span>'
+        +   '<div class="bc-chip">' + chip + '</div>'
+        + '</div>'
+        + '<div class="bi">'
+        +   '<div class="bt">' + B.esc(l.titulo) + '</div>'
+        +   '<div class="bm">' + B.esc(l.autor || '\u2014') + '</div>'
+        +   (l.nivel ? '<span class="b-nivel">' + B.esc(l.nivel) + '</span>' : '')
+        + '</div>'
+        + footer
         + '</div>';
     }).join('');
   }
