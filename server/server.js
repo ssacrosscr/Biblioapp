@@ -17,7 +17,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'biblio-mep-secret-2026';
 
-const MONGO_URI = 'mongodb+srv://isaacalejandroarguedasleiton_db_user:66414826@cluster0.2lyxuqg.mongodb.net/?retryWrites=true&w=majority';
+const MONGO_URI = process.env.MONGO_URI
+  || 'mongodb+srv://isaacalejandroarguedasleiton_db_user:66414826@cluster0.2lyxuqg.mongodb.net/?retryWrites=true&w=majority';
 const DB_NAME = 'biblioteca';
 
 let db;
@@ -251,12 +252,27 @@ app.get('/api/libros', auth, async (req, res) => {
 
 app.post('/api/libros', auth, biblioOnly, async (req, res) => {
   try {
+    const { titulo, autor, materia, nivel, ejemplares, editorial, isbn, c, icon, portada } = req.body;
+    if (!titulo || !materia) return res.status(400).json({ error: 'Título y materia son requeridos' });
     const counter = await db.collection('counters').findOneAndUpdate(
       { _id: 'libros' },
       { $inc: { seq: 1 } },
       { returnDocument: 'after', upsert: true }
     );
-    const libro = { id: counter.seq, ...req.body, eliminado: false };
+    const libro = {
+      id:        counter.seq,
+      titulo:    String(titulo).slice(0, 300),
+      autor:     autor     ? String(autor).slice(0, 200)    : '',
+      materia:   String(materia).slice(0, 100),
+      nivel:     nivel     ? String(nivel).slice(0, 50)     : 'General',
+      ejemplares: Math.max(0, parseInt(ejemplares) || 1),
+      editorial: editorial ? String(editorial).slice(0, 200) : '',
+      isbn:      isbn      ? String(isbn).slice(0, 30)      : '',
+      c:         parseInt(c) || 0,
+      icon:      icon      ? String(icon).slice(0, 10)      : '\uD83D\uDCD6',
+      portada:   portada   ? String(portada).slice(0, 300000) : '',
+      eliminado: false,
+    };
     await db.collection('libros').insertOne(libro);
     res.status(201).json(toClient(libro));
   } catch (err) {
@@ -267,7 +283,20 @@ app.post('/api/libros', auth, biblioOnly, async (req, res) => {
 app.put('/api/libros/:id', auth, biblioOnly, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    await db.collection('libros').updateOne({ id }, { $set: req.body });
+    const { titulo, autor, materia, nivel, ejemplares, editorial, isbn, c, icon, portada } = req.body;
+    const update = {};
+    if (titulo     !== undefined) update.titulo     = String(titulo).slice(0, 300);
+    if (autor      !== undefined) update.autor      = String(autor).slice(0, 200);
+    if (materia    !== undefined) update.materia    = String(materia).slice(0, 100);
+    if (nivel      !== undefined) update.nivel      = String(nivel).slice(0, 50);
+    if (ejemplares !== undefined) update.ejemplares = Math.max(0, parseInt(ejemplares) || 0);
+    if (editorial  !== undefined) update.editorial  = String(editorial).slice(0, 200);
+    if (isbn       !== undefined) update.isbn       = String(isbn).slice(0, 30);
+    if (c          !== undefined) update.c          = parseInt(c) || 0;
+    if (icon       !== undefined) update.icon       = String(icon).slice(0, 10);
+    if (portada    !== undefined) update.portada    = String(portada).slice(0, 300000);
+    if (Object.keys(update).length === 0) return res.status(400).json({ error: 'Nada que actualizar' });
+    await db.collection('libros').updateOne({ id }, { $set: update });
     const updated = await db.collection('libros').findOne({ id });
     res.json(toClient(updated));
   } catch (err) {
@@ -300,12 +329,21 @@ app.get('/api/estudiantes', auth, biblioOnly, async (req, res) => {
 
 app.post('/api/estudiantes', auth, biblioOnly, async (req, res) => {
   try {
+    const { nombre, cedula, grado, seccion, tel } = req.body;
+    if (!nombre || !cedula) return res.status(400).json({ error: 'Nombre y cédula son requeridos' });
     const counter = await db.collection('counters').findOneAndUpdate(
       { _id: 'estudiantes' },
       { $inc: { seq: 1 } },
       { returnDocument: 'after', upsert: true }
     );
-    const est = { id: counter.seq, ...req.body };
+    const est = {
+      id:      counter.seq,
+      nombre:  String(nombre).slice(0, 200),
+      cedula:  String(cedula).slice(0, 30),
+      grado:   grado   ? String(grado).slice(0, 20)   : '7°',
+      seccion: seccion ? String(seccion).slice(0, 10)  : 'A',
+      tel:     tel     ? String(tel).slice(0, 20)      : '',
+    };
     await db.collection('estudiantes').insertOne(est);
     res.status(201).json(toClient(est));
   } catch (err) {
@@ -328,12 +366,19 @@ app.get('/api/docentes', auth, biblioOnly, async (req, res) => {
 
 app.post('/api/docentes', auth, biblioOnly, async (req, res) => {
   try {
+    const { nombre, cedula, materia } = req.body;
+    if (!nombre || !cedula) return res.status(400).json({ error: 'Nombre y cédula son requeridos' });
     const counter = await db.collection('counters').findOneAndUpdate(
       { _id: 'docentes' },
       { $inc: { seq: 1 } },
       { returnDocument: 'after', upsert: true }
     );
-    const doc = { id: counter.seq, ...req.body };
+    const doc = {
+      id:      counter.seq,
+      nombre:  String(nombre).slice(0, 200),
+      cedula:  String(cedula).slice(0, 30),
+      materia: materia ? String(materia).slice(0, 100) : 'Otro',
+    };
     await db.collection('docentes').insertOne(doc);
     res.status(201).json(toClient(doc));
   } catch (err) {
@@ -356,12 +401,25 @@ app.get('/api/prestamos', auth, biblioOnly, async (req, res) => {
 
 app.post('/api/prestamos', auth, biblioOnly, async (req, res) => {
   try {
+    const { pId, pT, lId, fp, fd, dev, n } = req.body;
+    if (!pId || !pT || !lId || !fp || !fd) {
+      return res.status(400).json({ error: 'Persona, libro y fechas son requeridos' });
+    }
     const counter = await db.collection('counters').findOneAndUpdate(
       { _id: 'prestamos' },
       { $inc: { seq: 1 } },
       { returnDocument: 'after', upsert: true }
     );
-    const prest = { id: counter.seq, ...req.body };
+    const prest = {
+      id:  counter.seq,
+      pId: parseInt(pId),
+      pT:  String(pT).slice(0, 20),
+      lId: parseInt(lId),
+      fp:  String(fp).slice(0, 30),
+      fd:  String(fd).slice(0, 30),
+      dev: dev === true || dev === 'true' ? true : false,
+      n:   n ? String(n).slice(0, 300) : '',
+    };
     await db.collection('prestamos').insertOne(prest);
     res.status(201).json(toClient(prest));
   } catch (err) {
@@ -372,7 +430,14 @@ app.post('/api/prestamos', auth, biblioOnly, async (req, res) => {
 app.put('/api/prestamos/:id', auth, biblioOnly, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    await db.collection('prestamos').updateOne({ id }, { $set: req.body });
+    const { dev, fp, fd, n } = req.body;
+    const update = {};
+    if (dev !== undefined) update.dev = dev === true || dev === 'true' ? true : false;
+    if (fp  !== undefined) update.fp  = String(fp).slice(0, 30);
+    if (fd  !== undefined) update.fd  = String(fd).slice(0, 30);
+    if (n   !== undefined) update.n   = String(n).slice(0, 300);
+    if (Object.keys(update).length === 0) return res.status(400).json({ error: 'Nada que actualizar' });
+    await db.collection('prestamos').updateOne({ id }, { $set: update });
     const updated = await db.collection('prestamos').findOne({ id });
     res.json(toClient(updated));
   } catch (err) {

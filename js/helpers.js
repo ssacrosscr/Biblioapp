@@ -189,13 +189,25 @@ window.BiblioApp = window.BiblioApp || {};
   };
 
   /**
-   * Genera y descarga el PDF directamente (sin modal/iframe).
+   * Genera y descarga el PDF usando un anchor element (compatible con todos los navegadores).
    */
   B.generatePDF = function (solicitud) {
     try {
       var result = B._buildPDF(solicitud);
       if (!result) return;
-      result.doc.save(result.filename);
+      var blob = result.doc.output('blob');
+      var url  = URL.createObjectURL(blob);
+      var a    = document.createElement('a');
+      a.href     = url;
+      a.download = result.filename;
+      a.style.position = 'fixed';
+      a.style.top      = '-9999px';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 200);
       B.showToast('\u2713 PDF descargado: ' + result.filename);
     } catch (err) {
       console.error('generatePDF error:', err);
