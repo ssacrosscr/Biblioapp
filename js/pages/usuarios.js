@@ -37,13 +37,24 @@
       else rolBadge = '<span class="badge info">Usuario</span>';
 
       var currentUser = B.getUser();
-      var isSelf = currentUser && currentUser.id === u.id;
+      var currentRol  = currentUser ? currentUser.rol : '';
+      var isSelf      = currentUser && currentUser.id === u.id;
+      var isBiblio    = currentRol === 'admin' || currentRol === 'bibliotecologo';
+      var isAdmin     = currentRol === 'admin';
       var actions;
       if (u.id === 1 && !isSelf) {
         actions = '<span style="font-size:11px;color:var(--text3)">Protegido</span>';
+      } else if (!isBiblio && !isSelf) {
+        /* Docentes/estudiantes no pueden editar perfiles ajenos */
+        actions = '';
       } else {
-        actions = '<button class="btn sm primary" data-edit-user="' + u.id + '">Editar</button> '
-          + (isSelf ? '' : '<button class="btn sm" data-del-user="' + u.id + '" style="color:var(--danger);border-color:var(--danger)">Eliminar</button>');
+        var editBtn = (isBiblio || isSelf)
+          ? '<button class="btn sm primary" data-edit-user="' + u.id + '">Editar</button> '
+          : '';
+        var delBtn = (isAdmin && !isSelf)
+          ? '<button class="btn sm" data-del-user="' + u.id + '" style="color:var(--danger);border-color:var(--danger)">Eliminar</button>'
+          : '';
+        actions = editBtn + delBtn;
       }
 
       var fotoHtml = u.foto
@@ -104,8 +115,11 @@
     B.$('u-password').value = '';
     B.$('u-nombre').value = u.nombre;
     B.$('u-rol').value = u.rol;
-    // Admin no puede quitarse su propio rol
-    B.$('u-rol').disabled = !!(isSelf && u.rol === 'admin');
+    // Solo admin puede cambiar roles; biblio puede editar datos pero no el rol
+    // Admin tampoco puede quitarse su propio rol
+    var cu = B.getUser();
+    var cuRol = cu ? cu.rol : '';
+    B.$('u-rol').disabled = cuRol !== 'admin' || !!(isSelf && u.rol === 'admin');
     B.$('u-foto-data').value = u.foto || '';
     setAdminFotoPreview(u.foto, u.nombre);
     B.openModal('modalUsuario');

@@ -169,7 +169,7 @@ app.put('/api/mi-perfil', auth, async (req, res) => {
 //  USUARIOS (admin only)
 // ════════════════════════════════════════════════════════════
 
-app.get('/api/usuarios', auth, adminOnly, async (req, res) => {
+app.get('/api/usuarios', auth, biblioOnly, async (req, res) => {
   try {
     const usuarios = await db.collection('usuarios').find().sort({ id: 1 }).toArray();
     res.json(toClientArray(usuarios));
@@ -203,7 +203,7 @@ app.post('/api/usuarios', auth, adminOnly, async (req, res) => {
   }
 });
 
-app.put('/api/usuarios/:id', auth, adminOnly, async (req, res) => {
+app.put('/api/usuarios/:id', auth, biblioOnly, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const update = { ...req.body };
