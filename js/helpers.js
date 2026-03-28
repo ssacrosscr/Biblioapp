@@ -81,8 +81,8 @@ window.BiblioApp = window.BiblioApp || {};
    * Retorna el doc y el filename, o null si jsPDF no está disponible.
    */
   B._buildPDF = function (solicitud) {
-    var jsPDF = window.jspdf && window.jspdf.jsPDF;
-    if (!jsPDF) { B.showToast('Error: jsPDF no disponible', true); return null; }
+    var jsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || null;
+    if (!jsPDF) { B.showToast('Error: jsPDF no disponible. Recargue la página.', true); return null; }
     var doc = new jsPDF();
 
     doc.setFontSize(18);
