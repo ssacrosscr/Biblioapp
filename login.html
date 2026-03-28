@@ -52,8 +52,10 @@
     }
     #splash.exit {
       opacity: 0;
-      filter: blur(18px) scale(1.04);
+      filter: blur(22px) scale(1.06) brightness(2.2);
       pointer-events: none;
+      transition: opacity 1.15s cubic-bezier(.4,0,.2,1),
+                  filter  1.15s cubic-bezier(.4,0,.2,1);
     }
 
     /* Canvas mágico exclusivo del splash */
@@ -1076,7 +1078,7 @@
      SPLASH MÁGICO — secuencia cinematográfica por capas
   ──────────────────────────────────────────────────────────── */
 
-  /* ── Sistema Solar animado ── */
+  /* ── Sistema Solar — neón, estelas, nebulosas, fugaces ── */
   (function initSolarSystem() {
     var sc  = document.getElementById('spCanvas');
     if (!sc) return;
@@ -1087,221 +1089,314 @@
       W = sc.width  = window.innerWidth;
       H = sc.height = window.innerHeight;
       CX = W * 0.5;
-      CY = H * 0.38; /* Centro del sistema solar en 38% de la altura */
+      CY = H * 0.38;
     }
     resize();
     window.addEventListener('resize', resize);
 
-    /* Estrellas de fondo */
+    /* ── Estrellas: normales + sparkle 4 puntas ── */
     var STARS = [];
-    for (var si = 0; si < 220; si++) {
+    for (var si = 0; si < 260; si++) {
+      var big = Math.random() > 0.91;
       STARS.push({
-        x:     Math.random(),
-        y:     Math.random(),
-        r:     Math.random() * 1.4 + 0.2,
-        base:  Math.random() * 0.55 + 0.15,
+        x: Math.random(), y: Math.random(),
+        r: big ? Math.random() * 1.4 + 0.8 : Math.random() * 0.9 + 0.15,
+        base:  Math.random() * 0.50 + 0.10,
         phase: Math.random() * 6.2832,
-        spd:   Math.random() * 1.8 + 0.4,
+        spd:   Math.random() * 1.6 + 0.4,
+        sparkle: big && Math.random() > 0.45,
+        arms:    Math.random() * 4 + 3,
       });
     }
 
-    /* Planetas — col = [R,G,B] */
-    var TILT = 0.36; /* compresión Y para perspectiva */
-    var PLANETS = [
-      { orb: 55,  sz: 5,  col: [196,168,130], spd: 1.90, phase: 0.3                     }, /* Mercurio */
-      { orb: 88,  sz: 9,  col: [232,195,70],  spd: 1.12, phase: 1.7                     }, /* Venus    */
-      { orb: 126, sz: 10, col: [55,130,255],  spd: 0.68, phase: 3.0, moon: true         }, /* Tierra   */
-      { orb: 166, sz: 7,  col: [215,75,45],   spd: 0.40, phase: 4.5                     }, /* Marte    */
-      { orb: 214, sz: 19, col: [195,148,92],  spd: 0.19, phase: 1.1, bands: true        }, /* Júpiter  */
-      { orb: 270, sz: 13, col: [218,196,132], spd: 0.11, phase: 3.9, rings: true        }, /* Saturno  */
+    /* ── Nebulosas de fondo ── */
+    var NEBULAE = [
+      { x: 0.15, y: 0.20, r: 220, c: [90,20,190]  },
+      { x: 0.82, y: 0.14, r: 195, c: [0,55,170]   },
+      { x: 0.88, y: 0.72, r: 240, c: [190,35,65]  },
+      { x: 0.10, y: 0.68, r: 175, c: [0,130,80]   },
+      { x: 0.50, y: 0.08, r: 160, c: [40,100,200] },
     ];
+
+    /* ── Planetas ── col=base, neon=brillo neón ── */
+    var TILT = 0.36;
+    var PLANETS = [
+      { orb: 55,  sz: 5,  col:[200,155,75],  neon:[255,200,80],  spd:1.90, phase:0.3,  trail:[]                   },
+      { orb: 90,  sz: 9,  col:[255,215,35],  neon:[255,245,90],  spd:1.10, phase:1.8,  trail:[]                   },
+      { orb: 128, sz: 10, col:[28,115,255],  neon:[80,185,255],  spd:0.66, phase:3.1,  trail:[], moon:true         },
+      { orb: 168, sz: 7,  col:[255,52,22],   neon:[255,110,60],  spd:0.40, phase:4.6,  trail:[]                   },
+      { orb: 216, sz: 19, col:[215,150,75],  neon:[255,190,90],  spd:0.19, phase:1.2,  trail:[], bands:true        },
+      { orb: 272, sz: 13, col:[232,208,118], neon:[255,245,150], spd:0.11, phase:3.8,  trail:[], rings:true        },
+    ];
+
+    /* ── Estrellas fugaces ── */
+    var SHOOTS = [];
+    var lastShoot = -6;
 
     var t0 = performance.now();
 
+    /* ──────────────────────── FRAME LOOP ──────────────────────── */
     function frame(now) {
       if (!document.getElementById('splash')) return;
       var t = (now - t0) * 0.001;
       ctx.clearRect(0, 0, W, H);
 
-      /* Estrellas titilantes */
-      for (var si = 0; si < STARS.length; si++) {
-        var s = STARS[si];
-        var a = s.base + 0.2 * Math.sin(t * s.spd + s.phase);
-        ctx.beginPath();
-        ctx.arc(s.x * W, s.y * H, s.r, 0, 6.2832);
-        ctx.fillStyle = 'rgba(255,255,255,' + a + ')';
-        ctx.fill();
-      }
+      drawNebulae();
+      drawStars(t);
+      manageShoots(t);
+      drawOrbits();
 
-      /* Trayectorias orbitales */
-      ctx.setLineDash([]);
-      for (var pi = 0; pi < PLANETS.length; pi++) {
-        var p = PLANETS[pi];
-        ctx.beginPath();
-        ctx.ellipse(CX, CY, p.orb, p.orb * TILT, 0, 0, 6.2832);
-        ctx.strokeStyle = 'rgba(255,255,255,0.055)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
+      var items = buildItems(t);
 
-      /* Posiciones de cada planeta */
-      var items = [];
-      for (var pi = 0; pi < PLANETS.length; pi++) {
-        var p  = PLANETS[pi];
-        var an = p.phase + t * p.spd;
-        items.push({
-          p: p,
-          x: CX + Math.cos(an) * p.orb,
-          y: CY + Math.sin(an) * p.orb * TILT,
-          a: an,
-          behind: Math.sin(an) < 0
-        });
-      }
+      /* Detrás del sol */
+      var beh = items.filter(function(it){ return it.behind; });
+      beh.sort(function(a,b){ return b.y - a.y; });
+      beh.forEach(function(it){ drawTrail(it, 0.55); drawPlanet(it, 0.55); });
 
-      /* Planetas detrás del sol (dibujar primero) */
-      var behind = items.filter(function(it){ return it.behind; });
-      behind.sort(function(a,b){ return b.y - a.y; });
-      for (var i = 0; i < behind.length; i++) drawPlanet(behind[i], 0.62);
-
-      /* Sol */
       drawSun(t);
 
-      /* Planetas enfrente del sol */
-      var front = items.filter(function(it){ return !it.behind; });
-      front.sort(function(a,b){ return a.y - b.y; });
-      for (var i = 0; i < front.length; i++) drawPlanet(front[i], 1.0);
+      /* Frente al sol */
+      var fro = items.filter(function(it){ return !it.behind; });
+      fro.sort(function(a,b){ return a.y - b.y; });
+      fro.forEach(function(it){ drawTrail(it, 1.0); drawPlanet(it, 1.0); });
 
       requestAnimationFrame(frame);
     }
 
-    function drawSun(t) {
-      /* Halo exterior pulsante */
-      var hr = 58 + 7 * Math.sin(t * 1.3);
-      var hg = ctx.createRadialGradient(CX, CY, 14, CX, CY, hr);
-      hg.addColorStop(0,   'rgba(255,200,80,0.30)');
-      hg.addColorStop(0.5, 'rgba(255,130,0,0.14)');
-      hg.addColorStop(1,   'rgba(255,60,0,0)');
-      ctx.beginPath();
-      ctx.arc(CX, CY, hr, 0, 6.2832);
-      ctx.fillStyle = hg;
-      ctx.fill();
-
-      /* Corona interna */
-      var cr = 30 + 3 * Math.sin(t * 2.1);
-      var cg = ctx.createRadialGradient(CX, CY, 10, CX, CY, cr);
-      cg.addColorStop(0,   'rgba(255,255,200,0.50)');
-      cg.addColorStop(0.7, 'rgba(255,180,0,0.22)');
-      cg.addColorStop(1,   'rgba(255,80,0,0)');
-      ctx.beginPath();
-      ctx.arc(CX, CY, cr, 0, 6.2832);
-      ctx.fillStyle = cg;
-      ctx.fill();
-
-      /* Núcleo solar */
-      var sg = ctx.createRadialGradient(CX - 5, CY - 5, 0, CX, CY, 18);
-      sg.addColorStop(0,   'rgba(255,255,240,1)');
-      sg.addColorStop(0.35,'rgba(255,235,100,0.98)');
-      sg.addColorStop(0.75,'rgba(255,140,0,0.70)');
-      sg.addColorStop(1,   'rgba(220,60,0,0.20)');
-      ctx.beginPath();
-      ctx.arc(CX, CY, 18, 0, 6.2832);
-      ctx.fillStyle = sg;
-      ctx.fill();
-
-      /* Destellos de rayos solares */
-      ctx.save();
-      ctx.translate(CX, CY);
-      ctx.rotate(t * 0.18);
-      for (var ray = 0; ray < 8; ray++) {
-        var ra = (ray / 8) * 6.2832;
-        var rl = 26 + 6 * Math.sin(t * 2 + ray);
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(ra) * 20, Math.sin(ra) * 20);
-        ctx.lineTo(Math.cos(ra) * rl, Math.sin(ra) * rl);
-        ctx.strokeStyle = 'rgba(255,220,80,0.22)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-      ctx.restore();
+    /* ── Nebulosas ── */
+    function drawNebulae() {
+      NEBULAE.forEach(function(n) {
+        var nx = n.x * W, ny = n.y * H;
+        var g  = ctx.createRadialGradient(nx, ny, 0, nx, ny, n.r);
+        g.addColorStop(0,   'rgba('+n.c[0]+','+n.c[1]+','+n.c[2]+',0.065)');
+        g.addColorStop(0.5, 'rgba('+n.c[0]+','+n.c[1]+','+n.c[2]+',0.022)');
+        g.addColorStop(1,   'rgba('+n.c[0]+','+n.c[1]+','+n.c[2]+',0)');
+        ctx.beginPath(); ctx.arc(nx, ny, n.r, 0, 6.2832);
+        ctx.fillStyle = g; ctx.fill();
+      });
     }
 
+    /* ── Estrellas ── */
+    function drawStars(t) {
+      STARS.forEach(function(s) {
+        var a  = s.base + 0.24 * Math.sin(t * s.spd + s.phase);
+        var sx = s.x * W, sy = s.y * H;
+        if (s.sparkle) {
+          ctx.save(); ctx.translate(sx, sy);
+          ctx.rotate(t * 0.12 + s.phase);
+          ctx.strokeStyle = 'rgba(255,255,255,' + (a * 0.9) + ')';
+          ctx.lineWidth = 0.7;
+          var armLen = s.arms + 1.8 * Math.sin(t * 1.1 + s.phase);
+          for (var arm = 0; arm < 4; arm++) {
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, armLen); ctx.stroke();
+            ctx.rotate(Math.PI / 2);
+          }
+          ctx.restore();
+          ctx.beginPath(); ctx.arc(sx, sy, 0.85, 0, 6.2832);
+          ctx.fillStyle = 'rgba(255,255,255,' + Math.min(a*1.5, 1) + ')'; ctx.fill();
+        } else {
+          ctx.beginPath(); ctx.arc(sx, sy, s.r, 0, 6.2832);
+          ctx.fillStyle = 'rgba(255,255,255,' + a + ')'; ctx.fill();
+        }
+      });
+    }
+
+    /* ── Estrellas fugaces ── */
+    function manageShoots(t) {
+      if (t - lastShoot > 3.2 + Math.random() * 3.8) {
+        lastShoot = t;
+        var fromLeft = Math.random() > 0.5;
+        SHOOTS.push({
+          x0: fromLeft ? W * 0.05 : W * (0.55 + Math.random() * 0.4),
+          y0: Math.random() * H * 0.42,
+          vx: (fromLeft ? 1 : -1) * (6 + Math.random() * 7),
+          vy: 1.8 + Math.random() * 2.8,
+          life: 0, max: 40,
+          len: 90 + Math.random() * 110,
+          hue: Math.random() > 0.55 ? '180,225,255' : '255,255,255',
+        });
+      }
+      SHOOTS = SHOOTS.filter(function(s) {
+        s.life++;
+        var fr = s.life / s.max;
+        var a  = fr < 0.22 ? fr / 0.22 : 1 - (fr - 0.22) / 0.78;
+        var x  = s.x0 + s.vx * s.life, y = s.y0 + s.vy * s.life;
+        ctx.save(); ctx.translate(x, y); ctx.rotate(Math.atan2(s.vy, s.vx));
+        var g = ctx.createLinearGradient(-s.len, 0, 3, 0);
+        g.addColorStop(0,    'rgba('+s.hue+',0)');
+        g.addColorStop(0.80, 'rgba('+s.hue+',' + (a*0.55) + ')');
+        g.addColorStop(1,    'rgba(255,255,255,' + a + ')');
+        ctx.fillStyle = g; ctx.fillRect(-s.len, -0.9, s.len + 3, 1.8);
+        ctx.beginPath(); ctx.arc(3, 0, 1.8, 0, 6.2832);
+        ctx.fillStyle = 'rgba(255,255,255,' + a + ')'; ctx.fill();
+        ctx.restore();
+        return s.life < s.max;
+      });
+    }
+
+    /* ── Órbitas ── */
+    function drawOrbits() {
+      PLANETS.forEach(function(p) {
+        ctx.beginPath();
+        ctx.ellipse(CX, CY, p.orb, p.orb * TILT, 0, 0, 6.2832);
+        ctx.strokeStyle = 'rgba(255,255,255,0.048)';
+        ctx.lineWidth = 1; ctx.stroke();
+      });
+    }
+
+    /* ── Calcular posiciones ── */
+    function buildItems(t) {
+      return PLANETS.map(function(p) {
+        var an = p.phase + t * p.spd;
+        var x  = CX + Math.cos(an) * p.orb;
+        var y  = CY + Math.sin(an) * p.orb * TILT;
+        p.trail.push({ x: x, y: y });
+        if (p.trail.length > 48) p.trail.shift();
+        return { p: p, x: x, y: y, a: an, behind: Math.sin(an) < 0 };
+      });
+    }
+
+    /* ── Estela orbital ── */
+    function drawTrail(it, alpha) {
+      var p  = it.p;
+      var nr = p.neon[0], ng = p.neon[1], nb = p.neon[2];
+      p.trail.forEach(function(pt, ti) {
+        var frac = ti / p.trail.length;
+        var a    = frac * frac * alpha * 0.32;
+        var sz   = p.sz * frac * 0.38;
+        if (sz < 0.3 || a < 0.005) return;
+        var tg = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, sz * 3);
+        tg.addColorStop(0, 'rgba('+nr+','+ng+','+nb+','+a+')');
+        tg.addColorStop(1, 'rgba('+nr+','+ng+','+nb+',0)');
+        ctx.beginPath(); ctx.arc(pt.x, pt.y, sz * 3, 0, 6.2832);
+        ctx.fillStyle = tg; ctx.fill();
+      });
+    }
+
+    /* ── Sol ── */
+    function drawSun(t) {
+      /* Rayos — 12 brazos alternados largos/cortos */
+      ctx.save(); ctx.translate(CX, CY); ctx.rotate(t * 0.14);
+      for (var ri = 0; ri < 12; ri++) {
+        var ra = (ri / 12) * 6.2832;
+        var rl = (ri % 2 === 0 ? 30 : 22) + 8 * Math.sin(t * 2.2 + ri);
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(ra) * 22, Math.sin(ra) * 22);
+        ctx.lineTo(Math.cos(ra) * rl, Math.sin(ra) * rl);
+        ctx.strokeStyle = 'rgba(255,210,55,' + (ri % 2 === 0 ? 0.28 : 0.14) + ')';
+        ctx.lineWidth = ri % 2 === 0 ? 2.5 : 1.2; ctx.stroke();
+      }
+      ctx.restore();
+
+      /* Halo exterior pulsante */
+      var hr = 68 + 9 * Math.sin(t * 1.1);
+      var hg = ctx.createRadialGradient(CX, CY, 18, CX, CY, hr);
+      hg.addColorStop(0,   'rgba(255,210,60,0.28)');
+      hg.addColorStop(0.55,'rgba(255,130,0,0.11)');
+      hg.addColorStop(1,   'rgba(255,50,0,0)');
+      ctx.beginPath(); ctx.arc(CX, CY, hr, 0, 6.2832); ctx.fillStyle = hg; ctx.fill();
+
+      /* Neón solar cálido */
+      var cg = ctx.createRadialGradient(CX, CY, 14, CX, CY, 38 + 4 * Math.sin(t * 2.3));
+      cg.addColorStop(0,   'rgba(255,245,180,0.58)');
+      cg.addColorStop(0.65,'rgba(255,180,0,0.22)');
+      cg.addColorStop(1,   'rgba(255,80,0,0)');
+      ctx.beginPath(); ctx.arc(CX, CY, 38, 0, 6.2832); ctx.fillStyle = cg; ctx.fill();
+
+      /* Núcleo */
+      var sg = ctx.createRadialGradient(CX - 6, CY - 6, 0, CX, CY, 22);
+      sg.addColorStop(0,    'rgba(255,255,248,1)');
+      sg.addColorStop(0.30, 'rgba(255,242,110,0.98)');
+      sg.addColorStop(0.70, 'rgba(255,155,0,0.72)');
+      sg.addColorStop(1,    'rgba(220,65,0,0.22)');
+      ctx.beginPath(); ctx.arc(CX, CY, 22, 0, 6.2832); ctx.fillStyle = sg; ctx.fill();
+
+      /* Destello especular */
+      var sg2 = ctx.createRadialGradient(CX - 7, CY - 7, 0, CX - 7, CY - 7, 7);
+      sg2.addColorStop(0, 'rgba(255,255,255,0.88)');
+      sg2.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.beginPath(); ctx.arc(CX - 7, CY - 7, 7, 0, 6.2832); ctx.fillStyle = sg2; ctx.fill();
+    }
+
+    /* ── Planeta ── */
     function drawPlanet(it, alpha) {
       var p = it.p, x = it.x, y = it.y;
-      var sz = p.sz * (it.behind ? 0.84 : 1.0);
-      var r = p.col[0], g = p.col[1], b = p.col[2];
-      var a = alpha;
+      var sc2 = it.behind ? 0.83 : 1.0;
+      var sz  = p.sz * sc2, a = alpha;
+      var r   = p.col[0],  g = p.col[1],  b = p.col[2];
+      var nr  = p.neon[0], ng = p.neon[1], nb = p.neon[2];
 
-      /* Saturno: anillos traseros */
+      /* Saturno: anillos (parte trasera) */
       if (p.rings) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.scale(1, TILT * 0.72);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, sz * 2.6, sz * 0.7, 0, 0, 6.2832);
-        ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (a * 0.40) + ')';
-        ctx.lineWidth = 6;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.ellipse(0, 0, sz * 2.0, sz * 0.5, 0, 0, 6.2832);
-        ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (a * 0.28) + ')';
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        ctx.save(); ctx.translate(x, y); ctx.scale(1, TILT * 0.70);
+        ctx.beginPath(); ctx.ellipse(0, 0, sz*2.8, sz*0.78, 0, 0, 6.2832);
+        ctx.strokeStyle = 'rgba('+nr+','+ng+','+nb+','+(a*0.42)+')';
+        ctx.lineWidth = 7; ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(0, 0, sz*2.1, sz*0.55, 0, 0, 6.2832);
+        ctx.strokeStyle = 'rgba('+r+','+g+','+b+','+(a*0.28)+')';
+        ctx.lineWidth = 3.5; ctx.stroke();
         ctx.restore();
       }
 
-      /* Halo de brillo */
-      var gr = sz * 3.6;
-      var gl = ctx.createRadialGradient(x, y, 0, x, y, gr);
-      gl.addColorStop(0,   'rgba(' + r + ',' + g + ',' + b + ',' + (a * 0.42) + ')');
-      gl.addColorStop(1,   'rgba(' + r + ',' + g + ',' + b + ',0)');
-      ctx.beginPath();
-      ctx.arc(x, y, gr, 0, 6.2832);
-      ctx.fillStyle = gl;
-      ctx.fill();
+      /* NEÓN CAPA 1 — gran halo exterior (bloom) */
+      var g1 = ctx.createRadialGradient(x, y, sz*0.4, x, y, sz*7);
+      g1.addColorStop(0,   'rgba('+nr+','+ng+','+nb+','+(a*0.16)+')');
+      g1.addColorStop(0.45,'rgba('+nr+','+ng+','+nb+','+(a*0.06)+')');
+      g1.addColorStop(1,   'rgba('+nr+','+ng+','+nb+',0)');
+      ctx.beginPath(); ctx.arc(x, y, sz*7, 0, 6.2832); ctx.fillStyle = g1; ctx.fill();
 
-      /* Cuerpo del planeta con gradiente 3D */
-      var lr = Math.min(r + 85, 255), lg = Math.min(g + 85, 255), lb = Math.min(b + 85, 255);
-      var dr = Math.floor(r * 0.35), dg = Math.floor(g * 0.35), db = Math.floor(b * 0.35);
-      var pg = ctx.createRadialGradient(x - sz*0.38, y - sz*0.38, sz*0.04, x, y, sz*1.1);
-      pg.addColorStop(0,    'rgba(' + lr + ',' + lg + ',' + lb + ',' + a + ')');
-      pg.addColorStop(0.55, 'rgba(' + r  + ',' + g  + ',' + b  + ',' + a + ')');
-      pg.addColorStop(1,    'rgba(' + dr + ',' + dg + ',' + db + ',' + a + ')');
-      ctx.beginPath();
-      ctx.arc(x, y, sz, 0, 6.2832);
-      ctx.fillStyle = pg;
-      ctx.fill();
+      /* NEÓN CAPA 2 — corona media */
+      var g2 = ctx.createRadialGradient(x, y, sz*0.2, x, y, sz*3.4);
+      g2.addColorStop(0,   'rgba('+nr+','+ng+','+nb+','+(a*0.58)+')');
+      g2.addColorStop(0.55,'rgba('+nr+','+ng+','+nb+','+(a*0.22)+')');
+      g2.addColorStop(1,   'rgba('+nr+','+ng+','+nb+',0)');
+      ctx.beginPath(); ctx.arc(x, y, sz*3.4, 0, 6.2832); ctx.fillStyle = g2; ctx.fill();
+
+      /* NEÓN CAPA 3 — anillo íntimo (limbo brillante) */
+      var g3 = ctx.createRadialGradient(x, y, sz*0.75, x, y, sz*1.55);
+      g3.addColorStop(0,   'rgba('+nr+','+ng+','+nb+','+(a*0.78)+')');
+      g3.addColorStop(1,   'rgba('+nr+','+ng+','+nb+',0)');
+      ctx.beginPath(); ctx.arc(x, y, sz*1.55, 0, 6.2832); ctx.fillStyle = g3; ctx.fill();
+
+      /* Cuerpo 3D */
+      var lr = Math.min(r+92,255), lg = Math.min(g+92,255), lb = Math.min(b+92,255);
+      var dr = Math.floor(r*0.28), dg = Math.floor(g*0.28), db = Math.floor(b*0.28);
+      var pg = ctx.createRadialGradient(x-sz*0.40, y-sz*0.40, sz*0.03, x, y, sz*1.08);
+      pg.addColorStop(0,    'rgba('+lr+','+lg+','+lb+','+a+')');
+      pg.addColorStop(0.52, 'rgba('+r+','+g+','+b+','+a+')');
+      pg.addColorStop(1,    'rgba('+dr+','+dg+','+db+','+a+')');
+      ctx.beginPath(); ctx.arc(x, y, sz, 0, 6.2832); ctx.fillStyle = pg; ctx.fill();
 
       /* Bandas de Júpiter */
       if (p.bands) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, sz, 0, 6.2832);
-        ctx.clip();
-        var offsets = [-0.55, -0.22, 0.10, 0.42];
-        var bcolors = [
-          'rgba(130,75,35,' + (a*0.30) + ')',
-          'rgba(195,140,80,' + (a*0.22) + ')',
-          'rgba(100,55,25,' + (a*0.28) + ')',
-          'rgba(180,120,60,' + (a*0.18) + ')',
-        ];
-        for (var bi = 0; bi < offsets.length; bi++) {
-          ctx.fillStyle = bcolors[bi];
-          ctx.fillRect(x - sz, y + offsets[bi] * sz, sz * 2, sz * 0.30);
-        }
+        ctx.save(); ctx.beginPath(); ctx.arc(x, y, sz, 0, 6.2832); ctx.clip();
+        var offs  = [-0.60,-0.26,0.08,0.42];
+        var bcols = ['rgba(145,80,28,','rgba(205,148,72,','rgba(115,58,20,','rgba(188,128,52,'];
+        offs.forEach(function(off, bi) {
+          ctx.fillStyle = bcols[bi] + (a*0.30) + ')';
+          ctx.fillRect(x-sz, y+off*sz, sz*2, sz*0.28);
+        });
         ctx.restore();
       }
 
+      /* Destello especular */
+      var hx = x - sz*0.36, hy = y - sz*0.36, hr = sz*0.40;
+      var hg2 = ctx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+      hg2.addColorStop(0, 'rgba(255,255,255,'+(a*0.68)+')');
+      hg2.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.beginPath(); ctx.arc(hx, hy, hr, 0, 6.2832); ctx.fillStyle = hg2; ctx.fill();
+
       /* Luna de la Tierra */
       if (p.moon) {
-        var ma = it.a * 7.5;
-        var mr = sz * 2.5;
-        var mx = x + Math.cos(ma) * mr;
-        var my = y + Math.sin(ma) * mr * TILT;
-        /* Sombra de luna */
-        ctx.beginPath();
-        ctx.arc(mx, my, 3.5, 0, 6.2832);
-        ctx.fillStyle = 'rgba(180,195,210,' + (a * 0.85) + ')';
-        ctx.fill();
+        var ma = it.a * 7.8, mr = sz * 2.45;
+        var mx = x + Math.cos(ma) * mr, my = y + Math.sin(ma) * mr * TILT;
+        /* Glow azul-plateado */
+        var mg = ctx.createRadialGradient(mx, my, 0, mx, my, 7);
+        mg.addColorStop(0, 'rgba(170,205,240,'+(a*0.55)+')');
+        mg.addColorStop(1, 'rgba(170,205,240,0)');
+        ctx.beginPath(); ctx.arc(mx, my, 7, 0, 6.2832); ctx.fillStyle = mg; ctx.fill();
+        ctx.beginPath(); ctx.arc(mx, my, 3, 0, 6.2832);
+        ctx.fillStyle = 'rgba(200,220,240,'+(a*0.94)+')'; ctx.fill();
       }
     }
 
