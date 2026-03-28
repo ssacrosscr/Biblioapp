@@ -49,27 +49,51 @@
     g.innerHTML = data.map(function (l) {
       var d     = B.disponibles(l.id);
       var total = parseInt(l.ejemplares) || 0;
+
+      /* Status chip */
       var chip;
-      if (d <= 0)        chip = '<span class="chip un">Agotado</span>';
+      if (d <= 0)         chip = '<span class="chip un">Agotado</span>';
       else if (d < total) chip = '<span class="chip pa">' + d + '\u202Fdisp.</span>';
       else                chip = '<span class="chip av">' + d + '\u202Fdisp.</span>';
 
+      /* Barra de stock */
+      var pct      = total > 0 ? Math.round((d / total) * 100) : 0;
+      var barColor = d <= 0 ? '#C01010' : d < total ? '#C47600' : '#0A5C38';
+
+      /* Nivel pill */
+      var nivelHtml = l.nivel
+        ? '<span class="b-nivel">' + B.esc(l.nivel) + '</span>'
+        : '<span class="b-nivel">General</span>';
+
+      /* Footer biblio/admin */
       var footer = esDocente ? '' :
         '<div class="bft">'
-        + '<button class="btn sm" data-edit-libro="' + l.id + '" title="Editar">&#9998; Editar</button>'
-        + '<button class="btn sm" data-del-libro="' + l.id + '" title="Eliminar" style="color:var(--danger);border-color:var(--danger)">&#128465;</button>'
+        + nivelHtml
+        + '<div style="display:flex;gap:6px">'
+        +   '<button class="btn-ico" data-edit-libro="' + l.id + '" title="Editar libro">&#9998;</button>'
+        +   '<button class="btn-ico red" data-del-libro="' + l.id + '" title="Eliminar libro">&#128465;</button>'
+        + '</div>'
         + '</div>';
+
+      /* Nivel para docentes (sin footer) */
+      var nivelDocente = esDocente
+        ? '<div style="margin-top:10px">' + nivelHtml + '</div>'
+        : '';
 
       return '<div class="book-card">'
         + '<div class="bc">'
-        +   B.cover(l, 0, 230)
+        +   B.cover(l, 0, 220)
         +   '<span class="bc-mat">' + B.esc(l.materia || '') + '</span>'
         +   '<div class="bc-chip">' + chip + '</div>'
         + '</div>'
         + '<div class="bi">'
         +   '<div class="bt">' + B.esc(l.titulo) + '</div>'
         +   '<div class="bm">' + B.esc(l.autor || '\u2014') + '</div>'
-        +   (l.nivel ? '<span class="b-nivel">' + B.esc(l.nivel) + '</span>' : '')
+        +   '<div class="b-stock">'
+        +     '<div class="b-stock-bar"><div class="b-stock-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>'
+        +     '<span class="b-stock-label">' + d + '&thinsp;/&thinsp;' + total + '</span>'
+        +   '</div>'
+        +   nivelDocente
         + '</div>'
         + footer
         + '</div>';
