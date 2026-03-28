@@ -7,693 +7,588 @@
   <link rel="icon" href="https://www.mep.go.cr/favicon.ico" id="dynFavicon">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* ── RESET ── */
+
+    /* ─────────────────────────────────────────────
+       BASE
+    ───────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
     body {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-      background: #000C30;
-      overflow: hidden;
+      background: #00071A;
       -webkit-font-smoothing: antialiased;
     }
-    body.lk-ready {
-      overflow: auto;
+    body.ready { overflow-y: auto; }
+
+    /* ─────────────────────────────────────────────
+       CANVAS — siempre visible, detrás de todo
+    ───────────────────────────────────────────── */
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
     }
 
-    /* ════════════════════════════════════════════════════════════
-       SPLASH SCREEN
-    ════════════════════════════════════════════════════════════ */
+    /* ─────────────────────────────────────────────
+       SPLASH
+    ───────────────────────────────────────────── */
     #splash {
       position: fixed;
       inset: 0;
-      z-index: 9999;
-      background: linear-gradient(165deg,
-        #000C2E 0%, #001046 25%, #001A5A 50%, #002D90 80%, #0038A8 100%);
+      z-index: 200;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 22px;
-      overflow: hidden;
-      transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1),
-                  transform 0.65s cubic-bezier(0.4,0,0.2,1);
+      gap: 26px;
+      will-change: opacity, filter;
+      transition: opacity .7s cubic-bezier(.4,0,.2,1),
+                  filter   .7s cubic-bezier(.4,0,.2,1);
     }
-    #splash.sp-exit {
+    #splash.exit {
       opacity: 0;
-      transform: scale(1.06);
+      filter: blur(12px);
       pointer-events: none;
     }
 
-    /* Particles */
-    #spParticles { position: absolute; inset: 0; pointer-events: none; }
-    .sp-star {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.85);
-      opacity: 0;
-      animation: sp-twinkle ease-in-out infinite;
-    }
-    .sp-star.orange  { background: rgba(255,153,64,0.8); }
-    .sp-star.blue    { background: rgba(0,180,255,0.8); }
-    .sp-star.diamond {
-      border-radius: 2px;
-      transform: rotate(45deg);
-      background: rgba(255,220,80,0.9);
-    }
-    @keyframes sp-twinkle {
-      0%,100% { opacity: 0;   transform: scale(0.7); }
-      40%,60% { opacity: 1;   transform: scale(1.2); }
-    }
-
-    /* Mascot area */
-    .sp-mascot-outer {
+    /* Mascot wrapper – bob animation (delay = after reveal) */
+    #spMascotWrap {
       position: relative;
-      width: 168px;
-      height: 168px;
-      animation: sp-in 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.25s both,
-                 sp-bob 4s ease-in-out 1.2s infinite;
+      width: 164px;
+      height: 164px;
+      opacity: 0;
+      transform: scale(.5) translateY(20px);
+      will-change: opacity, transform;
+      transition: opacity .9s cubic-bezier(.22,1,.36,1),
+                  transform .9s cubic-bezier(.22,1,.36,1);
     }
-    @keyframes sp-in {
-      from { opacity: 0; transform: scale(0.45) translateY(24px); }
-      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    #spMascotWrap.reveal { opacity: 1; transform: scale(1) translateY(0); }
+
+    /* Bob applied to inner element to avoid conflict */
+    .sp-bob {
+      position: relative;
+      width: 100%; height: 100%;
+      animation: bob 4.5s ease-in-out infinite;
     }
-    @keyframes sp-bob {
+    @keyframes bob {
       0%,100% { transform: translateY(0); }
-      50%     { transform: translateY(-13px); }
+      50%      { transform: translateY(-14px); }
     }
 
-    /* Outer glow ring */
-    .sp-glow-ring {
+    /* Pulsing glow behind mascot */
+    .sp-glow {
       position: absolute;
-      inset: -18px;
+      inset: -36px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,160,255,0.18) 0%, transparent 68%);
-      animation: sp-glow 3s ease-in-out 0.9s infinite;
+      background: radial-gradient(circle, rgba(0,140,255,.22) 0%, transparent 68%);
+      animation: glow-pulse 3.2s ease-in-out infinite;
     }
-    @keyframes sp-glow {
-      0%,100% { transform: scale(1);   opacity: 0.55; }
-      50%     { transform: scale(1.18); opacity: 1; }
+    @keyframes glow-pulse {
+      0%,100% { transform: scale(1);   opacity: .55; }
+      50%      { transform: scale(1.25); opacity: 1; }
     }
 
-    /* Inner mascot circle */
-    .sp-mascot-circle {
+    /* Mascot circle */
+    .sp-circle {
       position: relative;
       z-index: 1;
-      width: 168px;
-      height: 168px;
+      width: 164px; height: 164px;
       border-radius: 50%;
-      background: radial-gradient(circle at 40% 35%,
-        rgba(255,255,255,0.12), rgba(255,255,255,0.04) 60%, transparent);
-      border: 2px solid rgba(0,170,255,0.35);
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid rgba(255,255,255,.13);
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      box-shadow: inset 0 0 32px rgba(0,100,255,0.1);
+      box-shadow: inset 0 0 40px rgba(0,80,200,.12);
     }
-    .sp-mascot-circle img {
-      width: 132px;
-      height: 132px;
+    .sp-circle img {
+      width: 126px; height: 126px;
       object-fit: contain;
     }
 
-    /* Orbiting dots */
-    .sp-orbit-ring {
+    /* Orbital ring */
+    .sp-orbit {
       position: absolute;
-      inset: -22px;
+      inset: -18px;
       border-radius: 50%;
-      border: 1px dashed rgba(255,255,255,0.08);
-      animation: sp-orbit 10s linear infinite;
+      border: 1px solid rgba(255,255,255,.07);
+      animation: orbit 9s linear infinite;
     }
-    @keyframes sp-orbit { to { transform: rotate(360deg); } }
-    .sp-orbit-dot {
-      position: absolute;
-      border-radius: 50%;
-      top: 50%; left: -5px;
-      transform: translateY(-50%);
-    }
-    .sp-orbit-dot:nth-child(1) { width: 9px; height: 9px; background: #FF7030; top: 50%; left: -4px; box-shadow: 0 0 6px #FF7030; }
-    .sp-orbit-dot:nth-child(2) { width: 7px; height: 7px; background: #00CCFF; top: auto; bottom: -3px; left: 50%; transform: translateX(-50%); box-shadow: 0 0 5px #00CCFF; }
-    .sp-orbit-dot:nth-child(3) { width: 6px; height: 6px; background: #FFD700; top: -3px; left: 50%; transform: translateX(-50%); box-shadow: 0 0 5px #FFD700; }
+    @keyframes orbit { to { transform: rotate(360deg); } }
 
-    /* Title */
-    .sp-title-group {
+    /* Orbital dots */
+    .sp-dot {
+      position: absolute;
+      border-radius: 50%;
+      top: 50%; left: 50%;
+    }
+    .sp-dot-1 {
+      width: 9px; height: 9px;
+      background: #FF9940;
+      box-shadow: 0 0 10px #FF9940, 0 0 20px rgba(255,100,0,.4);
+      margin: -4px;
+      animation: orbit-dot-1 9s linear infinite;
+    }
+    .sp-dot-2 {
+      width: 7px; height: 7px;
+      background: #00CCFF;
+      box-shadow: 0 0 8px #00CCFF;
+      margin: -3px;
+      animation: orbit-dot-2 9s linear infinite;
+    }
+    .sp-dot-3 {
+      width: 5px; height: 5px;
+      background: #FFD700;
+      box-shadow: 0 0 7px #FFD700;
+      margin: -2px;
+      animation: orbit-dot-3 9s linear infinite;
+    }
+    @keyframes orbit-dot-1 {
+      from { transform: rotate(0deg)   translateX(100px) rotate(0deg); }
+      to   { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
+    }
+    @keyframes orbit-dot-2 {
+      from { transform: rotate(120deg)  translateX(100px) rotate(-120deg); }
+      to   { transform: rotate(480deg)  translateX(100px) rotate(-480deg); }
+    }
+    @keyframes orbit-dot-3 {
+      from { transform: rotate(240deg)  translateX(100px) rotate(-240deg); }
+      to   { transform: rotate(600deg)  translateX(100px) rotate(-600deg); }
+    }
+
+    /* Splash text blocks — shared reveal pattern */
+    .sp-text {
       text-align: center;
-      animation: sp-up 0.55s ease 0.85s both;
+      opacity: 0;
+      transform: translateY(22px);
+      will-change: opacity, transform;
+      transition: opacity .75s cubic-bezier(.22,1,.36,1),
+                  transform .75s cubic-bezier(.22,1,.36,1);
     }
-    @keyframes sp-up {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .sp-title {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 44px;
+    .sp-text.reveal { opacity: 1; transform: translateY(0); }
+
+    .sp-title-main {
+      font-family: 'Playfair Display', serif;
+      font-size: 54px;
       font-weight: 700;
-      color: white;
-      letter-spacing: -1px;
+      color: #fff;
+      letter-spacing: -2px;
       line-height: 1;
+      text-shadow: 0 0 80px rgba(0,100,255,.3);
     }
-    .sp-title .sp-accent { color: #FF9940; }
+    .sp-title-main .or { color: #FF9940; }
     .sp-mep {
+      margin-top: 10px;
       font-size: 11px;
       font-weight: 600;
-      color: rgba(255,255,255,0.45);
+      color: rgba(255,255,255,.3);
       text-transform: uppercase;
-      letter-spacing: 0.14em;
-      margin-top: 9px;
+      letter-spacing: .18em;
     }
-
-    /* Tagline */
     .sp-tagline {
       font-size: 15px;
-      color: rgba(255,255,255,0.65);
+      color: rgba(255,255,255,.45);
       font-style: italic;
-      text-align: center;
-      max-width: 290px;
-      line-height: 1.55;
-      animation: sp-up 0.55s ease 1.1s both;
+      max-width: 300px;
+      line-height: 1.65;
     }
 
-    /* Progress */
-    .sp-prog-wrap {
-      position: absolute;
-      bottom: 52px;
-      width: 150px;
-      height: 3px;
-      background: rgba(255,255,255,0.1);
+    /* Progress bar */
+    .sp-prog {
+      width: 140px; height: 2px;
+      background: rgba(255,255,255,.08);
       border-radius: 99px;
       overflow: hidden;
-      animation: sp-up 0.3s ease 1.3s both;
+      opacity: 0;
+      transition: opacity .4s ease;
     }
+    .sp-prog.reveal { opacity: 1; }
     .sp-prog-fill {
       height: 100%;
       width: 0;
       border-radius: 99px;
-      background: linear-gradient(90deg, #0066FF 0%, #00AAFF 45%, #FF7030 100%);
-      animation: sp-progress 2.3s cubic-bezier(0.25,0,0.5,1) 1.3s both;
-    }
-    @keyframes sp-progress {
-      from { width: 0; }
-      to   { width: 100%; }
+      background: linear-gradient(90deg, #003DA5, #00AAFF 50%, #FF9940);
+      transition: width .12s linear;
     }
 
-    /* ════════════════════════════════════════════════════════════
+    /* ─────────────────────────────────────────────
        LOGIN PAGE
-    ════════════════════════════════════════════════════════════ */
+    ───────────────────────────────────────────── */
     #loginPage {
       position: fixed;
       inset: 0;
+      z-index: 100;
       display: flex;
-      opacity: 0;
-      transition: opacity 0.7s ease;
-    }
-    #loginPage.lp-show { opacity: 1; }
-
-    /* ── LEFT PANEL ── */
-    .lp-left {
-      width: 42%;
-      min-width: 320px;
-      position: relative;
-      background: linear-gradient(160deg,
-        #000C2E 0%, #001046 20%, #001A5A 48%, #002D90 78%, #003DA5 100%);
-      display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 52px 44px;
-      overflow: hidden;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      will-change: opacity;
+      transition: opacity .65s ease;
+    }
+    #loginPage.show {
+      opacity: 1;
+      pointer-events: all;
     }
 
-    /* Background decorations */
-    .lp-deco {
+    /* Glass card */
+    .lp-card {
+      position: relative;
+      width: 100%;
+      max-width: 430px;
+      background: rgba(255,255,255,.055);
+      backdrop-filter: blur(44px) saturate(1.6);
+      -webkit-backdrop-filter: blur(44px) saturate(1.6);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 28px;
+      padding: 48px 42px;
+      box-shadow:
+        0 48px 120px rgba(0,0,0,.55),
+        0 0 0 1px rgba(255,255,255,.04),
+        inset 0 1px 0 rgba(255,255,255,.08);
+      overflow: hidden;
+      transform: translateY(28px);
+      will-change: transform;
+      transition: transform .75s cubic-bezier(.22,1,.36,1);
+    }
+    #loginPage.show .lp-card { transform: translateY(0); }
+
+    /* Inner glow blobs (decorative) */
+    .lp-blob {
       position: absolute;
       border-radius: 50%;
       pointer-events: none;
+      filter: blur(40px);
     }
-    .lp-deco-1 {
-      width: 320px; height: 320px;
-      top: -100px; left: -100px;
-      background: radial-gradient(circle, rgba(0,80,200,0.15), transparent 70%);
+    .lp-blob-1 {
+      width: 260px; height: 260px;
+      top: -100px; left: -80px;
+      background: radial-gradient(circle, rgba(0,70,200,.14), transparent 70%);
     }
-    .lp-deco-2 {
-      width: 240px; height: 240px;
-      bottom: 40px; right: -70px;
-      background: radial-gradient(circle, rgba(255,100,0,0.07), transparent 70%);
-    }
-    .lp-deco-3 {
-      width: 160px; height: 160px;
-      top: 45%; left: 10px;
-      background: radial-gradient(circle, rgba(0,200,255,0.06), transparent 70%);
+    .lp-blob-2 {
+      width: 200px; height: 200px;
+      bottom: -80px; right: -60px;
+      background: radial-gradient(circle, rgba(255,80,0,.08), transparent 70%);
     }
 
-    /* Floating elements */
-    .lp-float {
-      position: absolute;
-      opacity: 0.14;
-      font-size: 22px;
-      animation: lp-float-anim ease-in-out infinite;
-      pointer-events: none;
-      user-select: none;
-    }
-    @keyframes lp-float-anim {
-      0%,100% { transform: translateY(0) rotate(0deg); }
-      50%     { transform: translateY(-18px) rotate(10deg); }
-    }
+    /* Card content above blobs */
+    .lp-inner { position: relative; z-index: 1; }
 
-    /* Left content */
-    .lp-content {
-      position: relative;
-      z-index: 1;
+    /* Logo */
+    .lp-logo {
       text-align: center;
+      margin-bottom: 30px;
     }
-    .lp-logo-wrap {
-      width: 96px; height: 96px;
-      border-radius: 24px;
-      background: rgba(255,255,255,0.07);
-      border: 2px solid rgba(0,170,255,0.32);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 22px;
+    .lp-logo-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 76px; height: 76px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.13);
       overflow: hidden;
-      box-shadow: 0 0 32px rgba(0,140,255,0.14), 0 0 64px rgba(0,80,200,0.06);
+      margin-bottom: 14px;
+      box-shadow: 0 0 44px rgba(0,100,255,.13);
+      transition: box-shadow .35s;
     }
-    .lp-logo-wrap img {
-      width: 82px; height: 82px;
+    .lp-logo-box:hover {
+      box-shadow: 0 0 64px rgba(0,160,255,.22);
+    }
+    .lp-logo-box img {
+      width: 60px; height: 60px;
       object-fit: contain;
     }
     .lp-brand {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 34px;
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
       font-weight: 700;
-      color: white;
-      line-height: 1;
-      margin-bottom: 4px;
+      color: #fff;
+      letter-spacing: -.3px;
     }
-    .lp-brand .lp-or { color: #FF9940; }
+    .lp-brand .or { color: #FF9940; }
     .lp-brand-sub {
-      font-size: 11px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.4);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 30px;
-    }
-    .lp-quote {
-      font-size: 15px;
-      color: rgba(255,255,255,0.7);
-      font-style: italic;
-      line-height: 1.6;
-      max-width: 250px;
-      margin: 0 auto 28px;
-    }
-    .lp-quote::before { content: '\201C'; color: #FF9940; font-size: 20px; vertical-align: -2px; }
-    .lp-quote::after  { content: '\201D'; color: #FF9940; font-size: 20px; vertical-align: -2px; }
-    .lp-features {
-      display: flex;
-      flex-direction: column;
-      gap: 11px;
-      text-align: left;
-      width: 100%;
-      max-width: 220px;
-      margin: 0 auto;
-    }
-    .lp-feat {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      color: rgba(255,255,255,0.62);
-      font-size: 13px;
-    }
-    .lp-feat-ico {
-      width: 30px; height: 30px;
-      border-radius: 9px;
-      background: rgba(255,255,255,0.07);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
-      flex-shrink: 0;
-    }
-    .lp-left-footer {
-      position: absolute;
-      bottom: 22px;
-      left: 0; right: 0;
-      text-align: center;
-      font-size: 10px;
-      color: rgba(255,255,255,0.2);
-      font-weight: 600;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-    }
-
-    /* ── RIGHT PANEL ── */
-    .lp-right {
-      flex: 1;
-      background: #F8FAFF;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 28px;
-      overflow-y: auto;
-    }
-    .lp-form-card {
-      width: 100%;
-      max-width: 390px;
-      animation: sp-up 0.5s ease 0.15s both;
-    }
-
-    /* Mobile-only logo */
-    .lp-mobile-header {
-      display: none;
-      text-align: center;
-      margin-bottom: 28px;
-    }
-    .lp-mob-logo {
-      width: 76px; height: 76px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, #003DA5, #1A52B5);
-      display: inline-flex; align-items: center; justify-content: center;
-      overflow: hidden;
-      margin-bottom: 12px;
-      box-shadow: 0 8px 24px rgba(0,61,165,0.25);
-    }
-    .lp-mob-logo img {
-      width: 62px; height: 62px;
-      object-fit: contain;
-    }
-    .lp-mob-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 24px;
-      color: #002880;
-      font-weight: 700;
-      display: block;
-    }
-    .lp-mob-sub {
-      font-size: 12px;
-      color: #7A90B8;
-      display: block;
       margin-top: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,.28);
+      text-transform: uppercase;
+      letter-spacing: .12em;
     }
 
-    /* Form heading */
-    .lp-form-head { margin-bottom: 30px; }
-    .lp-form-title {
+    /* Heading */
+    .lp-heading { margin-bottom: 26px; }
+    .lp-heading-title {
       font-family: 'Playfair Display', serif;
-      font-size: 30px;
+      font-size: 28px;
       font-weight: 700;
-      color: #002880;
+      color: #fff;
       margin-bottom: 4px;
     }
-    .lp-form-sub { font-size: 13px; color: #7A90B8; }
+    .lp-heading-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,.38);
+    }
+
+    /* Error box */
+    .lp-err {
+      display: none;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(255,60,60,.1);
+      border: 1px solid rgba(255,80,80,.22);
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,160,160,.95);
+      animation: err-in .3s cubic-bezier(.22,1,.36,1);
+    }
+    .lp-err.show { display: block; }
+    @keyframes err-in {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
     /* Field group */
     .fg { margin-bottom: 18px; }
     .fl {
       display: block;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
-      color: #3D5075;
-      letter-spacing: 0.06em;
       text-transform: uppercase;
-      margin-bottom: 7px;
+      letter-spacing: .08em;
+      color: rgba(255,255,255,.4);
+      margin-bottom: 8px;
     }
     .fi-wrap { position: relative; }
+
+    /* Input */
     .fi {
       width: 100%;
       font-family: inherit;
       font-size: 14px;
-      padding: 13px 44px 13px 16px;
-      border: 1.5px solid #DDE6F5;
-      border-radius: 12px;
-      background: white;
-      color: #0A1628;
+      font-weight: 500;
+      padding: 14px 46px 14px 16px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      color: #fff;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      will-change: border-color, box-shadow;
+      transition: background .25s, border-color .25s, box-shadow .25s;
     }
+    .fi::placeholder { color: rgba(255,255,255,.2); }
     .fi:focus {
-      border-color: #003DA5;
-      box-shadow: 0 0 0 4px rgba(0,61,165,0.09);
+      background: rgba(255,255,255,.09);
+      border-color: rgba(0,180,255,.6);
+      box-shadow: 0 0 0 3px rgba(0,160,255,.12),
+                  0 0 28px rgba(0,120,255,.07);
     }
-    .fi.fi-error {
-      border-color: #C8373A;
-      box-shadow: 0 0 0 4px rgba(200,55,58,0.09);
+    /* Shake on error — added/removed by JS */
+    .fi.shake {
+      border-color: rgba(255,80,80,.65);
+      animation: shake .45s cubic-bezier(.36,.07,.19,.97);
     }
-    .fi::placeholder { color: #B0BEDB; }
-    .fi-icon-btn {
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      18%,54%  { transform: translateX(-8px); }
+      36%,72%  { transform: translateX(8px); }
+    }
+
+    /* Input icon */
+    .fi-ico {
       position: absolute;
-      right: 14px; top: 50%;
+      right: 15px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: .3;
+      pointer-events: none;
+    }
+    /* Toggle password button */
+    .fi-toggle {
+      position: absolute;
+      right: 12px; top: 50%;
       transform: translateY(-50%);
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 16px;
-      opacity: 0.4;
-      padding: 4px;
-      transition: opacity 0.2s;
+      font-size: 14px;
+      color: rgba(255,255,255,.35);
+      padding: 5px;
       line-height: 1;
+      transition: color .2s;
     }
-    .fi-icon-btn:hover { opacity: 0.8; }
-    .fi-static-icon {
-      position: absolute;
-      right: 15px; top: 50%;
-      transform: translateY(-50%);
-      font-size: 15px;
-      opacity: 0.35;
-      pointer-events: none;
-    }
-
-    /* Error message */
-    .error-msg {
-      background: #FCEAEA;
-      color: #9B1919;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 11px 16px;
-      border-radius: 10px;
-      margin-bottom: 18px;
-      display: none;
-      border: 1px solid #F0BEBE;
-      animation: sp-up 0.3s ease;
-    }
-    .error-msg.show { display: block; }
+    .fi-toggle:hover { color: rgba(255,255,255,.7); }
 
     /* Submit button */
     .btn-login {
       width: 100%;
-      font-family: inherit;
-      font-size: 15px;
-      font-weight: 700;
-      padding: 14px 20px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #003DA5 0%, #002070 100%);
-      color: white;
-      cursor: pointer;
       margin-top: 6px;
-      letter-spacing: 0.02em;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .03em;
+      padding: 15px 24px;
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: transform 0.15s, box-shadow 0.2s;
+      background: linear-gradient(135deg, #003DA5 0%, #1558CC 50%, #003DA5 100%);
+      background-size: 200% 100%;
+      will-change: background-position, box-shadow, transform;
+      transition:
+        background-position .45s ease,
+        box-shadow .3s ease,
+        transform .15s ease;
     }
-    .btn-login::after {
+    /* Shimmer layer */
+    .btn-login::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.14), transparent 60%);
-      pointer-events: none;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,.18) 45%,
+        rgba(255,255,255,.22) 50%,
+        rgba(255,255,255,.18) 55%,
+        transparent 100%);
+      transform: translateX(-110%) skewX(-20deg);
+      transition: transform 0s;
     }
     .btn-login:hover:not(:disabled) {
-      background: linear-gradient(135deg, #1A52B5, #003DA5);
-      box-shadow: 0 10px 32px rgba(0,61,165,0.38);
+      background-position: 100% 0;
+      box-shadow: 0 14px 40px rgba(0,61,165,.45),
+                  0 4px 12px rgba(0,80,200,.28);
       transform: translateY(-1px);
     }
-    .btn-login:active:not(:disabled) {
-      transform: translateY(0) scale(0.985);
-      box-shadow: 0 4px 14px rgba(0,61,165,0.25);
+    .btn-login:hover:not(:disabled)::before {
+      animation: shimmer .6s ease-in-out forwards;
     }
-    .btn-login:disabled { opacity: 0.65; cursor: not-allowed; transform: none !important; }
+    @keyframes shimmer {
+      to { transform: translateX(140%) skewX(-20deg); }
+    }
+    .btn-login:active:not(:disabled) {
+      transform: scale(.985);
+      box-shadow: 0 4px 16px rgba(0,61,165,.3);
+    }
+    .btn-login:disabled { opacity: .68; cursor: not-allowed; }
     .btn-login.success {
       background: linear-gradient(135deg, #0A6640, #1B8050) !important;
-      box-shadow: 0 8px 24px rgba(10,102,64,0.32) !important;
+      background-position: 0 0 !important;
+      box-shadow: 0 14px 40px rgba(10,102,64,.4) !important;
     }
-    .sp-btn {
+
+    /* Spinner inside button */
+    .btn-spinner {
       display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: white;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
       border-radius: 50%;
-      animation: btn-spin 0.65s linear infinite;
+      animation: spin .6s linear infinite;
       margin-right: 8px;
       vertical-align: middle;
     }
-    @keyframes btn-spin { to { transform: rotate(360deg); } }
-
-    /* Divider */
-    .lp-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 22px 0;
-      font-size: 11px;
-      color: #A8B8D8;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-    .lp-divider::before, .lp-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #E8EFF8;
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Footer */
-    .lp-footer { text-align: center; }
-    .lp-mep-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 7px 16px;
-      background: white;
-      border: 1.5px solid #E8EFF8;
-      border-radius: 99px;
-      font-size: 11px;
-      color: #3D5075;
+    .lp-footer {
+      margin-top: 26px;
+      text-align: center;
+      font-size: 10.5px;
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,30,80,0.05);
-    }
-    .lp-version {
-      margin-top: 10px;
-      font-size: 11px;
-      color: #B0BEDB;
-      font-weight: 600;
-      letter-spacing: 0.04em;
+      color: rgba(255,255,255,.17);
+      letter-spacing: .05em;
     }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 800px) {
-      .lp-left { display: none; }
-      .lp-right {
-        background: linear-gradient(160deg,
-          #000C2E 0%, #001046 20%, #001A5A 55%, #002D90 85%, #003DA5 100%);
-        padding: 28px 16px;
-      }
-      .lp-form-card {
-        background: white;
-        border-radius: 24px;
-        padding: 36px 28px;
-        box-shadow: 0 28px 90px rgba(0,10,50,0.45);
-      }
-      .lp-mobile-header { display: block; }
-      .lp-form-head { display: none; }
-      .fi { background: #F3F6FC; }
+    /* ─────────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .lp-card { padding: 36px 24px; border-radius: 22px; }
+      .sp-title-main { font-size: 42px; }
+      .lp-heading-title { font-size: 24px; }
     }
-    @media (max-width: 420px) {
-      .lp-form-card { padding: 28px 20px; border-radius: 20px; }
-    }
-    @media (min-width: 1280px) {
-      .lp-left { width: 46%; }
-    }
+
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════
-     SPLASH SCREEN
-═══════════════════════════════════════════════════════════════ -->
-<div id="splash" role="status" aria-label="Cargando LuKiBooks">
+<!-- ── Canvas (fondo siempre vivo) ── -->
+<canvas id="bgCanvas"></canvas>
 
-  <div id="spParticles" aria-hidden="true"></div>
+<!-- ══════════════════════════════════════════════════
+     SPLASH
+══════════════════════════════════════════════════ -->
+<div id="splash">
 
-  <!-- Mascota central -->
-  <div class="sp-mascot-outer" aria-hidden="true">
-    <div class="sp-glow-ring"></div>
-    <div class="sp-mascot-circle">
-      <img src="img/logo.png" alt="LuKiBooks"
-           onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:72px>📚</span>'">
-    </div>
-    <div class="sp-orbit-ring">
-      <div class="sp-orbit-dot"></div>
-      <div class="sp-orbit-dot"></div>
-      <div class="sp-orbit-dot"></div>
+  <!-- Mascota -->
+  <div id="spMascotWrap">
+    <div class="sp-bob" id="spBob">
+      <div class="sp-glow"></div>
+      <div class="sp-orbit">
+        <div class="sp-dot sp-dot-1"></div>
+        <div class="sp-dot sp-dot-2"></div>
+        <div class="sp-dot sp-dot-3"></div>
+      </div>
+      <div class="sp-circle" id="spCircle">
+        <img src="img/logo.png" alt="LuKiBooks"
+             onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=font-size:68px>📚</span>'">
+      </div>
     </div>
   </div>
 
   <!-- Título -->
-  <div class="sp-title-group">
-    <div class="sp-title">Luki<span class="sp-accent">Books</span></div>
+  <div class="sp-text" id="spTitle">
+    <div class="sp-title-main">Luki<span class="or">Books</span></div>
     <div class="sp-mep">Ministerio de Educaci&oacute;n P&uacute;blica &middot; Costa Rica</div>
   </div>
 
   <!-- Tagline -->
-  <div class="sp-tagline">Donde cada libro abre un mundo de posibilidades</div>
+  <div class="sp-text sp-tagline" id="spTagline">
+    Donde cada libro abre un mundo de posibilidades
+  </div>
 
-  <!-- Barra de progreso -->
-  <div class="sp-prog-wrap" aria-hidden="true">
-    <div class="sp-prog-fill"></div>
+  <!-- Progreso -->
+  <div class="sp-prog" id="spProg">
+    <div class="sp-prog-fill" id="spFill"></div>
   </div>
 
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     LOGIN PAGE
-═══════════════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════
+     LOGIN
+══════════════════════════════════════════════════ -->
 <div id="loginPage">
+  <div class="lp-card">
+    <div class="lp-blob lp-blob-1"></div>
+    <div class="lp-blob lp-blob-2"></div>
 
-  <!-- PANEL IZQUIERDO — Decorativo -->
-  <div class="lp-left" aria-hidden="true">
-    <div class="lp-deco lp-deco-1"></div>
-    <div class="lp-deco lp-deco-2"></div>
-    <div class="lp-deco lp-deco-3"></div>
+    <div class="lp-inner">
 
-    <!-- Elementos flotantes -->
-    <div class="lp-float" style="top:7%;left:9%;animation-duration:5.5s">📚</div>
-    <div class="lp-float" style="top:14%;right:10%;font-size:18px;animation-duration:7s;animation-delay:1.2s">📖</div>
-    <div class="lp-float" style="bottom:22%;left:7%;font-size:19px;animation-duration:6.5s;animation-delay:2s">📕</div>
-    <div class="lp-float" style="bottom:10%;right:9%;font-size:15px;animation-duration:5s;animation-delay:0.8s">⭐</div>
-    <div class="lp-float" style="top:42%;right:4%;font-size:13px;animation-duration:8s;animation-delay:3.5s">✨</div>
-    <div class="lp-float" style="top:28%;left:3%;font-size:12px;animation-duration:6s;animation-delay:1.8s">🌟</div>
-
-    <div class="lp-content">
       <!-- Logo -->
-      <div class="lp-logo-wrap" id="leftLogoWrap">
-        <img src="img/logo.png" alt="LuKiBooks" id="leftLogoImg"
-             onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:44px>📚</span>'">
-      </div>
-      <div class="lp-brand">Luki<span class="lp-or">Books</span></div>
-      <div class="lp-brand-sub">Biblioteca Escolar &middot; MEP</div>
-
-      <div class="lp-quote">Donde cada libro abre un mundo de posibilidades</div>
-
-      <div class="lp-features">
-        <div class="lp-feat"><div class="lp-feat-ico">📚</div><span>Cat&aacute;logo digital completo</span></div>
-        <div class="lp-feat"><div class="lp-feat-ico">📋</div><span>Gesti&oacute;n de pr&eacute;stamos</span></div>
-        <div class="lp-feat"><div class="lp-feat-ico">📊</div><span>Reportes y estad&iacute;sticas</span></div>
-        <div class="lp-feat"><div class="lp-feat-ico">🔒</div><span>Acceso seguro por rol</span></div>
-      </div>
-    </div>
-
-    <div class="lp-left-footer">MEP &middot; Costa Rica &middot; Sistema Bibliotecario &middot; v3.0</div>
-  </div>
-
-  <!-- PANEL DERECHO — Formulario -->
-  <div class="lp-right">
-    <div class="lp-form-card">
-
-      <!-- Encabezado solo en móvil -->
-      <div class="lp-mobile-header">
-        <div class="lp-mob-logo" id="mobileLogoWrap">
-          <img src="img/logo.png" alt="LuKiBooks" id="mobileLogoImg"
-               onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:36px>📚</span>'">
+      <div class="lp-logo">
+        <div class="lp-logo-box" id="lpLogoBox">
+          <img src="img/logo.png" alt="LuKiBooks"
+               onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:30px>📚</span>'">
         </div>
-        <span class="lp-mob-name">LuKiBooks</span>
-        <span class="lp-mob-sub">Ministerio de Educaci&oacute;n P&uacute;blica</span>
+        <div class="lp-brand">Luki<span class="or">Books</span></div>
+        <div class="lp-brand-sub">Biblioteca Escolar &middot; MEP</div>
       </div>
 
-      <!-- Encabezado desktop -->
-      <div class="lp-form-head">
-        <div class="lp-form-title">Bienvenido</div>
-        <div class="lp-form-sub">Ingrese sus credenciales para acceder al sistema</div>
+      <!-- Encabezado -->
+      <div class="lp-heading">
+        <div class="lp-heading-title">Bienvenido</div>
+        <div class="lp-heading-sub">Ingrese sus credenciales para acceder</div>
       </div>
 
       <!-- Error -->
-      <div class="error-msg" id="errorMsg" role="alert"></div>
+      <div class="lp-err" id="errBox" role="alert"></div>
 
       <!-- Formulario -->
       <form id="loginForm" novalidate>
@@ -702,9 +597,8 @@
           <div class="fi-wrap">
             <input class="fi" type="text" id="inputUser"
                    placeholder="Ingrese su usuario"
-                   autocomplete="username"
-                   required>
-            <span class="fi-static-icon" aria-hidden="true">👤</span>
+                   autocomplete="username" required>
+            <span class="fi-ico" aria-hidden="true">&#128100;</span>
           </div>
         </div>
         <div class="fg">
@@ -712,10 +606,8 @@
           <div class="fi-wrap">
             <input class="fi" type="password" id="inputPass"
                    placeholder="Ingrese su contrase&ntilde;a"
-                   autocomplete="current-password"
-                   required>
-            <button type="button" class="fi-icon-btn" id="togglePass"
-                    title="Mostrar u ocultar contrase&ntilde;a"
+                   autocomplete="current-password" required>
+            <button type="button" class="fi-toggle" id="togglePass"
                     aria-label="Mostrar contrase&ntilde;a">&#128065;</button>
           </div>
         </div>
@@ -724,14 +616,8 @@
         </button>
       </form>
 
-      <div class="lp-divider">Sistema seguro MEP</div>
-
       <div class="lp-footer">
-        <div class="lp-mep-pill">
-          <span>🏫</span>
-          <span>Ministerio de Educaci&oacute;n P&uacute;blica</span>
-        </div>
-        <div class="lp-version">LuKiBooks v3.0 &mdash; Biblioteca Escolar</div>
+        LuKiBooks v3.0 &mdash; Ministerio de Educaci&oacute;n P&uacute;blica &middot; Costa Rica
       </div>
 
     </div>
@@ -739,160 +625,288 @@
 </div>
 
 <script>
+/* ================================================================
+   LuKiBooks — Splash + Login
+   Single-file, zero dependencies, 60fps
+================================================================ */
 (function () {
   'use strict';
 
-  /* ── Detección de entorno ── */
-  var isLocal = window.location.hostname === 'localhost'
-             || window.location.hostname === '127.0.0.1';
+  /* ── Config ── */
+  var isLocal = location.hostname === 'localhost'
+             || location.hostname === '127.0.0.1';
   var BASE = isLocal
     ? 'http://localhost:3000/api'
     : 'https://biblioapp-nclh.onrender.com/api';
 
-  /* Si ya hay sesión activa, redirigir directamente */
+  /* Redirect si ya hay sesión */
   if (localStorage.getItem('biblio_token')) {
-    window.location.href = 'index.html';
+    location.href = 'index.html';
     return;
   }
 
-  /* ════════════════════════════════════════════════════════
-     SPLASH — Generar partículas dinámicamente
-  ════════════════════════════════════════════════════════ */
-  (function buildParticles() {
-    var container = document.getElementById('spParticles');
-    if (!container) return;
-    var types    = ['', 'orange', 'blue', 'diamond'];
-    for (var i = 0; i < 32; i++) {
-      var p    = document.createElement('div');
-      var size = Math.random() * 3 + 1;
-      var type = types[Math.floor(Math.random() * types.length)];
-      p.className = 'sp-star' + (type ? ' ' + type : '');
-      p.style.cssText = [
-        'left:'                + (Math.random() * 100)     + '%',
-        'top:'                 + (Math.random() * 100)     + '%',
-        'width:'               + size                      + 'px',
-        'height:'              + size                      + 'px',
-        'animation-duration:'  + (Math.random() * 3 + 2)  + 's',
-        'animation-delay:'     + (Math.random() * 5)       + 's'
-      ].join(';');
-      container.appendChild(p);
+  /* ────────────────────────────────────────────────────────────
+     CANVAS — Fondo animado con orbs y partículas
+     requestAnimationFrame loop, todo en GPU (transform/opacity)
+  ──────────────────────────────────────────────────────────── */
+  var canvas = document.getElementById('bgCanvas');
+  var ctx    = canvas.getContext('2d');
+  var W, H;
+  var mouseX = 0, mouseY = 0;
+  var mouseTargetX = 0, mouseTargetY = 0;
+
+  function resizeCanvas() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    mouseX = mouseTargetX = W * .5;
+    mouseY = mouseTargetY = H * .5;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  document.addEventListener('mousemove', function (e) {
+    mouseTargetX = e.clientX;
+    mouseTargetY = e.clientY;
+  });
+
+  /* Ambient orbs — each reacts to mouse (parallax) */
+  var ORBS = [
+    { bx: .12, by: .18, r: 300, rgb: [0,  70, 210], a: .12, px: .016, py: .014, phase: 0,   spd: .00035 },
+    { bx: .88, by: .12, r: 240, rgb: [0, 150, 255], a: .08, px: .011, py: .009, phase: 1.8, spd: .00028 },
+    { bx: .78, by: .82, r: 280, rgb: [0,  40, 170], a: .10, px: .014, py: .012, phase: 3.2, spd: .00042 },
+    { bx: .18, by: .78, r: 220, rgb: [220, 70,  0], a: .05, px: .009, py: .008, phase: 5.1, spd: .00032 },
+    { bx: .50, by: .50, r: 360, rgb: [0,  25, 110], a: .07, px: .007, py: .006, phase: 2.6, spd: .00024 },
+  ];
+
+  /* Sparkles — tiny twinkling dots */
+  var SPARKLES = (function () {
+    var arr = [];
+    var COLORS = [
+      [255, 255, 255],
+      [160, 210, 255],
+      [255, 160,  80],
+    ];
+    for (var i = 0; i < 60; i++) {
+      arr.push({
+        x:    Math.random(),       /* 0-1 relative */
+        y:    Math.random(),
+        s:    Math.random() * 1.4 + .4,
+        peak: Math.random() * .6 + .2,
+        phase: Math.random() * Math.PI * 2,
+        spd:  Math.random() * .0055 + .002,
+        rgb:  COLORS[Math.floor(Math.random() * COLORS.length)]
+      });
     }
+    return arr;
   })();
 
-  /* ════════════════════════════════════════════════════════
-     SPLASH → LOGIN: transición suave
-  ════════════════════════════════════════════════════════ */
-  var splashDone = false;
+  /* Main draw loop */
+  var t0 = performance.now();
 
-  function revealLogin() {
-    if (splashDone) return;
-    splashDone = true;
+  function frame(now) {
+    var t = (now - t0) * .001; /* seconds */
 
-    var splash    = document.getElementById('splash');
-    var loginPage = document.getElementById('loginPage');
+    /* Lerp mouse for smooth parallax */
+    mouseX += (mouseTargetX - mouseX) * .04;
+    mouseY += (mouseTargetY - mouseY) * .04;
 
-    loginPage.classList.add('lp-show');
-    splash.classList.add('sp-exit');
+    var mx = (mouseX / W - .5); /* -0.5 → 0.5 */
+    var my = (mouseY / H - .5);
 
+    ctx.clearRect(0, 0, W, H);
+
+    /* Base fill */
+    ctx.fillStyle = '#00071A';
+    ctx.fillRect(0, 0, W, H);
+
+    /* Ambient orbs */
+    ORBS.forEach(function (o) {
+      var pulse = Math.sin(t * o.spd * 1000 + o.phase) * .1;
+      var r  = o.r * (1 + pulse);
+      var ox = o.bx * W - mx * W * o.px;
+      var oy = o.by * H - my * H * o.py;
+      var al = o.a + pulse * .025;
+
+      var g = ctx.createRadialGradient(ox, oy, 0, ox, oy, r);
+      g.addColorStop(0, 'rgba(' + o.rgb[0] + ',' + o.rgb[1] + ',' + o.rgb[2] + ',' + al + ')');
+      g.addColorStop(1, 'rgba(' + o.rgb[0] + ',' + o.rgb[1] + ',' + o.rgb[2] + ',0)');
+
+      ctx.beginPath();
+      ctx.arc(ox, oy, r, 0, 6.2832);
+      ctx.fillStyle = g;
+      ctx.fill();
+    });
+
+    /* Sparkles */
+    SPARKLES.forEach(function (s) {
+      var alpha = s.peak * (Math.sin(t * s.spd * 1000 + s.phase) * .5 + .5);
+      ctx.beginPath();
+      ctx.arc(s.x * W, s.y * H, s.s, 0, 6.2832);
+      ctx.fillStyle = 'rgba(' + s.rgb[0] + ',' + s.rgb[1] + ',' + s.rgb[2] + ',' + alpha + ')';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* ────────────────────────────────────────────────────────────
+     SPLASH — secuencia de aparición por capas con micro-delays
+  ──────────────────────────────────────────────────────────── */
+  function reveal(id, delay) {
     setTimeout(function () {
-      if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
-      document.body.classList.add('lk-ready');
-    }, 700);
+      var el = document.getElementById(id);
+      if (el) el.classList.add('reveal');
+    }, delay);
   }
 
-  /* Disparar a los 2.8 s */
-  setTimeout(revealLogin, 2800);
+  reveal('spMascotWrap', 280);
+  reveal('spTitle',      820);
+  reveal('spTagline',   1180);
+  reveal('spProg',      1420);
 
-  /* ════════════════════════════════════════════════════════
-     CONFIG DINÁMICA: logo + favicon desde /api/config
-  ════════════════════════════════════════════════════════ */
+  /* Progress bar — rAF para suavidad real */
+  var progStart = null;
+  var PROG_DUR  = 2500; /* ms de duración del fill */
+
+  setTimeout(function () {
+    var fill = document.getElementById('spFill');
+    function progFrame(now) {
+      if (!progStart) progStart = now;
+      var pct = Math.min((now - progStart) / PROG_DUR * 100, 100);
+      /* Easing cuadrático para sensación de carga real */
+      var eased = pct < 70 ? pct * .95 : 70 + (pct - 70) * 1.4;
+      if (fill) fill.style.width = Math.min(eased, 100) + '%';
+      if (pct < 100) requestAnimationFrame(progFrame);
+    }
+    requestAnimationFrame(progFrame);
+  }, 1420);
+
+  /* ────────────────────────────────────────────────────────────
+     TRANSICIÓN SPLASH → LOGIN
+     Fade + blur out / fade + slide in
+  ──────────────────────────────────────────────────────────── */
+  var transitioned = false;
+
+  function doTransition() {
+    if (transitioned) return;
+    transitioned = true;
+
+    var splash = document.getElementById('splash');
+    var login  = document.getElementById('loginPage');
+
+    /* 1. Splash exit */
+    splash.classList.add('exit');
+
+    /* 2. Login aparece con ligero delay para que se sienta como crossfade */
+    setTimeout(function () {
+      login.classList.add('show');
+    }, 100);
+
+    /* 3. Eliminar splash del DOM para liberar memoria */
+    setTimeout(function () {
+      if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+      document.body.classList.add('ready');
+    }, 850);
+  }
+
+  /* Trigger: 3.2s o cuando la página ya cargó completamente */
+  var SPLASH_DURATION = 3200;
+  var splashTimer = setTimeout(doTransition, SPLASH_DURATION);
+
+  window.addEventListener('load', function () {
+    /* Si la página carga muy rápido, esperar mínimo 2.8s para que se vea el splash */
+    var elapsed = performance.now() - t0;
+    var remaining = Math.max(2800 - elapsed, 0);
+    clearTimeout(splashTimer);
+    splashTimer = setTimeout(doTransition, remaining);
+  });
+
+  /* ────────────────────────────────────────────────────────────
+     CONFIG DINÁMICA — logo y favicon desde API
+  ──────────────────────────────────────────────────────────── */
   fetch(BASE + '/config')
     .then(function (r) { return r.json(); })
     .then(function (cfg) {
       if (!cfg) return;
 
-      /* Logo en panel izquierdo y móvil */
       if (cfg.logo) {
-        var logoHtml = '<img src="' + cfg.logo
-          + '" alt="Logo" style="width:100%;height:100%;object-fit:contain">';
-        var leftWrap  = document.getElementById('leftLogoWrap');
-        var mobWrap   = document.getElementById('mobileLogoWrap');
-        if (leftWrap)  leftWrap.innerHTML  = logoHtml;
-        if (mobWrap)   mobWrap.innerHTML   = logoHtml;
+        var img = '<img style="width:100%;height:100%;object-fit:contain" src="' + cfg.logo + '" alt="Logo">';
+        var box = document.getElementById('lpLogoBox');
+        var sp  = document.getElementById('spCircle');
+        if (box) box.innerHTML = img;
+        if (sp)  sp.innerHTML  = img;
       }
 
-      /* Favicon */
       if (cfg.favicon) {
         var fav = document.getElementById('dynFavicon');
         if (fav) fav.href = cfg.favicon;
       }
     })
-    .catch(function () { /* Logo local se mantiene */ });
+    .catch(function () { /* logo local se mantiene */ });
 
-  /* ════════════════════════════════════════════════════════
+  /* ────────────────────────────────────────────────────────────
      TOGGLE CONTRASEÑA
-  ════════════════════════════════════════════════════════ */
-  var toggleBtn = document.getElementById('togglePass');
-  var passInput = document.getElementById('inputPass');
-  var passVisible = false;
+  ──────────────────────────────────────────────────────────── */
+  var toggleBtn  = document.getElementById('togglePass');
+  var passInput  = document.getElementById('inputPass');
+  var passShown  = false;
 
-  if (toggleBtn && passInput) {
-    toggleBtn.addEventListener('click', function () {
-      passVisible           = !passVisible;
-      passInput.type        = passVisible ? 'text' : 'password';
-      toggleBtn.innerHTML   = passVisible ? '&#128584;' : '&#128065;';
-      toggleBtn.setAttribute('aria-label',
-        passVisible ? 'Ocultar contraseña' : 'Mostrar contraseña');
-    });
-  }
+  toggleBtn.addEventListener('click', function () {
+    passShown      = !passShown;
+    passInput.type = passShown ? 'text' : 'password';
+    toggleBtn.innerHTML = passShown ? '&#128584;' : '&#128065;';
+    toggleBtn.setAttribute('aria-label',
+      passShown ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
 
-  /* ════════════════════════════════════════════════════════
+  /* ────────────────────────────────────────────────────────────
      FORMULARIO DE LOGIN
-  ════════════════════════════════════════════════════════ */
+  ──────────────────────────────────────────────────────────── */
   var form    = document.getElementById('loginForm');
-  var errEl   = document.getElementById('errorMsg');
+  var errBox  = document.getElementById('errBox');
   var btnEl   = document.getElementById('btnLogin');
   var userInp = document.getElementById('inputUser');
-  var passInp = document.getElementById('inputPass');
 
-  /* Limpiar estado de error al escribir */
-  [userInp, passInp].forEach(function (inp) {
-    if (!inp) return;
+  /* Limpiar error al escribir */
+  [userInp, passInput].forEach(function (inp) {
     inp.addEventListener('input', function () {
-      errEl.classList.remove('show');
-      inp.classList.remove('fi-error');
+      errBox.classList.remove('show');
+      inp.classList.remove('shake');
     });
   });
 
-  function setLoading(loading) {
-    btnEl.disabled = loading;
-    if (loading) {
-      btnEl.innerHTML = '<span class="sp-btn"></span>Ingresando\u2026';
-    } else {
-      btnEl.textContent = 'Iniciar sesi\u00F3n';
-    }
+  function showErr(msg) {
+    errBox.textContent = msg;
+    errBox.classList.add('show');
+
+    /* Shake en ambos inputs: forzar reflow para reiniciar animación */
+    [userInp, passInput].forEach(function (inp) {
+      inp.classList.remove('shake');
+      void inp.offsetWidth;
+      inp.classList.add('shake');
+    });
+    setTimeout(function () {
+      [userInp, passInput].forEach(function (i) { i.classList.remove('shake'); });
+    }, 500);
   }
 
-  function showError(msg) {
-    errEl.textContent = msg;
-    errEl.classList.add('show');
-    [userInp, passInp].forEach(function (inp) {
-      if (inp) inp.classList.add('fi-error');
-    });
+  function setLoading(on) {
+    btnEl.disabled = on;
+    btnEl.innerHTML = on
+      ? '<span class="btn-spinner"></span>Verificando\u2026'
+      : 'Iniciar sesi\u00F3n';
   }
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    errEl.classList.remove('show');
-    [userInp, passInp].forEach(function (inp) {
-      if (inp) inp.classList.remove('fi-error');
-    });
+    errBox.classList.remove('show');
 
     var usuario  = userInp.value.trim();
-    var password = passInp.value;
+    var password = passInput.value;
 
     if (!usuario || !password) {
-      showError('Ingrese usuario y contrase\u00F1a para continuar');
+      showErr('Ingrese usuario y contraseña para continuar');
       return;
     }
 
@@ -904,28 +918,24 @@
       body:    JSON.stringify({ usuario: usuario, password: password })
     })
     .then(function (res) {
-      return res.json().then(function (d) { return { ok: res.ok, data: d }; });
+      return res.json().then(function (d) { return { ok: res.ok, d: d }; });
     })
     .then(function (r) {
       if (!r.ok) {
-        showError(r.data.error || 'Credenciales incorrectas');
+        showErr(r.d.error || 'Credenciales incorrectas');
         setLoading(false);
         return;
       }
-      /* Éxito: animación verde → redirigir */
-      btnEl.innerHTML   = '&#10003; Acceso concedido';
+      /* Éxito */
+      btnEl.innerHTML = '&#10003; Acceso concedido';
       btnEl.classList.add('success');
-      btnEl.disabled    = true;
-
-      localStorage.setItem('biblio_token', r.data.token);
-      localStorage.setItem('biblio_user',  JSON.stringify(r.data.user));
-
-      setTimeout(function () {
-        window.location.href = 'index.html';
-      }, 650);
+      btnEl.disabled  = true;
+      localStorage.setItem('biblio_token', r.d.token);
+      localStorage.setItem('biblio_user',  JSON.stringify(r.d.user));
+      setTimeout(function () { location.href = 'index.html'; }, 680);
     })
     .catch(function () {
-      showError('Error de conexi\u00F3n. Verifique que el servidor est\u00E9 activo.');
+      showErr('Error de conexión. Verifique que el servidor esté activo.');
       setLoading(false);
     });
   });
