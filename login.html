@@ -546,10 +546,41 @@
     /* ─────────────────────────────────────────────
        RESPONSIVE
     ───────────────────────────────────────────── */
-    @media (max-width: 480px) {
-      .lp-card { padding: 36px 24px; border-radius: 22px; }
-      .sp-title-main { font-size: 42px; }
-      .lp-heading-title { font-size: 24px; }
+
+    /* Título: fluido entre 32px (320px) y 56px (800px+) */
+    .sp-title-main { font-size: clamp(32px, 8vw, 56px); letter-spacing: clamp(-1px, -0.3vw, -2px); }
+
+    /* Tagline: no overflow en pantallas estrechas */
+    #spTagline { max-width: min(320px, 88vw); font-size: clamp(12px, 3.5vw, 15px); margin-bottom: clamp(16px, 4vw, 28px); }
+
+    /* MEP subtitle */
+    .sp-mep { font-size: clamp(8px, 2.2vw, 10.5px); letter-spacing: clamp(.08em, .4vw, .2em); }
+
+    /* Contenido splash: usar dvh en móvil para evitar que barra del browser tape */
+    #spContent { bottom: max(4vh, 16px); padding: 0 20px; width: 100%; }
+
+    /* Barra de progreso */
+    .sp-prog-track { width: clamp(120px, 40vw, 160px); }
+
+    @media (max-width: 600px) {
+      .lp-card        { padding: 32px 20px; border-radius: 20px; }
+      .lp-heading-title { font-size: 22px; }
+      .lp-logo-box    { width: 76px; height: 76px; }
+      .lp-brand       { font-size: 22px; }
+    }
+
+    @media (max-width: 380px) {
+      .lp-card        { padding: 28px 16px; border-radius: 18px; }
+      .lp-heading-title { font-size: 20px; }
+      .lp-logo-box    { width: 64px; height: 64px; }
+    }
+
+    /* Landscape móvil: solar system más pequeño, texto compacto */
+    @media (max-height: 500px) and (orientation: landscape) {
+      #spContent      { bottom: max(2vh, 8px); }
+      #spTagline      { display: none; }
+      .sp-mep         { display: none; }
+      .sp-prog-track  { width: 120px; }
     }
 
   </style>
@@ -695,13 +726,14 @@
   var STAR_LAYERS = [];
 
   function buildStars() {
+    var mob = W < 600;
     STAR_LAYERS = [
       /* Capa lejana: muchas, pequeñas, lentas */
-      buildLayer(280, .15, 1.1,  .003),
+      buildLayer(mob ? 130 : 280, .15, 1.1,  .003),
       /* Capa media */
-      buildLayer(130, .5,  1.8,  .008),
+      buildLayer(mob ?  60 : 130, .5,  1.8,  .008),
       /* Capa cercana: pocas, grandes, rápidas */
-      buildLayer(40,  .9,  2.8,  .018),
+      buildLayer(mob ?  18 :  40, .9,  2.8,  .018),
     ];
   }
 
@@ -1083,20 +1115,25 @@
     var sc  = document.getElementById('spCanvas');
     if (!sc) return;
     var ctx = sc.getContext('2d');
-    var W, H, CX, CY;
+    var W, H, CX, CY, SC;
 
     function resize() {
       W = sc.width  = window.innerWidth;
       H = sc.height = window.innerHeight;
       CX = W * 0.5;
-      CY = H * 0.38;
+      /* En portrait móvil subimos el centro para dar espacio al texto inferior */
+      CY = H * (W < 600 ? 0.36 : 0.38);
+      /* Escala el sistema solar para que el planeta más lejano (Saturno orb=272)
+         siempre quepa dentro de la pantalla con un margen del 10% */
+      SC = Math.min(1.0, (Math.min(W, H) * 0.44) / 272);
     }
     resize();
     window.addEventListener('resize', resize);
 
     /* ── Estrellas: normales + sparkle 4 puntas ── */
     var STARS = [];
-    for (var si = 0; si < 260; si++) {
+    var starCount = window.innerWidth < 600 ? 110 : 260;
+    for (var si = 0; si < starCount; si++) {
       var big = Math.random() > 0.91;
       STARS.push({
         x: Math.random(), y: Math.random(),
@@ -1144,6 +1181,13 @@
       drawNebulae();
       drawStars(t);
       manageShoots(t);
+
+      /* Sistema solar: escalado para caber en cualquier pantalla */
+      ctx.save();
+      ctx.translate(CX, CY);
+      ctx.scale(SC, SC);
+      ctx.translate(-CX, -CY);
+
       drawOrbits();
 
       var items = buildItems(t);
@@ -1159,6 +1203,8 @@
       var fro = items.filter(function(it){ return !it.behind; });
       fro.sort(function(a,b){ return a.y - b.y; });
       fro.forEach(function(it){ drawTrail(it, 1.0); drawPlanet(it, 1.0); });
+
+      ctx.restore();
 
       requestAnimationFrame(frame);
     }
