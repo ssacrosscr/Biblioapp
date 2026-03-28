@@ -1076,3 +1076,146 @@ input, select, textarea { font-family: inherit; }
   .cart-sidebar { position: static; max-height: none; }
   .config-grid { grid-template-columns: 1fr; }
 }
+
+/* ════════════════════════════════════════════════════════════
+   SOLICITUDES v3.0
+   ════════════════════════════════════════════════════════════ */
+
+/* Métricas resumen */
+.sol-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.sol-metric {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
+}
+.sol-metric:hover { box-shadow: var(--shadow-md); }
+.sol-metric-ico  { font-size: 22px; margin-bottom: 6px; }
+.sol-metric-num  { font-size: 30px; font-weight: 800; line-height: 1; }
+.sol-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+/* Barra de filtros de solicitudes */
+.sol-filter-bar { flex-wrap: wrap; gap: 8px; }
+
+/* Columna de libros en tabla: truncar con tooltip */
+.sol-libros-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Badges de prioridad */
+.badge-prio-alta  { background: #FCEAEA; color: var(--danger); }
+.badge-prio-media { background: var(--warn-bg); color: var(--warn); }
+.badge-prio-baja  { background: var(--ok-bg); color: var(--ok); }
+
+/* Badge "convertida" */
+.badge-convertida {
+  background: #E8F5EA;
+  color: #1B5E20;
+  font-size: 10px;
+  padding: 2px 6px;
+  margin-left: 4px;
+}
+
+/* Botón "→ Préstamo" */
+.btn-convertir {
+  background: var(--ok-bg);
+  color: var(--ok);
+  border-color: var(--ok);
+}
+.btn-convertir:hover { background: #cce8d8; }
+
+/* Botones del modal responder */
+.btn-espera {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-color: #C9920A;
+}
+.btn-espera:hover { background: #ede0b0; }
+.btn-rechazar {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.btn-rechazar:hover { background: #f0c8c8; }
+
+/* Grilla info modal detalle */
+.sol-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+/* Aviso en modal convertir */
+.sol-aviso-warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 10px;
+  border: 1px solid #C9920A;
+}
+
+/* Fila de libro en modal convertir */
+.conv-libro-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+/* Item en modal crear solicitud */
+.ns-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: var(--blue-xlight);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+.ns-item-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.sol-empty-items {
+  color: var(--text3);
+  font-size: 13px;
+  padding: 8px 4px;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sol-metrics { grid-template-columns: repeat(2, 1fr); }
+  .sol-filter-bar { flex-direction: column; }
+  .sol-filter-bar .fi { width: 100% !important; }
+}
+@media (max-width: 500px) {
+  .sol-metrics { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .sol-metric-num { font-size: 24px; }
+  .sol-detail-grid { grid-template-columns: 1fr; }
+}

@@ -95,13 +95,6 @@ function biblioOnly(req, res, next) {
   next();
 }
 
-function docenteOnly(req, res, next) {
-  if (req.user.rol !== 'docente') {
-    return res.status(403).json({ error: 'Acceso solo para docentes' });
-  }
-  next();
-}
-
 // ════════════════════════════════════════════════════════════
 //  AUTH
 // ════════════════════════════════════════════════════════════
@@ -417,40 +410,78 @@ app.get('/api/solicitudes', auth, async (req, res) => {
   }
 });
 
-app.post('/api/solicitudes', auth, docenteOnly, async (req, res) => {
+app.post('/api/solicitudes', auth, async (req, res) => {
   try {
-    const { items, notas } = req.body;
+    const isDocente = req.user.rol === 'docente';
+    const isBiblio  = req.user.rol === 'bibliotecologo' || req.user.rol === 'admin';
+    if (!isDocente && !isBiblio) {
+      return res.status(403).json({ error: 'Sin acceso para crear solicitudes' });
+    }
+
+    const { items, notas, tipoSolicitante, solicitanteId, solicitanteNombre, prioridad } = req.body;
+
+    // Determinar solicitante
+    let finalTipo, finalId, finalNombre;
+    if (isDocente) {
+      finalTipo   = 'docente';
+      finalId     = req.user.id;
+      finalNombre = req.user.nombre;
+    } else {
+      // Biblio/admin crea en nombre de alguien
+      if (!tipoSolicitante || !solicitanteNombre || !String(solicitanteNombre).trim()) {
+        return res.status(400).json({ error: 'Tipo y nombre del solicitante son requeridos' });
+      }
+      if (!['docente', 'estudiante', 'visitante'].includes(tipoSolicitante)) {
+        return res.status(400).json({ error: 'Tipo de solicitante inválido' });
+      }
+      finalTipo   = tipoSolicitante;
+      finalId     = solicitanteId ? parseInt(solicitanteId) : null;
+      finalNombre = String(solicitanteNombre).trim().substring(0, 200);
+    }
+
+    // Validar items
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Debe incluir al menos un libro' });
     }
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (!item.libroId || !item.cantidad || item.cantidad < 1) {
+    for (const item of items) {
+      if (!item.libroId || !item.cantidad || item.cantidad < 1 || item.cantidad > 99) {
         return res.status(400).json({ error: 'Item inválido en la solicitud' });
       }
       const libro = await db.collection('libros').findOne({ id: item.libroId, eliminado: { $ne: true } });
-      if (!libro) {
-        return res.status(400).json({ error: 'Libro no encontrado: ' + item.libroId });
-      }
+      if (!libro) return res.status(400).json({ error: 'Libro no encontrado: ' + item.libroId });
       item.titulo = libro.titulo;
     }
+
+    // Prioridad automática por tipo
+    const PRIORIDAD_MAP = { docente: 'alta', estudiante: 'media', visitante: 'baja' };
+    const finalPrioridad = (prioridad && ['alta', 'media', 'baja'].includes(prioridad))
+      ? prioridad : (PRIORIDAD_MAP[finalTipo] || 'media');
+
     const counter = await db.collection('counters').findOneAndUpdate(
       { _id: 'solicitudes' },
       { $inc: { seq: 1 } },
       { returnDocument: 'after', upsert: true }
     );
+
     const solicitud = {
       id: counter.seq,
-      docenteId: req.user.id,
-      docenteNombre: req.user.nombre,
-      items: items,
+      tipoSolicitante: finalTipo,
+      solicitanteId:   finalId,
+      solicitanteNombre: finalNombre,
+      // Retrocompatibilidad
+      docenteId:     isDocente ? req.user.id : (finalTipo === 'docente' ? finalId : null),
+      docenteNombre: finalNombre,
+      items,
+      prioridad: finalPrioridad,
       estado: 'pendiente',
       fecha: new Date().toISOString().slice(0, 10),
       fechaRespuesta: null,
-      respondidoPor: null,
-      notas: notas || '',
-      notasRespuesta: ''
+      respondidoPor:  null,
+      notas: notas ? String(notas).substring(0, 500) : '',
+      notasRespuesta: '',
+      convertido: false
     };
+
     await db.collection('solicitudes').insertOne(solicitud);
     res.status(201).json(toClient(solicitud));
   } catch (err) {
@@ -462,25 +493,108 @@ app.put('/api/solicitudes/:id', auth, biblioOnly, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const { estado, notasRespuesta } = req.body;
-    if (estado !== 'aprobada' && estado !== 'rechazada') {
-      return res.status(400).json({ error: 'Estado debe ser aprobada o rechazada' });
+
+    const VALID_ESTADOS = ['aprobada', 'rechazada', 'en_espera', 'pendiente'];
+    if (!VALID_ESTADOS.includes(estado)) {
+      return res.status(400).json({ error: 'Estado inválido' });
     }
+
     const existing = await db.collection('solicitudes').findOne({ id });
-    if (!existing) {
-      return res.status(404).json({ error: 'Solicitud no encontrada' });
+    if (!existing) return res.status(404).json({ error: 'Solicitud no encontrada' });
+
+    // Aprobada/rechazada son estados finales — no se modifican
+    if (existing.estado === 'aprobada' || existing.estado === 'rechazada') {
+      return res.status(400).json({ error: 'Esta solicitud ya fue resuelta y no puede modificarse' });
     }
-    if (existing.estado !== 'pendiente') {
-      return res.status(400).json({ error: 'Solo se pueden responder solicitudes pendientes' });
-    }
+
+    const isFinal = estado === 'aprobada' || estado === 'rechazada';
     const update = {
-      estado: estado,
-      fechaRespuesta: new Date().toISOString().slice(0, 10),
-      respondidoPor: req.user.nombre,
-      notasRespuesta: notasRespuesta || ''
+      estado,
+      notasRespuesta: notasRespuesta ? String(notasRespuesta).substring(0, 500) : (existing.notasRespuesta || ''),
+      fechaRespuesta: isFinal ? new Date().toISOString().slice(0, 10) : null,
+      respondidoPor:  isFinal ? req.user.nombre : null
     };
+
     await db.collection('solicitudes').updateOne({ id }, { $set: update });
     const updated = await db.collection('solicitudes').findOne({ id });
     res.json(toClient(updated));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Convertir solicitud aprobada en préstamo(s)
+app.post('/api/solicitudes/:id/convertir', auth, biblioOnly, async (req, res) => {
+  try {
+    const id   = parseInt(req.params.id);
+    const { pId, pT, fd } = req.body;
+
+    if (!pId || !pT || !fd) {
+      return res.status(400).json({ error: 'Persona (pId, pT) y fecha de devolución (fd) son requeridos' });
+    }
+    if (pT !== 'e' && pT !== 'd') {
+      return res.status(400).json({ error: 'pT debe ser "e" (estudiante) o "d" (docente)' });
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fd)) {
+      return res.status(400).json({ error: 'Fecha de devolución inválida' });
+    }
+
+    const solicitud = await db.collection('solicitudes').findOne({ id });
+    if (!solicitud)                  return res.status(404).json({ error: 'Solicitud no encontrada' });
+    if (solicitud.estado !== 'aprobada') return res.status(400).json({ error: 'Solo se pueden convertir solicitudes aprobadas' });
+    if (solicitud.convertido)        return res.status(400).json({ error: 'Esta solicitud ya fue convertida en préstamo' });
+
+    const fp = new Date().toISOString().slice(0, 10);
+    if (new Date(fd) <= new Date(fp)) {
+      return res.status(400).json({ error: 'La fecha de devolución debe ser posterior a hoy' });
+    }
+
+    const prestamosCreados = [];
+    const errores = [];
+
+    for (const item of solicitud.items) {
+      const libro = await db.collection('libros').findOne({ id: item.libroId, eliminado: { $ne: true } });
+      if (!libro) { errores.push('Libro no encontrado: ' + (item.titulo || item.libroId)); continue; }
+
+      const activos     = await db.collection('prestamos').countDocuments({ lId: item.libroId, dev: false });
+      const disponibles = libro.ejemplares - activos;
+
+      if (disponibles < 1) {
+        errores.push('Sin ejemplares disponibles: ' + libro.titulo);
+        continue;
+      }
+
+      const qty = Math.min(item.cantidad || 1, disponibles);
+      for (let q = 0; q < qty; q++) {
+        const counter = await db.collection('counters').findOneAndUpdate(
+          { _id: 'prestamos' },
+          { $inc: { seq: 1 } },
+          { returnDocument: 'after', upsert: true }
+        );
+        const prestamo = {
+          id: counter.seq,
+          pId: parseInt(pId),
+          pT,
+          lId: item.libroId,
+          fp,
+          fd,
+          dev: false,
+          n: 'Solicitud #' + solicitud.id,
+          solicitudId: solicitud.id
+        };
+        await db.collection('prestamos').insertOne(prestamo);
+        prestamosCreados.push(toClient(prestamo));
+      }
+    }
+
+    if (prestamosCreados.length > 0) {
+      await db.collection('solicitudes').updateOne(
+        { id },
+        { $set: { convertido: true, convertidoPor: req.user.nombre, fechaConversion: fp } }
+      );
+    }
+
+    res.json({ prestamosCreados, errores });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

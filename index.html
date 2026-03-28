@@ -502,29 +502,58 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SOLICITUDES (Bibliotec&oacute;logo — gesti&oacute;n)
+     SOLICITUDES (Bibliotec&oacute;logo/Admin — gesti&oacute;n)
      ═══════════════════════════════════════════════════════════ -->
 <section class="main" id="page-solicitudes" data-biblio>
   <div class="ph">
     <div>
       <div class="pt">Solicitudes de libros</div>
-      <div class="ps">Gestionar solicitudes de docentes</div>
+      <div class="ps">Circulaci&oacute;n: revisi&oacute;n, aprobaci&oacute;n y conversi&oacute;n a pr&eacute;stamo</div>
     </div>
+    <button class="btn primary" id="btnNuevaSolicitud">+ Nueva solicitud</button>
   </div>
+
+  <!-- Panel de m&eacute;tricas r&aacute;pidas -->
+  <div class="sol-metrics" id="solMetrics"></div>
+
   <div class="card">
-    <div class="srow">
-      <input class="fi" type="text" placeholder="&#128269;  Buscar por docente..." id="searchSolicitudes">
-      <select class="fi" id="filterSolEstado" style="width:190px">
+    <!-- Barra de filtros -->
+    <div class="srow sol-filter-bar">
+      <input class="fi" type="text" placeholder="&#128269;  Buscar por solicitante o libro..." id="searchSolicitudes" style="flex:1;min-width:160px">
+      <select class="fi" id="filterSolTipo" style="width:155px">
+        <option value="">Todos los tipos</option>
+        <option value="docente">Docente</option>
+        <option value="estudiante">Estudiante</option>
+        <option value="visitante">Visitante</option>
+      </select>
+      <select class="fi" id="filterSolEstado" style="width:155px">
         <option value="">Todos los estados</option>
         <option value="pendiente">Pendiente</option>
+        <option value="en_espera">En espera</option>
         <option value="aprobada">Aprobada</option>
         <option value="rechazada">Rechazada</option>
+      </select>
+      <select class="fi" id="filterSolPrioridad" style="width:145px">
+        <option value="">Todas las prioridades</option>
+        <option value="alta">Alta</option>
+        <option value="media">Media</option>
+        <option value="baja">Baja</option>
       </select>
     </div>
     <div class="table-responsive">
       <table class="tbl">
         <thead>
-          <tr><th>#</th><th>Docente</th><th>Fecha</th><th>Libros</th><th>Estado</th><th>Acciones</th></tr>
+          <tr>
+            <th>#</th>
+            <th>Solicitante</th>
+            <th>Tipo</th>
+            <th>Fecha</th>
+            <th>Libros solicitados</th>
+            <th>Disponibilidad</th>
+            <th>Estado</th>
+            <th>Prioridad</th>
+            <th>Acciones</th>
+          </tr>
         </thead>
         <tbody id="solicitudesBody"></tbody>
       </table>
@@ -853,7 +882,7 @@
     <div id="solModalInfo"></div>
     <div class="table-responsive" style="margin:16px 0">
       <table class="tbl">
-        <thead><tr><th>Libro</th><th>Cantidad</th></tr></thead>
+        <thead><tr><th>Libro</th><th>Cantidad</th><th>Disponibles</th></tr></thead>
         <tbody id="solModalItems"></tbody>
       </table>
     </div>
@@ -868,18 +897,93 @@
 
 <!-- Modal: Responder solicitud -->
 <div class="modal-overlay" id="modalResponder">
-  <div class="modal" style="max-width:500px">
+  <div class="modal" style="max-width:520px">
     <div class="modal-title">Responder solicitud</div>
     <div class="modal-sub" id="respModalSub"></div>
     <input type="hidden" id="resp-id">
     <div class="fg">
-      <label class="fl">Notas de respuesta (opcional)</label>
-      <textarea class="fi" id="resp-notas" placeholder="Observaciones..." maxlength="500" rows="3"></textarea>
+      <label class="fl">Notas de respuesta <span style="color:var(--danger)">*requeridas al rechazar</span></label>
+      <textarea class="fi" id="resp-notas" placeholder="Observaciones o motivo de rechazo..." maxlength="500" rows="3"></textarea>
     </div>
     <div class="mf">
       <button class="btn" id="btnCancelResponder">Cancelar</button>
-      <button class="btn" id="btnRechazarSolicitud" style="background:linear-gradient(135deg,var(--danger),#7A1010);color:white;border-color:var(--danger)">Rechazar</button>
-      <button class="btn primary" id="btnAprobarSolicitud">Aprobar</button>
+      <button class="btn btn-espera" id="btnEsperarSolicitud">&#9208; En espera</button>
+      <button class="btn btn-rechazar" id="btnRechazarSolicitud">&#10007; Rechazar</button>
+      <button class="btn primary" id="btnAprobarSolicitud">&#10003; Aprobar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nueva solicitud manual (biblio/admin) -->
+<div class="modal-overlay" id="modalCrearSolicitud">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title">Nueva solicitud manual</div>
+    <div class="modal-sub">Registrar solicitud en nombre de un usuario de la biblioteca</div>
+    <div class="form-grid">
+      <div class="fg">
+        <label class="fl">Tipo de solicitante *</label>
+        <select class="fi" id="ns-tipo">
+          <option value="">Seleccionar...</option>
+          <option value="docente">Docente</option>
+          <option value="estudiante">Estudiante</option>
+          <option value="visitante">Visitante</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl" id="ns-persona-label">Persona *</label>
+        <select class="fi" id="ns-persona-select"></select>
+        <input class="fi" id="ns-persona-text" type="text" placeholder="Nombre completo del visitante" maxlength="200" style="display:none;margin-top:6px">
+      </div>
+      <div class="fg">
+        <label class="fl">Prioridad</label>
+        <select class="fi" id="ns-prioridad">
+          <option value="alta">Alta</option>
+          <option value="media" selected>Media</option>
+          <option value="baja">Baja</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin:16px 0 8px;border-top:1.5px solid var(--border);padding-top:14px">
+      <div class="ct" style="margin-bottom:10px">Libros a solicitar</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <select class="fi" id="ns-libro-sel" style="flex:1"></select>
+        <input class="fi" type="number" id="ns-libro-qty" min="1" max="20" value="1" style="width:68px" title="Cantidad">
+        <button class="btn primary" id="btnNsAgregarLibro" type="button">+ Agregar</button>
+      </div>
+      <div id="ns-libros-lista"></div>
+    </div>
+    <div class="fg" style="margin-top:8px">
+      <label class="fl">Notas (opcional)</label>
+      <textarea class="fi" id="ns-notas" rows="2" maxlength="500" placeholder="Observaciones o motivo de la solicitud..."></textarea>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelNuevaSolicitud">Cancelar</button>
+      <button class="btn primary" id="btnGuardarNuevaSolicitud">Crear solicitud</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Convertir solicitud aprobada en pr&eacute;stamo -->
+<div class="modal-overlay" id="modalConvertir">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title">Convertir en pr&eacute;stamo</div>
+    <div class="modal-sub" id="convModalSub"></div>
+    <input type="hidden" id="conv-sol-id">
+    <div id="conv-aviso"></div>
+    <div class="form-grid">
+      <div class="fg full">
+        <label class="fl">Registrar pr&eacute;stamo a nombre de *</label>
+        <select class="fi" id="conv-persona"></select>
+      </div>
+      <div class="fg">
+        <label class="fl">Fecha de devoluci&oacute;n *</label>
+        <input class="fi" type="date" id="conv-devolucion">
+      </div>
+    </div>
+    <div id="conv-libros-info" style="margin:12px 0"></div>
+    <div class="mf">
+      <button class="btn" id="btnCancelConvertir">Cancelar</button>
+      <button class="btn primary" id="btnConfirmarConvertir">&#10003; Registrar pr&eacute;stamo(s)</button>
     </div>
   </div>
 </div>

@@ -63,7 +63,17 @@ window.BiblioApp = window.BiblioApp || {};
   B.badgeSolicitud = function (estado) {
     if (estado === 'aprobada')  return '<span class="badge ok">Aprobada</span>';
     if (estado === 'rechazada') return '<span class="badge danger">Rechazada</span>';
+    if (estado === 'en_espera') return '<span class="badge warn">En espera</span>';
     return '<span class="badge orange">Pendiente</span>';
+  };
+
+  /**
+   * Badge HTML para prioridad de solicitud.
+   */
+  B.badgePrioridad = function (prioridad) {
+    if (prioridad === 'alta')  return '<span class="badge badge-prio-alta">Alta</span>';
+    if (prioridad === 'baja')  return '<span class="badge badge-prio-baja">Baja</span>';
+    return '<span class="badge badge-prio-media">Media</span>';
   };
 
   /**
@@ -89,11 +99,17 @@ window.BiblioApp = window.BiblioApp || {};
     doc.setFont('helvetica', 'bold');
     doc.text('Boleta de solicitud de libros #' + solicitud.id, 20, 42);
 
+    var TIPO_LABEL = { docente: 'Docente', estudiante: 'Estudiante', visitante: 'Visitante' };
+    var PRIO_LABEL = { alta: 'Alta', media: 'Media', baja: 'Baja' };
+    var nombreSol  = solicitud.solicitanteNombre || solicitud.docenteNombre || '';
+    var tipoSol    = TIPO_LABEL[solicitud.tipoSolicitante] || 'Docente';
+    var prioSol    = PRIO_LABEL[solicitud.prioridad] || 'Media';
+
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.text('Fecha: ' + solicitud.fecha, 20, 52);
-    doc.text('Docente: ' + solicitud.docenteNombre, 20, 59);
-    doc.text('Estado: ' + solicitud.estado.toUpperCase(), 20, 66);
+    doc.text('Solicitante: ' + nombreSol + ' (' + tipoSol + ')', 20, 59);
+    doc.text('Estado: ' + solicitud.estado.toUpperCase() + '  |  Prioridad: ' + prioSol, 20, 66);
     var infoY = 73;
     if (solicitud.respondidoPor) {
       doc.text('Respondido por: ' + solicitud.respondidoPor + ' (' + (solicitud.fechaRespuesta || '') + ')', 20, infoY);

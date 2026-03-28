@@ -207,6 +207,10 @@ window.BiblioApp = window.BiblioApp || {};
     return request('PUT', '/solicitudes/' + id, data);
   };
 
+  B.apiConvertirSolicitud = function (id, data) {
+    return request('POST', '/solicitudes/' + id + '/convertir', data);
+  };
+
   /* ── Configuración del sitio ── */
   B.apiGetConfig = function () {
     return request('GET', '/config');
