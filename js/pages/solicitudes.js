@@ -117,9 +117,6 @@
       var libros  = s.items.map(function (i) {
         return B.esc(i.titulo) + ' (&times;' + (i.cantidad || 1) + ')';
       }).join(', ');
-      var convTag = s.convertido
-        ? ' <span class="badge badge-convertida">Conv.</span>' : '';
-
       return '<tr>'
         + '<td style="font-weight:700;color:var(--blue)">#' + s.id + '</td>'
         + '<td style="font-weight:600">' + nombre + '</td>'
@@ -127,7 +124,7 @@
         + '<td style="color:var(--text3);white-space:nowrap">' + B.esc(B.fmt(s.fecha)) + '</td>'
         + '<td class="sol-libros-cell" title="' + libros + '">' + libros + '</td>'
         + '<td>' + dispBadge(s.items) + '</td>'
-        + '<td>' + B.badgeSolicitud(s.estado) + convTag + '</td>'
+        + '<td>' + B.badgeSolicitud(s.estado) + '</td>'
         + '<td>' + B.badgePrioridad(s.prioridad) + '</td>'
         + '<td><div class="action-btns">' + buildActions(s) + '</div></td>'
         + '</tr>';
