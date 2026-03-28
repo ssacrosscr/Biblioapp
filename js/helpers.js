@@ -77,11 +77,12 @@ window.BiblioApp = window.BiblioApp || {};
   };
 
   /**
-   * Genera un PDF de boleta para una solicitud usando jsPDF.
+   * Construye el documento jsPDF de una boleta sin descargarlo.
+   * Retorna el doc y el filename, o null si jsPDF no está disponible.
    */
-  B.generatePDF = function (solicitud) {
+  B._buildPDF = function (solicitud) {
     var jsPDF = window.jspdf && window.jspdf.jsPDF;
-    if (!jsPDF) { B.showToast('Error: jsPDF no cargado', true); return; }
+    if (!jsPDF) { B.showToast('Error: jsPDF no disponible', true); return null; }
     var doc = new jsPDF();
 
     doc.setFontSize(18);
@@ -101,9 +102,9 @@ window.BiblioApp = window.BiblioApp || {};
 
     var TIPO_LABEL = { docente: 'Docente', estudiante: 'Estudiante', visitante: 'Visitante' };
     var PRIO_LABEL = { alta: 'Alta', media: 'Media', baja: 'Baja' };
-    var nombreSol  = solicitud.solicitanteNombre || solicitud.docenteNombre || '';
-    var tipoSol    = TIPO_LABEL[solicitud.tipoSolicitante] || 'Docente';
-    var prioSol    = PRIO_LABEL[solicitud.prioridad] || 'Media';
+    var nombreSol = solicitud.solicitanteNombre || solicitud.docenteNombre || '';
+    var tipoSol   = TIPO_LABEL[solicitud.tipoSolicitante] || 'Docente';
+    var prioSol   = PRIO_LABEL[solicitud.prioridad] || 'Media';
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
@@ -131,7 +132,7 @@ window.BiblioApp = window.BiblioApp || {};
     var finalY = doc.lastAutoTable.finalY + 10;
     if (solicitud.notas) {
       doc.setFontSize(10);
-      doc.text('Notas del docente: ' + solicitud.notas, 20, finalY);
+      doc.text('Notas del solicitante: ' + solicitud.notas, 20, finalY);
       finalY += 10;
     }
     if (solicitud.notasRespuesta) {
@@ -145,13 +146,59 @@ window.BiblioApp = window.BiblioApp || {};
     doc.setFontSize(9);
     doc.text('Firma del Bibliot\u00E9c\u00F3logo', 55, finalY + 5, { align: 'center' });
     doc.line(120, finalY, 190, finalY);
-    doc.text('Firma del Docente', 155, finalY + 5, { align: 'center' });
+    doc.text('Firma del Solicitante', 155, finalY + 5, { align: 'center' });
 
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text('LuKiBooks v2.0 \u2014 Documento generado autom\u00E1ticamente', 105, 285, { align: 'center' });
+    doc.text('LuKiBooks v3.0 \u2014 Documento generado autom\u00E1ticamente', 105, 285, { align: 'center' });
 
-    doc.save('boleta-solicitud-' + solicitud.id + '.pdf');
+    return { doc: doc, filename: 'boleta-solicitud-' + solicitud.id + '.pdf' };
+  };
+
+  /**
+   * Muestra la previsualización del PDF en el modal y permite descargarlo.
+   */
+  B.generatePDF = function (solicitud) {
+    var result = B._buildPDF(solicitud);
+    if (!result) return;
+
+    var blob    = result.doc.output('blob');
+    var url     = URL.createObjectURL(blob);
+    var iframe  = document.getElementById('pdfPreviewFrame');
+    var dlBtn   = document.getElementById('btnDescargarPdf');
+    var subEl   = document.getElementById('pdfPreviewSub');
+    var modal   = document.getElementById('modalPdfPreview');
+    var cerrar  = document.getElementById('btnCerrarPdfPreview');
+
+    if (!modal) { result.doc.save(result.filename); return; }
+
+    /* Subtítulo con datos clave */
+    if (subEl) {
+      var nombre = solicitud.solicitanteNombre || solicitud.docenteNombre || '';
+      subEl.textContent = 'Solicitud #' + solicitud.id + ' \u2014 ' + nombre + ' \u2014 ' + solicitud.fecha;
+    }
+
+    /* Cargar PDF en el iframe */
+    if (iframe) iframe.src = url;
+
+    /* Botón descargar */
+    if (dlBtn) {
+      dlBtn.onclick = function () { result.doc.save(result.filename); };
+    }
+
+    /* Abrir modal */
+    if (modal) modal.classList.add('active');
+
+    /* Cerrar y limpiar blob URL */
+    function closePdfModal() {
+      if (modal) modal.classList.remove('active');
+      if (iframe) { iframe.src = ''; }
+      URL.revokeObjectURL(url);
+    }
+    if (cerrar) cerrar.onclick = closePdfModal;
+    modal.addEventListener('click', function onBg(e) {
+      if (e.target === modal) { closePdfModal(); modal.removeEventListener('click', onBg); }
+    }, { once: true });
   };
 
 })(window.BiblioApp);

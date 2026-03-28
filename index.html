@@ -895,6 +895,19 @@
   </div>
 </div>
 
+<!-- Modal: Previsualización PDF -->
+<div class="modal-overlay" id="modalPdfPreview">
+  <div class="modal pdf-preview-modal">
+    <div class="modal-title">&#128196; Vista previa — Boleta de Solicitud</div>
+    <div class="pdf-preview-sub" id="pdfPreviewSub"></div>
+    <iframe id="pdfPreviewFrame" class="pdf-preview-iframe" title="Vista previa PDF"></iframe>
+    <div class="mf">
+      <button class="btn" id="btnCerrarPdfPreview">Cerrar</button>
+      <button class="btn primary" id="btnDescargarPdf">&#11015; Descargar PDF</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Responder solicitud -->
 <div class="modal-overlay" id="modalResponder">
   <div class="modal" style="max-width:520px">
@@ -994,8 +1007,8 @@
 <!-- ═══════════════════════════════════════════════════════════
      SCRIPTS
      ═══════════════════════════════════════════════════════════ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script defer src="js/sanitize.js"></script>
 <script defer src="js/data.js"></script>
 <script defer src="js/api.js"></script>

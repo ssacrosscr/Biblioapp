@@ -1088,6 +1088,29 @@ input, select, textarea { font-family: inherit; }
    SOLICITUDES v3.0
    ════════════════════════════════════════════════════════════ */
 
+/* ── Modal previsualización PDF ── */
+.pdf-preview-modal {
+  max-width: 900px;
+  width: 95vw;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pdf-preview-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: -8px;
+}
+.pdf-preview-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: #e8e8e8;
+  min-height: 0;
+}
+
 /* Métricas resumen */
 .sol-metrics {
   display: grid;
