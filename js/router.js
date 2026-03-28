@@ -12,7 +12,7 @@ window.BiblioApp = window.BiblioApp || {};
     'inicio', 'prestamos', 'devoluciones', 'catalogo',
     'agregar', 'estudiantes', 'docentes', 'estadisticas',
     'historial', 'usuarios', 'solicitar', 'missolicitudes',
-    'solicitudes', 'configuracion'
+    'solicitudes', 'configuracion', 'visitas'
   ];
 
   /* Páginas permitidas para cada rol */

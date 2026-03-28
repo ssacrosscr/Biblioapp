@@ -60,6 +60,7 @@
 
   <div class="nav-section" data-biblio>Informes</div>
   <div class="nav-item" data-page="estadisticas" data-biblio><span class="ni">&#128202;</span> Estad&iacute;sticas</div>
+  <div class="nav-item" data-page="visitas" data-biblio><span class="ni">&#128101;</span> Asistencia</div>
 
   <div class="nav-section" data-docente>Solicitudes</div>
   <div class="nav-item" data-page="solicitar" data-docente><span class="ni">&#128722;</span> Solicitar libros</div>
@@ -564,6 +565,152 @@
 <!-- ═══════════════════════════════════════════════════════════
      CONFIGURACI&Oacute;N (Admin)
      ═══════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════
+     VISITAS — Control de asistencia de grupos
+     ═══════════════════════════════════════════════════════════ -->
+<section class="main" id="page-visitas" data-biblio>
+  <div class="ph">
+    <div>
+      <div class="pt">Asistencia de grupos</div>
+      <div class="ps">Control de visitas, tiempo de permanencia y estad&iacute;sticas</div>
+    </div>
+    <button class="btn primary" id="btnNuevaVisita">&#43; Registrar ingreso</button>
+  </div>
+
+  <!-- Métricas rápidas -->
+  <div class="vis-metrics" id="visMetrics"></div>
+
+  <!-- Tabs: Registros / Estadísticas -->
+  <div class="vis-tabs" id="visTabs">
+    <button class="vis-tab active" data-tab="registros">&#128203; Registros</button>
+    <button class="vis-tab" data-tab="stats">&#128202; Estad&iacute;sticas</button>
+  </div>
+
+  <!-- Panel: Registros -->
+  <div class="vis-panel" id="visPanel-registros">
+    <div class="card">
+      <div class="srow" style="gap:10px;flex-wrap:wrap;margin-bottom:16px">
+        <input class="fi" type="text"   id="visSearchQ"      placeholder="&#128269; Buscar docente o secci&oacute;n..." style="flex:1;min-width:160px">
+        <input class="fi" type="date"   id="visFilterDesde"  title="Desde" style="width:145px">
+        <input class="fi" type="date"   id="visFilterHasta"  title="Hasta" style="width:145px">
+        <select class="fi" id="visFilterEstado" style="width:140px">
+          <option value="">Todos los estados</option>
+          <option value="activo">Activo</option>
+          <option value="completado">Completado</option>
+        </select>
+        <button class="btn" id="visBtnLimpiar">Limpiar</button>
+      </div>
+      <div class="table-responsive">
+        <table class="tbl" id="tablaVisitas">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Docente</th>
+              <th>Secci&oacute;n</th>
+              <th>Entrada</th>
+              <th>Salida</th>
+              <th>Tiempo</th>
+              <th>Estudiantes</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="visitasBody"></tbody>
+        </table>
+      </div>
+      <!-- Paginación -->
+      <div class="vis-pag" id="visPaginacion"></div>
+    </div>
+  </div>
+
+  <!-- Panel: Estadísticas -->
+  <div class="vis-panel" id="visPanel-stats" style="display:none">
+    <div class="srow" style="gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end">
+      <div class="fg" style="margin:0">
+        <label class="fl">Desde</label>
+        <input class="fi" type="date" id="statsDesde" style="width:145px">
+      </div>
+      <div class="fg" style="margin:0">
+        <label class="fl">Hasta</label>
+        <input class="fi" type="date" id="statsHasta" style="width:145px">
+      </div>
+      <button class="btn primary" id="btnCargarStats">Actualizar</button>
+    </div>
+    <div class="vis-stats-grid" id="visStatsGrid"></div>
+    <div class="vis-charts-grid">
+      <div class="card">
+        <div class="vis-chart-title">Uso por docente (minutos)</div>
+        <canvas id="chartDocente" height="280"></canvas>
+      </div>
+      <div class="card">
+        <div class="vis-chart-title">Distribución por secci&oacute;n</div>
+        <canvas id="chartSeccion" height="280"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal: Nueva / Editar visita -->
+<div class="modal-overlay" id="modalVisita">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title" id="modalVisitaTitle">Registrar ingreso</div>
+    <input type="hidden" id="vis-id">
+    <div class="form-grid">
+      <div class="fg">
+        <label class="fl">Fecha *</label>
+        <input class="fi" type="date" id="vis-fecha">
+      </div>
+      <div class="fg">
+        <label class="fl">Hora de entrada *</label>
+        <input class="fi" type="time" id="vis-entrada">
+      </div>
+      <div class="fg">
+        <label class="fl">Hora de salida</label>
+        <input class="fi" type="time" id="vis-salida">
+        <span style="font-size:11px;color:var(--text3)">Dejar vac&iacute;o si la visita est&aacute; en curso</span>
+      </div>
+      <div class="fg">
+        <label class="fl">Docente responsable *</label>
+        <select class="fi" id="vis-docente"></select>
+      </div>
+      <div class="fg">
+        <label class="fl">Secci&oacute;n *</label>
+        <input class="fi" type="text" id="vis-seccion" placeholder="Ej: 7A, 8B..." maxlength="20">
+      </div>
+      <div class="fg">
+        <label class="fl">Cantidad de estudiantes *</label>
+        <input class="fi" type="number" id="vis-cantidad" min="1" max="999" placeholder="0">
+      </div>
+      <div class="fg" style="grid-column:1/-1">
+        <label class="fl">Observaciones</label>
+        <textarea class="fi" id="vis-observaciones" rows="2" maxlength="400" placeholder="Opcional..."></textarea>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelVisita">Cancelar</button>
+      <button class="btn primary" id="btnGuardarVisita">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Registrar salida rápida -->
+<div class="modal-overlay" id="modalSalida">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">Registrar salida</div>
+    <div class="modal-sub" id="salidaInfo"></div>
+    <input type="hidden" id="salida-vis-id">
+    <div class="fg" style="margin-top:16px">
+      <label class="fl">Hora de salida *</label>
+      <input class="fi" type="time" id="salida-hora">
+    </div>
+    <div class="mf">
+      <button class="btn" id="btnCancelSalida">Cancelar</button>
+      <button class="btn primary" id="btnGuardarSalida">Registrar salida</button>
+    </div>
+  </div>
+</div>
+
 <section class="main" id="page-configuracion" data-admin>
   <div class="ph">
     <div>
@@ -1009,6 +1156,7 @@
      ═══════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script defer src="js/sanitize.js"></script>
 <script defer src="js/data.js"></script>
 <script defer src="js/api.js"></script>
@@ -1030,6 +1178,7 @@
 <script defer src="js/pages/missolicitudes.js"></script>
 <script defer src="js/pages/solicitudes.js"></script>
 <script defer src="js/pages/configuracion.js"></script>
+<script defer src="js/pages/visitas.js"></script>
 <script defer src="js/app.js"></script>
 </body>
 </html>

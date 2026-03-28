@@ -220,4 +220,41 @@ window.BiblioApp = window.BiblioApp || {};
     return request('PUT', '/config', data);
   };
 
+  /* ── Visitas (control de asistencia) ── */
+  B.apiGetVisitas = function (params) {
+    var qs = '';
+    if (params) {
+      var parts = [];
+      if (params.fecha)     parts.push('fecha='     + encodeURIComponent(params.fecha));
+      if (params.docenteId) parts.push('docenteId=' + params.docenteId);
+      if (params.seccion)   parts.push('seccion='   + encodeURIComponent(params.seccion));
+      if (params.estado)    parts.push('estado='    + encodeURIComponent(params.estado));
+      if (parts.length) qs = '?' + parts.join('&');
+    }
+    return request('GET', '/visitas' + qs);
+  };
+
+  B.apiAddVisita = function (data) {
+    return request('POST', '/visitas', data);
+  };
+
+  B.apiEditVisita = function (id, data) {
+    return request('PUT', '/visitas/' + id, data);
+  };
+
+  B.apiDeleteVisita = function (id) {
+    return request('DELETE', '/visitas/' + id);
+  };
+
+  B.apiGetVisitasStats = function (desde, hasta) {
+    var qs = '';
+    if (desde || hasta) {
+      var p = [];
+      if (desde) p.push('desde=' + encodeURIComponent(desde));
+      if (hasta) p.push('hasta=' + encodeURIComponent(hasta));
+      qs = '?' + p.join('&');
+    }
+    return request('GET', '/visitas/stats' + qs);
+  };
+
 })(window.BiblioApp);

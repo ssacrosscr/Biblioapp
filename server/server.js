@@ -629,6 +629,163 @@ app.put('/api/config', auth, adminOnly, async (req, res) => {
   }
 });
 
+// ════════════════════════════════════════════════════════════
+//  VISITAS (control de asistencia de grupos)
+// ════════════════════════════════════════════════════════════
+
+function calcTiempo(horaEntrada, horaSalida) {
+  if (!horaEntrada || !horaSalida) return null;
+  const [eh, em] = horaEntrada.split(':').map(Number);
+  const [sh, sm] = horaSalida.split(':').map(Number);
+  const min = (sh * 60 + sm) - (eh * 60 + em);
+  return min > 0 ? min : null;
+}
+
+app.get('/api/visitas', auth, biblioOnly, async (req, res) => {
+  try {
+    const query = {};
+    if (req.query.fecha)      query.fecha      = req.query.fecha;
+    if (req.query.docenteId)  query.docenteId  = parseInt(req.query.docenteId);
+    if (req.query.seccion)    query.seccion    = req.query.seccion;
+    if (req.query.estado)     query.estado     = req.query.estado;
+    const visitas = await db.collection('visitas').find(query).sort({ id: -1 }).toArray();
+    res.json(toClientArray(visitas));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/visitas', auth, biblioOnly, async (req, res) => {
+  try {
+    const { fecha, horaEntrada, horaSalida, docenteId, docenteNombre, seccion, cantEstudiantes, observaciones } = req.body;
+    if (!fecha || !horaEntrada || !docenteId || !seccion || !cantEstudiantes) {
+      return res.status(400).json({ error: 'Fecha, hora de entrada, docente, sección y cantidad de estudiantes son obligatorios' });
+    }
+    if (horaSalida && calcTiempo(horaEntrada, horaSalida) === null) {
+      return res.status(400).json({ error: 'La hora de salida debe ser posterior a la hora de entrada' });
+    }
+    // Validar solapamiento de horario para la misma sección/fecha
+    const overlap = await db.collection('visitas').findOne({
+      fecha, seccion, estado: 'activo'
+    });
+    if (overlap) {
+      return res.status(400).json({ error: 'Ya existe una visita activa para esta sección en esta fecha' });
+    }
+    const tiempoTotal = calcTiempo(horaEntrada, horaSalida);
+    const estado = horaSalida ? 'completado' : 'activo';
+    const counter = await db.collection('counters').findOneAndUpdate(
+      { _id: 'visitas' },
+      { $inc: { seq: 1 } },
+      { returnDocument: 'after', upsert: true }
+    );
+    const visita = {
+      id: counter.seq,
+      fecha,
+      horaEntrada,
+      horaSalida: horaSalida || null,
+      tiempoTotal,
+      docenteId: parseInt(docenteId),
+      docenteNombre: docenteNombre || '',
+      seccion,
+      cantEstudiantes: parseInt(cantEstudiantes),
+      observaciones: observaciones || '',
+      estado,
+      creadoPor: req.user.id,
+      creadoEn: new Date().toISOString()
+    };
+    await db.collection('visitas').insertOne(visita);
+    res.status(201).json(toClient(visita));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/visitas/:id', auth, biblioOnly, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { horaEntrada, horaSalida, docenteId, docenteNombre, seccion, cantEstudiantes, observaciones } = req.body;
+    if (horaSalida && horaEntrada && calcTiempo(horaEntrada, horaSalida) === null) {
+      return res.status(400).json({ error: 'La hora de salida debe ser posterior a la hora de entrada' });
+    }
+    const visita = await db.collection('visitas').findOne({ id });
+    if (!visita) return res.status(404).json({ error: 'Visita no encontrada' });
+
+    const update = {};
+    if (horaEntrada !== undefined)    update.horaEntrada    = horaEntrada;
+    if (horaSalida  !== undefined)    update.horaSalida     = horaSalida || null;
+    if (docenteId   !== undefined)    update.docenteId      = parseInt(docenteId);
+    if (docenteNombre !== undefined)  update.docenteNombre  = docenteNombre;
+    if (seccion     !== undefined)    update.seccion        = seccion;
+    if (cantEstudiantes !== undefined) update.cantEstudiantes = parseInt(cantEstudiantes);
+    if (observaciones !== undefined)  update.observaciones  = observaciones;
+
+    const hE = update.horaEntrada || visita.horaEntrada;
+    const hS = update.horaSalida  !== undefined ? update.horaSalida : visita.horaSalida;
+    update.tiempoTotal = calcTiempo(hE, hS);
+    update.estado      = hS ? 'completado' : 'activo';
+
+    await db.collection('visitas').updateOne({ id }, { $set: update });
+    const updated = await db.collection('visitas').findOne({ id });
+    res.json(toClient(updated));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/visitas/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const result = await db.collection('visitas').deleteOne({ id });
+    if (!result.deletedCount) return res.status(404).json({ error: 'Visita no encontrada' });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/visitas/stats', auth, biblioOnly, async (req, res) => {
+  try {
+    const { desde, hasta } = req.query;
+    const query = { estado: 'completado' };
+    if (desde || hasta) {
+      query.fecha = {};
+      if (desde) query.fecha.$gte = desde;
+      if (hasta) query.fecha.$lte = hasta;
+    }
+    const visitas = await db.collection('visitas').find(query).toArray();
+
+    // Por docente
+    const porDocente = {};
+    visitas.forEach(v => {
+      const k = v.docenteNombre || ('Docente ' + v.docenteId);
+      if (!porDocente[k]) porDocente[k] = { minutos: 0, visitas: 0 };
+      porDocente[k].minutos += v.tiempoTotal || 0;
+      porDocente[k].visitas++;
+    });
+
+    // Por sección
+    const porSeccion = {};
+    visitas.forEach(v => {
+      if (!porSeccion[v.seccion]) porSeccion[v.seccion] = { minutos: 0, visitas: 0 };
+      porSeccion[v.seccion].minutos += v.tiempoTotal || 0;
+      porSeccion[v.seccion].visitas++;
+    });
+
+    const totalMin = visitas.reduce((a, v) => a + (v.tiempoTotal || 0), 0);
+    const promMin  = visitas.length ? Math.round(totalMin / visitas.length) : 0;
+
+    res.json({
+      totalVisitas: visitas.length,
+      totalMinutos: totalMin,
+      promedioMinutos: promMin,
+      porDocente,
+      porSeccion
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Arrancar servidor ───────────────────────────────────────
 
 connectDB().then(() => {

@@ -1288,3 +1288,196 @@ input, select, textarea { font-family: inherit; }
   .sol-metric-num { font-size: 24px; }
   .sol-detail-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   VISITAS — Control de Asistencia
+   ============================================================ */
+
+/* Métricas */
+.vis-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.vis-metric-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .18s, box-shadow .18s;
+}
+.vis-metric-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+.vis-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 12px 12px 0 0;
+}
+.vis-metric--total::before      { background: #6366F1; }
+.vis-metric--activo::before     { background: #059669; }
+.vis-metric--completado::before { background: #2563EB; }
+.vis-metric--estudiantes::before{ background: #D97706; }
+.vis-metric-val {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.vis-metric-label {
+  font-size: 12px;
+  color: var(--text3);
+  font-weight: 500;
+}
+
+/* Tabs */
+.vis-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+.vis-tab {
+  background: none;
+  border: none;
+  color: var(--text3);
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+.vis-tab:hover { color: var(--text); }
+.vis-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Filtros */
+.vis-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.vis-filter-bar .fi { display: flex; flex-direction: column; gap: 3px; }
+.vis-filter-bar label { font-size: 11px; color: var(--text3); font-weight: 500; }
+.vis-filter-bar input,
+.vis-filter-bar select { height: 32px; padding: 0 8px; font-size: 13px; }
+.vis-filter-bar .ml-auto { margin-left: auto; }
+
+/* Tabla */
+.vis-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+#tablaVisitas { width: 100%; }
+#tablaVisitas th { font-size: 12px; white-space: nowrap; }
+#tablaVisitas td { font-size: 13px; vertical-align: middle; }
+.acciones-col { white-space: nowrap; }
+
+/* Badges de estado para visitas */
+.badge-activo     { background: rgba(16,185,129,.18);  color: #10b981; border: 1px solid rgba(16,185,129,.3); }
+.badge-completado { background: rgba(37,99,235,.18);   color: #60a5fa; border: 1px solid rgba(37,99,235,.3); }
+.badge-cancelado  { background: rgba(239,68,68,.15);   color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+
+/* Paginación */
+#visPaginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pag-info { font-size: 12px; color: var(--text3); }
+.pag-btns { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.pag-btns .btn-sm { min-width: 30px; padding: 4px 8px; font-size: 12px; }
+.pag-dots { color: var(--text3); padding: 0 4px; font-size: 13px; }
+
+/* Panel estadísticas */
+.vis-stats-top {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.vis-stats-top label { font-size: 12px; color: var(--text3); }
+.vis-stats-top input { height: 32px; padding: 0 8px; font-size: 13px; }
+
+#visStatsResumen,
+#visStatsGrid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.vis-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 24px;
+  min-width: 140px;
+}
+.vis-stat-num {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.vis-stat-lbl { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+.vis-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.vis-chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  height: 320px;
+  position: relative;
+}
+
+/* Formulario modal visita */
+.vis-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+.vis-form-grid .full { grid-column: 1 / -1; }
+
+/* Responsive visitas */
+@media (max-width: 1000px) {
+  .vis-metrics { grid-template-columns: repeat(2, 1fr); }
+  .vis-charts-grid { grid-template-columns: 1fr; }
+  .vis-form-grid { grid-template-columns: 1fr; }
+  .vis-form-grid .full { grid-column: 1; }
+}
+@media (max-width: 600px) {
+  .vis-metrics { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .vis-filter-bar { flex-direction: column; align-items: flex-start; }
+  .vis-filter-bar .fi { width: 100%; }
+  .vis-filter-bar .ml-auto { margin-left: 0; }
+  #visStatsResumen { gap: 12px; }
+}
