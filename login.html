@@ -196,7 +196,7 @@
       box-shadow: 0 0 12px #FF9940, 0 0 24px rgba(255,140,0,.6);
     }
 
-    /* Imagen de la mascota */
+    /* ── ORBE MÁGICO — centro del splash ── */
     .sp-circle {
       position: relative;
       z-index: 3;
@@ -205,17 +205,75 @@
       align-items: center;
       justify-content: center;
     }
-    .sp-circle img {
-      width: 170px; height: 170px;
-      object-fit: contain;
-      display: block;
+    .sp-orb {
+      width: 150px; height: 150px;
+      border-radius: 50%;
+      position: relative;
+      /* Esfera 3D con gradiente */
+      background: radial-gradient(circle at 35% 32%,
+        rgba(255,255,255,.95) 0%,
+        rgba(160,220,255,.85) 12%,
+        rgba(60,160,255,.8)  30%,
+        rgba(20,60,220,.85)  52%,
+        rgba(80,0,200,.9)    72%,
+        rgba(10,0,60,1)      100%);
+      box-shadow:
+        0 0 40px rgba(80,140,255,.7),
+        0 0 80px rgba(100,50,255,.5),
+        0 0 130px rgba(0,80,255,.3),
+        inset 0 -20px 40px rgba(0,0,80,.4);
+      animation: orb-breathe 3.5s ease-in-out infinite;
+    }
+    @keyframes orb-breathe {
+      0%,100% { transform: scale(1);    box-shadow: 0 0 40px rgba(80,140,255,.7), 0 0 80px rgba(100,50,255,.5), 0 0 130px rgba(0,80,255,.3); }
+      50%      { transform: scale(1.07); box-shadow: 0 0 60px rgba(80,180,255,.9), 0 0 110px rgba(120,60,255,.7), 0 0 180px rgba(0,100,255,.5); }
+    }
+    /* Luz interna giratoria */
+    .sp-orb::before {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0%,
+        rgba(255,255,255,.22) 15%,
+        rgba(100,200,255,.35) 28%,
+        transparent 40%,
+        rgba(200,100,255,.2) 65%,
+        rgba(255,255,255,.15) 78%,
+        transparent 100%
+      );
+      animation: orb-spin 4s linear infinite;
       mix-blend-mode: screen;
-      filter: drop-shadow(0 0 20px rgba(0,200,255,.6))
-              drop-shadow(0 0 44px rgba(100,50,255,.3))
-              drop-shadow(0 8px 24px rgba(0,0,0,.4));
+    }
+    /* Destello interior fijo */
+    .sp-orb::after {
+      content: '';
+      position: absolute;
+      width: 38px; height: 24px;
+      background: radial-gradient(ellipse, rgba(255,255,255,.92) 0%, transparent 100%);
+      top: 18%; left: 22%;
+      border-radius: 50%;
+      transform: rotate(-30deg);
+      filter: blur(3px);
+    }
+    @keyframes orb-spin { to { transform: rotate(360deg); } }
+
+    /* Partículas de energía alrededor del orbe */
+    .sp-orb-particle {
+      position: absolute;
+      border-radius: 50%;
+      animation: orb-particle linear infinite;
+      pointer-events: none;
+    }
+    @keyframes orb-particle {
+      0%   { transform: rotate(0deg) translateX(var(--r)) scale(1);   opacity: .9; }
+      50%  { opacity: 1; }
+      100% { transform: rotate(360deg) translateX(var(--r)) scale(.5); opacity: 0; }
     }
 
-    /* ── ESTRELLAS DESTELLANTES CSS (decorativas) ── */
+    /* ── ESTRELLAS DESTELLANTES CSS ── */
     .sp-sparkle {
       position: absolute;
       z-index: 1;
@@ -229,7 +287,6 @@
       background: currentColor;
       border-radius: 99px;
     }
-    /* Cruz de 4 puntas */
     .sp-sparkle::before { width: 100%; height: 2px; top: 50%; left: 0; transform: translateY(-50%); }
     .sp-sparkle::after  { width: 2px; height: 100%; top: 0; left: 50%; transform: translateX(-50%); }
     @keyframes sp-sparkle-anim {
@@ -819,10 +876,15 @@
       <div class="sp-ring sp-ring-magic">
         <div class="sp-ring-dot"></div>
       </div>
-      <!-- Imagen -->
+      <!-- Orbe mágico -->
       <div class="sp-circle" id="spCircle">
-        <img src="img/logo.png" alt="LuKiBooks"
-             onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=font-size:80px>&#128218;</span>'">
+        <div class="sp-orb" id="spOrb">
+          <div class="sp-orb-particle" style="--r:85px;width:8px;height:8px;background:#00FFEE;top:50%;left:50%;margin:-4px;animation-duration:3.2s;box-shadow:0 0 8px #00FFEE,0 0 16px rgba(0,255,220,.6)"></div>
+          <div class="sp-orb-particle" style="--r:78px;width:6px;height:6px;background:#FF00DD;top:50%;left:50%;margin:-3px;animation-duration:4.1s;animation-delay:-.8s;box-shadow:0 0 7px #FF00DD,0 0 14px rgba(255,0,200,.6)"></div>
+          <div class="sp-orb-particle" style="--r:90px;width:5px;height:5px;background:#FFE500;top:50%;left:50%;margin:-2px;animation-duration:2.7s;animation-delay:-1.4s;box-shadow:0 0 6px #FFE500,0 0 12px rgba(255,200,0,.6)"></div>
+          <div class="sp-orb-particle" style="--r:72px;width:7px;height:7px;background:#00FF80;top:50%;left:50%;margin:-3px;animation-duration:5s;animation-delay:-.3s;box-shadow:0 0 7px #00FF80,0 0 14px rgba(0,255,100,.6)"></div>
+          <div class="sp-orb-particle" style="--r:95px;width:5px;height:5px;background:#A060FF;top:50%;left:50%;margin:-2px;animation-duration:3.8s;animation-delay:-2.1s;box-shadow:0 0 6px #A060FF,0 0 12px rgba(160,60,255,.6)"></div>
+        </div>
       </div>
     </div>
   </div>
