@@ -527,15 +527,23 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Imagen */
-    .lp-logo-box img {
+    /* Contenedor circular interior — recorta y rellena */
+    .lp-logo-inner {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+    .lp-logo-inner img {
       width: 100%; height: 100%;
       object-fit: contain;
       display: block;
       transform: scale(1.85);
-      position: relative;
-      z-index: 1;
-      border-radius: 50%;
     }
 
     /* Nombre de marca */
@@ -853,8 +861,10 @@
       <div class="lp-logo">
         <div class="lp-logo-wrap">
           <div class="lp-logo-box" id="lpLogoBox">
-            <img src="img/logo.png" alt="LuKiBooks"
-                 onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:30px>📚</span>'">
+            <div class="lp-logo-inner">
+              <img src="img/logo.png" alt="LuKiBooks"
+                   onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:30px>📚</span>'">
+            </div>
           </div>
         </div>
         <div class="lp-brand">Luki<span class="or">Books</span></div>
