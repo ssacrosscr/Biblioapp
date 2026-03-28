@@ -31,7 +31,7 @@
     }
 
     /* ─────────────────────────────────────────────
-       SPLASH
+       SPLASH MÁGICO
     ───────────────────────────────────────────── */
     #splash {
       position: fixed;
@@ -41,175 +41,315 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 26px;
+      gap: 0;
+      overflow: hidden;
       will-change: opacity, filter;
-      transition: opacity .7s cubic-bezier(.4,0,.2,1),
-                  filter   .7s cubic-bezier(.4,0,.2,1);
+      transition: opacity .9s cubic-bezier(.4,0,.2,1),
+                  filter   .9s cubic-bezier(.4,0,.2,1);
     }
     #splash.exit {
       opacity: 0;
-      filter: blur(12px);
+      filter: blur(18px) scale(1.04);
       pointer-events: none;
     }
 
-    /* Mascot wrapper – bob animation (delay = after reveal) */
+    /* Canvas mágico exclusivo del splash */
+    #spCanvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── MASCOTA ── */
     #spMascotWrap {
       position: relative;
-      width: 164px;
-      height: 164px;
+      width: 200px; height: 200px;
+      z-index: 2;
       opacity: 0;
-      transform: scale(.5) translateY(20px);
+      transform: scale(.3) translateY(30px);
       will-change: opacity, transform;
-      transition: opacity .9s cubic-bezier(.22,1,.36,1),
-                  transform .9s cubic-bezier(.22,1,.36,1);
+      transition: opacity 1.1s cubic-bezier(.22,1,.36,1),
+                  transform 1.1s cubic-bezier(.22,1,.36,1);
+      margin-bottom: 32px;
     }
     #spMascotWrap.reveal { opacity: 1; transform: scale(1) translateY(0); }
 
-    /* Bob applied to inner element to avoid conflict */
+    /* Bob en elemento hijo para no interferir con reveal */
     .sp-bob {
       position: relative;
       width: 100%; height: 100%;
-      animation: bob 4.5s ease-in-out infinite;
+      animation: sp-bob 4.8s ease-in-out infinite;
     }
-    @keyframes bob {
-      0%,100% { transform: translateY(0); }
-      50%      { transform: translateY(-14px); }
+    @keyframes sp-bob {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      30%     { transform: translateY(-16px) rotate(-1.5deg); }
+      70%     { transform: translateY(-10px) rotate(1.2deg); }
     }
 
-    /* Pulsing glow behind mascot */
-    .sp-glow {
+    /* Halo exterior grande */
+    .sp-halo {
       position: absolute;
-      inset: -36px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,140,255,.22) 0%, transparent 68%);
-      animation: glow-pulse 3.2s ease-in-out infinite;
+      pointer-events: none;
     }
-    @keyframes glow-pulse {
-      0%,100% { transform: scale(1);   opacity: .55; }
-      50%      { transform: scale(1.25); opacity: 1; }
+    .sp-halo-1 {
+      inset: -60px;
+      background: radial-gradient(circle,
+        rgba(120,80,255,.14) 0%,
+        rgba(0,140,255,.10) 40%,
+        transparent 70%);
+      animation: halo-breathe 4s ease-in-out infinite;
+    }
+    .sp-halo-2 {
+      inset: -30px;
+      background: radial-gradient(circle,
+        rgba(255,200,60,.10) 0%,
+        rgba(255,140,0,.06) 45%,
+        transparent 70%);
+      animation: halo-breathe 5.2s ease-in-out infinite reverse;
+    }
+    @keyframes halo-breathe {
+      0%,100% { transform: scale(1);    opacity: .7; }
+      50%     { transform: scale(1.18); opacity: 1; }
     }
 
-    /* Mascot circle — sin fondo, imagen con screen blend */
+    /* Anillos mágicos */
+    .sp-ring {
+      position: absolute;
+      border-radius: 50%;
+      border-style: solid;
+      top: 50%; left: 50%;
+      pointer-events: none;
+    }
+    /* Anillo dorado — grande, lento */
+    .sp-ring-gold {
+      width: 230px; height: 230px;
+      margin: -115px;
+      border-width: 1px;
+      border-color: rgba(255,210,60,.18);
+      box-shadow: 0 0 12px rgba(255,200,50,.08),
+                  inset 0 0 12px rgba(255,200,50,.04);
+      animation: ring-spin-cw 18s linear infinite;
+    }
+    /* Anillo cian — mediano, velocidad media */
+    .sp-ring-cyan {
+      width: 190px; height: 190px;
+      margin: -95px;
+      border-width: 1px;
+      border-color: rgba(0,220,255,.22);
+      box-shadow: 0 0 10px rgba(0,200,255,.1),
+                  inset 0 0 10px rgba(0,200,255,.05);
+      animation: ring-spin-ccw 12s linear infinite;
+    }
+    /* Anillo magenta — pequeño, rápido */
+    .sp-ring-magic {
+      width: 155px; height: 155px;
+      margin: -77px;
+      border-width: 1px;
+      border-color: rgba(200,100,255,.20);
+      box-shadow: 0 0 8px rgba(180,80,255,.08);
+      animation: ring-spin-cw 8s linear infinite;
+    }
+    @keyframes ring-spin-cw  { to { transform: rotate(360deg); } }
+    @keyframes ring-spin-ccw { to { transform: rotate(-360deg); } }
+
+    /* Puntos en los anillos */
+    .sp-ring-dot {
+      position: absolute;
+      border-radius: 50%;
+      top: -5px; left: 50%; transform: translateX(-50%);
+    }
+    .sp-ring-gold  .sp-ring-dot { width:10px;height:10px; background:#FFD700; box-shadow:0 0 12px #FFD700,0 0 24px rgba(255,200,0,.5); }
+    .sp-ring-cyan  .sp-ring-dot { width:8px; height:8px;  background:#00EEFF; box-shadow:0 0 10px #00EEFF,0 0 20px rgba(0,220,255,.5); top:-4px; }
+    .sp-ring-magic .sp-ring-dot { width:7px; height:7px;  background:#E080FF; box-shadow:0 0 9px #E080FF,0 0 18px rgba(200,80,255,.5); top:-3px; }
+
+    /* Segundo punto en anillo dorado (en posición opuesta) */
+    .sp-ring-gold .sp-ring-dot-2 {
+      top: auto; bottom: -5px;
+      width: 7px; height: 7px;
+      background: #FF9940;
+      box-shadow: 0 0 9px #FF9940;
+    }
+
+    /* Imagen de la mascota */
     .sp-circle {
       position: relative;
-      z-index: 1;
-      width: 164px; height: 164px;
+      z-index: 3;
+      width: 200px; height: 200px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .sp-circle img {
-      width: 148px; height: 148px;
+      width: 170px; height: 170px;
       object-fit: contain;
       display: block;
       mix-blend-mode: screen;
-      filter: drop-shadow(0 0 24px rgba(0,160,255,.5))
-              drop-shadow(0 0 48px rgba(0,80,200,.25));
+      filter: drop-shadow(0 0 20px rgba(0,200,255,.6))
+              drop-shadow(0 0 44px rgba(100,50,255,.3))
+              drop-shadow(0 8px 24px rgba(0,0,0,.4));
     }
 
-    /* Orbital ring */
-    .sp-orbit {
+    /* ── ESTRELLAS DESTELLANTES CSS (decorativas) ── */
+    .sp-sparkle {
       position: absolute;
-      inset: -18px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.07);
-      animation: orbit 9s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0;
+      animation: sp-sparkle-anim ease-in-out infinite;
     }
-    @keyframes orbit { to { transform: rotate(360deg); } }
-
-    /* Orbital dots */
-    .sp-dot {
+    .sp-sparkle::before, .sp-sparkle::after {
+      content: '';
       position: absolute;
-      border-radius: 50%;
-      top: 50%; left: 50%;
+      background: currentColor;
+      border-radius: 99px;
     }
-    .sp-dot-1 {
-      width: 9px; height: 9px;
-      background: #FF9940;
-      box-shadow: 0 0 10px #FF9940, 0 0 20px rgba(255,100,0,.4);
-      margin: -4px;
-      animation: orbit-dot-1 9s linear infinite;
-    }
-    .sp-dot-2 {
-      width: 7px; height: 7px;
-      background: #00CCFF;
-      box-shadow: 0 0 8px #00CCFF;
-      margin: -3px;
-      animation: orbit-dot-2 9s linear infinite;
-    }
-    .sp-dot-3 {
-      width: 5px; height: 5px;
-      background: #FFD700;
-      box-shadow: 0 0 7px #FFD700;
-      margin: -2px;
-      animation: orbit-dot-3 9s linear infinite;
-    }
-    @keyframes orbit-dot-1 {
-      from { transform: rotate(0deg)   translateX(100px) rotate(0deg); }
-      to   { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
-    }
-    @keyframes orbit-dot-2 {
-      from { transform: rotate(120deg)  translateX(100px) rotate(-120deg); }
-      to   { transform: rotate(480deg)  translateX(100px) rotate(-480deg); }
-    }
-    @keyframes orbit-dot-3 {
-      from { transform: rotate(240deg)  translateX(100px) rotate(-240deg); }
-      to   { transform: rotate(600deg)  translateX(100px) rotate(-600deg); }
+    /* Cruz de 4 puntas */
+    .sp-sparkle::before { width: 100%; height: 2px; top: 50%; left: 0; transform: translateY(-50%); }
+    .sp-sparkle::after  { width: 2px; height: 100%; top: 0; left: 50%; transform: translateX(-50%); }
+    @keyframes sp-sparkle-anim {
+      0%,100% { opacity:0;  transform: scale(.4) rotate(0deg); }
+      40%,60% { opacity:1;  transform: scale(1)  rotate(45deg); }
     }
 
-    /* Splash text blocks — shared reveal pattern */
-    .sp-text {
+    /* ── TÍTULO ── */
+    #spTitleWrap {
+      z-index: 2;
       text-align: center;
       opacity: 0;
-      transform: translateY(22px);
-      will-change: opacity, transform;
-      transition: opacity .75s cubic-bezier(.22,1,.36,1),
-                  transform .75s cubic-bezier(.22,1,.36,1);
+      will-change: opacity;
+      transition: opacity .5s ease;
+      margin-bottom: 14px;
     }
-    .sp-text.reveal { opacity: 1; transform: translateY(0); }
+    #spTitleWrap.reveal { opacity: 1; }
 
     .sp-title-main {
       font-family: 'Playfair Display', serif;
-      font-size: 54px;
+      font-size: 56px;
       font-weight: 700;
-      color: #fff;
       letter-spacing: -2px;
       line-height: 1;
-      text-shadow: 0 0 80px rgba(0,100,255,.3);
+      /* Gradiente animado sobre el texto */
+      background: linear-gradient(135deg,
+        #ffffff 0%,
+        #e0f0ff 20%,
+        #ffffff 38%,
+        #FFD700 50%,
+        #FF9940 62%,
+        #ffffff 80%,
+        #d0e8ff 100%
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: title-shimmer 4s ease-in-out infinite;
     }
-    .sp-title-main .or { color: #FF9940; }
-    .sp-mep {
-      margin-top: 10px;
-      font-size: 11px;
-      font-weight: 600;
-      color: rgba(255,255,255,.3);
-      text-transform: uppercase;
-      letter-spacing: .18em;
-    }
-    .sp-tagline {
-      font-size: 15px;
-      color: rgba(255,255,255,.45);
-      font-style: italic;
-      max-width: 300px;
-      line-height: 1.65;
+    @keyframes title-shimmer {
+      0%   { background-position: 100% 0; }
+      50%  { background-position:   0% 0; }
+      100% { background-position: 100% 0; }
     }
 
-    /* Progress bar */
-    .sp-prog {
-      width: 140px; height: 2px;
-      background: rgba(255,255,255,.08);
-      border-radius: 99px;
-      overflow: hidden;
+    /* Letras individuales — pop en secuencia */
+    .sp-letter {
+      display: inline-block;
       opacity: 0;
-      transition: opacity .4s ease;
+      transform: translateY(24px) scale(.7);
+      will-change: opacity, transform;
+      animation: letter-pop .6s cubic-bezier(.22,1,.36,1) forwards;
     }
-    .sp-prog.reveal { opacity: 1; }
-    .sp-prog-fill {
+    @keyframes letter-pop {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .sp-mep {
+      margin-top: 10px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: rgba(255,255,255,.28);
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      opacity: 0;
+      animation: fade-up .7s ease .9s forwards;
+    }
+    @keyframes fade-up {
+      from { opacity:0; transform: translateY(8px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ── TAGLINE — palabra por palabra ── */
+    #spTagline {
+      z-index: 2;
+      text-align: center;
+      font-size: 15px;
+      font-style: italic;
+      color: rgba(255,255,255,.55);
+      max-width: 320px;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+    .sp-word {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(10px) blur(4px);
+      animation: word-in .55s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    /* filter: blur() no es animable directamente, usamos filter como propiedad */
+    @keyframes word-in {
+      from { opacity:0; transform: translateY(10px); filter: blur(4px); }
+      to   { opacity:1; transform: translateY(0);    filter: blur(0); }
+    }
+
+    /* ── PROGRESS ── */
+    #spProgWrap {
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity .5s ease;
+    }
+    #spProgWrap.reveal { opacity: 1; }
+    .sp-prog-track {
+      width: 160px; height: 2px;
+      background: rgba(255,255,255,.07);
+      border-radius: 99px;
+      overflow: visible;
+      position: relative;
+    }
+    #spFill {
       height: 100%;
       width: 0;
       border-radius: 99px;
-      background: linear-gradient(90deg, #003DA5, #00AAFF 50%, #FF9940);
-      transition: width .12s linear;
+      position: relative;
+      background: linear-gradient(90deg,
+        rgba(100,60,255,.6) 0%,
+        rgba(0,180,255,.9) 45%,
+        #FFD700 100%
+      );
+      box-shadow: 0 0 8px rgba(0,200,255,.5);
+      transition: width .1s linear;
+    }
+    /* Punto brillante en la punta del progreso */
+    #spFill::after {
+      content: '';
+      position: absolute;
+      right: -3px; top: 50%;
+      transform: translateY(-50%);
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 8px #fff, 0 0 16px rgba(0,220,255,.8);
+    }
+    .sp-prog-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,.2);
+      letter-spacing: .1em;
+      text-transform: uppercase;
     }
 
     /* ─────────────────────────────────────────────
@@ -521,40 +661,58 @@
 <canvas id="bgCanvas"></canvas>
 
 <!-- ══════════════════════════════════════════════════
-     SPLASH
+     SPLASH MÁGICO
 ══════════════════════════════════════════════════ -->
 <div id="splash">
 
-  <!-- Mascota -->
+  <!-- Canvas de partículas mágicas (fireflies, polvo de hadas) -->
+  <canvas id="spCanvas"></canvas>
+
+  <!-- Estrellas CSS decorativas (posicionadas desde JS) -->
+  <div id="spSparkles"></div>
+
+  <!-- Mascota central con anillos mágicos -->
   <div id="spMascotWrap">
-    <div class="sp-bob" id="spBob">
-      <div class="sp-glow"></div>
-      <div class="sp-orbit">
-        <div class="sp-dot sp-dot-1"></div>
-        <div class="sp-dot sp-dot-2"></div>
-        <div class="sp-dot sp-dot-3"></div>
+    <div class="sp-bob">
+      <!-- Halos de luz -->
+      <div class="sp-halo sp-halo-1"></div>
+      <div class="sp-halo sp-halo-2"></div>
+      <!-- Anillo dorado -->
+      <div class="sp-ring sp-ring-gold">
+        <div class="sp-ring-dot"></div>
+        <div class="sp-ring-dot sp-ring-dot-2"></div>
       </div>
+      <!-- Anillo cian -->
+      <div class="sp-ring sp-ring-cyan">
+        <div class="sp-ring-dot"></div>
+      </div>
+      <!-- Anillo mágico -->
+      <div class="sp-ring sp-ring-magic">
+        <div class="sp-ring-dot"></div>
+      </div>
+      <!-- Imagen -->
       <div class="sp-circle" id="spCircle">
         <img src="img/logo.png" alt="LuKiBooks"
-             onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=font-size:68px>📚</span>'">
+             onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=font-size:80px>&#128218;</span>'">
       </div>
     </div>
   </div>
 
-  <!-- Título -->
-  <div class="sp-text" id="spTitle">
-    <div class="sp-title-main">Luki<span class="or">Books</span></div>
+  <!-- Título con letras animadas -->
+  <div id="spTitleWrap">
+    <div class="sp-title-main" id="spLetters"></div>
     <div class="sp-mep">Ministerio de Educaci&oacute;n P&uacute;blica &middot; Costa Rica</div>
   </div>
 
-  <!-- Tagline -->
-  <div class="sp-text sp-tagline" id="spTagline">
-    Donde cada libro abre un mundo de posibilidades
-  </div>
+  <!-- Tagline palabra por palabra -->
+  <div id="spTagline"></div>
 
-  <!-- Progreso -->
-  <div class="sp-prog" id="spProg">
-    <div class="sp-prog-fill" id="spFill"></div>
+  <!-- Barra de progreso -->
+  <div id="spProgWrap">
+    <div class="sp-prog-track">
+      <div id="spFill"></div>
+    </div>
+    <div class="sp-prog-label">Cargando sistema&hellip;</div>
   </div>
 
 </div>
@@ -965,36 +1123,202 @@
   requestAnimationFrame(frame);
 
   /* ────────────────────────────────────────────────────────────
-     SPLASH — secuencia de aparición por capas con micro-delays
+     SPLASH MÁGICO — secuencia cinematográfica por capas
   ──────────────────────────────────────────────────────────── */
-  function reveal(id, delay) {
+
+  /* ── Canvas de partículas mágicas (fireflies + polvo) ── */
+  (function initSplashCanvas() {
+    var sc  = document.getElementById('spCanvas');
+    if (!sc) return;
+    var sctx = sc.getContext('2d');
+    var sw, sh;
+
+    function sResize() {
+      sw = sc.width  = window.innerWidth;
+      sh = sc.height = window.innerHeight;
+    }
+    sResize();
+    window.addEventListener('resize', sResize);
+
+    /* Fireflies: partículas pequeñas con movimiento orgánico */
+    var FLIES = (function () {
+      var arr = [], CX = window.innerWidth * .5, CY = window.innerHeight * .5;
+      /* Colores mágicos: dorado, cian, blanco, magenta suave */
+      var COLS = [
+        [255, 215,  60],  /* dorado */
+        [  0, 220, 255],  /* cian */
+        [255, 255, 255],  /* blanco */
+        [200, 100, 255],  /* magenta */
+        [100, 255, 180],  /* mint */
+      ];
+      for (var i = 0; i < 70; i++) {
+        var angle  = Math.random() * Math.PI * 2;
+        var dist   = Math.random() * 220 + 30;
+        var col    = COLS[Math.floor(Math.random() * COLS.length)];
+        arr.push({
+          /* Posición base relativa al centro */
+          ox: CX + Math.cos(angle) * dist,
+          oy: CY + Math.sin(angle) * dist - 60, /* -60 para centrar en mascota */
+          /* Movimiento oscilatorio único */
+          ax: Math.random() * Math.PI * 2,
+          ay: Math.random() * Math.PI * 2,
+          fx: Math.random() * .0005 + .0002, /* frecuencia x */
+          fy: Math.random() * .0005 + .0003, /* frecuencia y */
+          rx: Math.random() * 28 + 8,  /* radio oscilación x */
+          ry: Math.random() * 20 + 6,  /* radio oscilación y */
+          r:  col,
+          size: Math.random() * 2 + .6,
+          peak: Math.random() * .7 + .25,
+          tp:   Math.random() * Math.PI * 2, /* fase de twinkle */
+          tspd: Math.random() * .003 + .001,
+          born: false, /* se activa tras delay inicial */
+          delay: Math.random() * 600 + 200, /* ms de aparición escalonada */
+        });
+      }
+      return arr;
+    })();
+
+    var spStart = performance.now();
+
+    function splashFrame(now) {
+      if (!document.getElementById('splash')) return; /* splash eliminado */
+      sctx.clearRect(0, 0, sw, sh);
+      var t = (now - spStart) * .001;
+
+      FLIES.forEach(function (f) {
+        /* Activar gradualmente */
+        if (!f.born) {
+          if ((now - spStart) < f.delay) return;
+          f.born = true;
+        }
+        /* Posición con oscilación suave */
+        var x = f.ox + Math.sin(t * f.fx * 1000 + f.ax) * f.rx;
+        var y = f.oy + Math.cos(t * f.fy * 1000 + f.ay) * f.ry;
+
+        /* Twinkle alpha */
+        var tw = Math.sin(t * f.tspd * 1000 + f.tp);
+        var a  = f.peak * (.5 + .5 * (tw * .5 + .5));
+
+        /* Halo difuso */
+        var g = sctx.createRadialGradient(x, y, 0, x, y, f.size * 4.5);
+        g.addColorStop(0, 'rgba(' + f.r[0] + ',' + f.r[1] + ',' + f.r[2] + ',' + (a * .35) + ')');
+        g.addColorStop(1, 'rgba(' + f.r[0] + ',' + f.r[1] + ',' + f.r[2] + ',0)');
+        sctx.beginPath();
+        sctx.arc(x, y, f.size * 4.5, 0, 6.2832);
+        sctx.fillStyle = g;
+        sctx.fill();
+
+        /* Núcleo */
+        sctx.beginPath();
+        sctx.arc(x, y, f.size, 0, 6.2832);
+        sctx.fillStyle = 'rgba(' + f.r[0] + ',' + f.r[1] + ',' + f.r[2] + ',' + a + ')';
+        sctx.fill();
+      });
+
+      requestAnimationFrame(splashFrame);
+    }
+    requestAnimationFrame(splashFrame);
+  })();
+
+  /* ── Estrellas CSS de 4 puntas (decorativas alrededor de la mascota) ── */
+  (function buildSparkles() {
+    var wrap = document.getElementById('spSparkles');
+    if (!wrap) return;
+    var CX = 50, CY = 42; /* % */
+    var COLORS = ['#FFD700','#00EEFF','#FF9940','#E080FF','#80FFD0','#fff'];
+    var configs = [
+      { angle:  20, dist: 140, size: 14, delay: 900,  dur: 2.8 },
+      { angle: 100, dist: 150, size: 10, delay: 1050, dur: 3.4 },
+      { angle: 195, dist: 135, size: 12, delay: 800,  dur: 2.5 },
+      { angle: 270, dist: 145, size: 8,  delay: 1150, dur: 3.8 },
+      { angle:  55, dist: 170, size: 9,  delay: 1300, dur: 2.9 },
+      { angle: 155, dist: 165, size: 11, delay: 1000, dur: 3.1 },
+      { angle: 310, dist: 155, size: 7,  delay: 1200, dur: 4.0 },
+      { angle: 235, dist: 178, size: 13, delay: 750,  dur: 2.6 },
+    ];
+    configs.forEach(function (cfg, i) {
+      var rad   = cfg.angle * Math.PI / 180;
+      var x     = CX + Math.cos(rad) * (cfg.dist / window.innerWidth * 100);
+      var y     = CY + Math.sin(rad) * (cfg.dist / window.innerHeight * 100);
+      var el    = document.createElement('div');
+      var color = COLORS[i % COLORS.length];
+      el.className = 'sp-sparkle';
+      el.style.cssText = [
+        'left:'   + x + '%',
+        'top:'    + y + '%',
+        'width:'  + cfg.size + 'px',
+        'height:' + cfg.size + 'px',
+        'color:'  + color,
+        'animation-delay:'    + cfg.delay + 'ms',
+        'animation-duration:' + cfg.dur + 's',
+      ].join(';');
+      wrap.appendChild(el);
+    });
+  })();
+
+  /* ── Letras animadas del título ── */
+  (function buildTitle() {
+    var container = document.getElementById('spLetters');
+    if (!container) return;
+    var text  = ['L','u','k','i','B','o','o','k','s'];
+    var isOr  = [false,false,false,false,true,true,true,true,true];
+    var BASE_DELAY = 820; /* ms desde carga */
+    text.forEach(function (ch, i) {
+      var span = document.createElement('span');
+      span.className = 'sp-letter';
+      if (isOr[i]) span.style.color = '#FF9940'; /* orange override sobre gradient */
+      span.style.animationDelay = (BASE_DELAY + i * 65) + 'ms';
+      span.textContent = ch;
+      container.appendChild(span);
+    });
+  })();
+
+  /* ── Tagline palabra por palabra ── */
+  (function buildTagline() {
+    var el = document.getElementById('spTagline');
+    if (!el) return;
+    var words = ['Donde','cada','libro','abre','un','mundo','de','posibilidades'];
+    var BASE  = 1400;
+    words.forEach(function (w, i) {
+      var span = document.createElement('span');
+      span.className = 'sp-word';
+      span.style.animationDelay = (BASE + i * 90) + 'ms';
+      span.textContent = w + (i < words.length - 1 ? '\u00A0' : '');
+      el.appendChild(span);
+    });
+  })();
+
+  /* ── Secuencia de reveals ── */
+  function revealEl(id, delay) {
     setTimeout(function () {
       var el = document.getElementById(id);
       if (el) el.classList.add('reveal');
     }, delay);
   }
 
-  reveal('spMascotWrap', 280);
-  reveal('spTitle',      820);
-  reveal('spTagline',   1180);
-  reveal('spProg',      1420);
+  revealEl('spMascotWrap', 280);
+  revealEl('spTitleWrap',  820);
+  revealEl('spProgWrap',  1550);
 
-  /* Progress bar — rAF para suavidad real */
+  /* ── Barra de progreso suave con rAF ── */
   var progStart = null;
-  var PROG_DUR  = 2500; /* ms de duración del fill */
+  var PROG_DUR  = 2600;
 
   setTimeout(function () {
     var fill = document.getElementById('spFill');
     function progFrame(now) {
       if (!progStart) progStart = now;
-      var pct = Math.min((now - progStart) / PROG_DUR * 100, 100);
-      /* Easing cuadrático para sensación de carga real */
-      var eased = pct < 70 ? pct * .95 : 70 + (pct - 70) * 1.4;
-      if (fill) fill.style.width = Math.min(eased, 100) + '%';
-      if (pct < 100) requestAnimationFrame(progFrame);
+      var raw = (now - progStart) / PROG_DUR;
+      /* Ease: arranca rápido, se desacelera al final */
+      var eased = raw < .8
+        ? raw * 1.1
+        : .88 + (raw - .8) * .6;
+      var pct = Math.min(eased * 100, 100);
+      if (fill) fill.style.width = pct + '%';
+      if (raw < 1) requestAnimationFrame(progFrame);
     }
     requestAnimationFrame(progFrame);
-  }, 1420);
+  }, 1550);
 
   /* ────────────────────────────────────────────────────────────
      TRANSICIÓN SPLASH → LOGIN
