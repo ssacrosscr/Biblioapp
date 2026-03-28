@@ -445,51 +445,89 @@
       text-align: center;
       margin-bottom: 30px;
     }
+    /* Halo exterior pulsante detrás del cuadro */
+    .lp-logo-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 18px;
+    }
+    .lp-logo-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -18px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        rgba(0,200,255,.18) 0%,
+        rgba(140,0,255,.10) 45%,
+        transparent 70%);
+      animation: logo-halo 3.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes logo-halo {
+      0%,100% { transform: scale(1);    opacity: .7; }
+      50%      { transform: scale(1.2); opacity: 1;  }
+    }
+
     .lp-logo-box {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 88px; height: 88px;
-      margin-bottom: 14px;
+      width: 92px; height: 92px;
       position: relative;
       background: #fff;
-      border-radius: 14px;
+      border-radius: 20px;
       overflow: visible;
-      box-shadow: 0 0 22px rgba(0,180,255,.28),
-                  0 4px 16px rgba(0,0,0,.45);
+      animation: logo-float 4s ease-in-out infinite;
+      box-shadow: 0 8px 28px rgba(0,0,0,.5);
     }
-    /* Borde neon giratorio mágico */
+    @keyframes logo-float {
+      0%,100% { transform: translateY(0);   }
+      50%      { transform: translateY(-7px); }
+    }
+
+    /* Borde neon giratorio */
     .lp-logo-box::before {
       content: '';
       position: absolute;
-      inset: -2px;
-      border-radius: 16px;
+      inset: -3px;
+      border-radius: 23px;
       background: conic-gradient(
         from 0deg,
-        rgba(0,220,255,0)    0%,
-        rgba(0,200,255,.85) 20%,
-        rgba(180,0,255,.7)  40%,
-        rgba(255,0,180,.7)  55%,
-        rgba(0,255,180,.75) 75%,
-        rgba(0,220,255,.85) 90%,
-        rgba(0,220,255,0)  100%
+        rgba(0,220,255,0)     0%,
+        rgba(0,210,255,.95)  18%,
+        rgba(160,0,255,.85)  38%,
+        rgba(255,0,200,.85)  55%,
+        rgba(0,255,160,.9)   72%,
+        rgba(255,200,0,.85)  88%,
+        rgba(0,220,255,0)   100%
       );
-      animation: neon-spin 3s linear infinite;
+      animation: neon-spin 2.8s linear infinite;
       z-index: -1;
-      filter: blur(2px);
+      filter: blur(3px);
     }
-    /* Fondo blanco interior para tapar el gradiente detrás de la imagen */
+    /* Segundo anillo más suave y grande */
     .lp-logo-box::after {
       content: '';
       position: absolute;
-      inset: 2px;
-      border-radius: 12px;
-      background: #fff;
-      z-index: 0;
+      inset: -8px;
+      border-radius: 28px;
+      background: conic-gradient(
+        from 180deg,
+        rgba(0,220,255,0)    0%,
+        rgba(0,180,255,.28) 25%,
+        rgba(200,0,255,.22) 50%,
+        rgba(0,255,160,.22) 75%,
+        rgba(0,220,255,0)  100%
+      );
+      animation: neon-spin 5s linear infinite reverse;
+      z-index: -2;
+      filter: blur(6px);
     }
     @keyframes neon-spin {
       to { transform: rotate(360deg); }
     }
+
+    /* Imagen */
     .lp-logo-box img {
       width: 100%; height: 100%;
       object-fit: contain;
@@ -497,24 +535,43 @@
       transform: scale(1.85);
       position: relative;
       z-index: 1;
-      border-radius: 12px;
-      overflow: hidden;
+      border-radius: 18px;
     }
+
+    /* Nombre de marca */
     .lp-brand {
       font-family: 'Playfair Display', serif;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 700;
-      color: #fff;
-      letter-spacing: -.3px;
+      letter-spacing: .5px;
+      background: linear-gradient(135deg, #fff 30%, #88d8ff 65%, #fff 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer-brand 4s linear infinite;
+      text-shadow: none;
     }
-    .lp-brand .or { color: #FF9940; }
+    @keyframes shimmer-brand {
+      0%   { background-position: 200% center; }
+      100% { background-position:   0% center; }
+    }
+    .lp-brand .or {
+      background: linear-gradient(135deg, #FFB347, #FF7A00, #FFD080);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer-brand 3s linear infinite reverse;
+    }
     .lp-brand-sub {
-      margin-top: 3px;
+      margin-top: 5px;
       font-size: 10px;
-      font-weight: 700;
-      color: rgba(255,255,255,.28);
+      font-weight: 600;
+      color: rgba(255,255,255,.38);
       text-transform: uppercase;
-      letter-spacing: .12em;
+      letter-spacing: .18em;
+      text-shadow: 0 0 12px rgba(0,180,255,.3);
     }
 
     /* Heading */
@@ -794,9 +851,11 @@
 
       <!-- Logo -->
       <div class="lp-logo">
-        <div class="lp-logo-box" id="lpLogoBox">
-          <img src="img/logo.png" alt="LuKiBooks"
-               onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:30px>📚</span>'">
+        <div class="lp-logo-wrap">
+          <div class="lp-logo-box" id="lpLogoBox">
+            <img src="img/logo.png" alt="LuKiBooks"
+                 onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:30px>📚</span>'">
+          </div>
         </div>
         <div class="lp-brand">Luki<span class="or">Books</span></div>
         <div class="lp-brand-sub">Biblioteca Escolar &middot; MEP</div>
