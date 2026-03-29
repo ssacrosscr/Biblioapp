@@ -6,7 +6,7 @@
   <title>LuKiBooks</title>
   <link rel="icon" href="https://www.mep.go.cr/favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=13">
+  <link rel="stylesheet" href="css/main.css?v=14">
 </head>
 <body>
 
@@ -825,52 +825,74 @@
 <!-- Modal: Nuevo Docente -->
 <!-- Modal: Docente (crear y editar) -->
 <div class="modal-overlay" id="modalDocente">
-  <div class="modal" style="width:560px;max-width:calc(100vw - 32px)">
-    <div class="modal-title" id="modalDocenteTitle">Nuevo docente</div>
-    <div class="modal-sub" id="modalDocenteSub">Complete los datos del docente</div>
-    <input type="hidden" id="d-id">
-    <input type="hidden" id="d-foto-data">
-    <div id="d-foto-wrap" style="text-align:center;margin-bottom:14px">
-      <div class="profile-foto-placeholder" id="d-foto-preview" title="Cambiar foto">&#128100;</div>
-      <input type="file" id="d-foto-input" accept="image/*" style="display:none">
-      <div class="foto-hint">Clic para cambiar foto</div>
-    </div>
-    <div class="form-grid">
-      <div class="fg">
-        <label class="fl">Usuario *</label>
-        <input class="fi" type="text" id="d-usuario" maxlength="50" autocomplete="off" placeholder="nombre de usuario...">
+  <div class="modal doc-modal">
+
+    <!-- Cabecera con preview din&aacute;mico -->
+    <div class="doc-modal-hd">
+      <div class="doc-modal-av-wrap">
+        <div class="doc-modal-av" id="docModalAv" title="Cambiar foto">?</div>
+        <button class="doc-modal-av-btn" id="docModalAvBtn" type="button" title="Cambiar foto">&#128247;</button>
+        <input type="file" id="d-foto-input" accept="image/*" style="display:none">
       </div>
-      <div class="fg">
-        <label class="fl">Contrase&ntilde;a <span id="d-pwd-hint" style="font-size:10px;color:var(--text3);font-weight:400">(dejar vac&iacute;o para no cambiar)</span></label>
-        <input class="fi" type="password" id="d-password" maxlength="50" autocomplete="new-password" placeholder="contrase&ntilde;a...">
-      </div>
-      <div class="fg full">
-        <label class="fl">Nombre completo *</label>
-        <input class="fi" type="text" id="d-nombre" maxlength="200" placeholder="Apellidos, Nombre">
-      </div>
-      <div class="fg">
-        <label class="fl">C&eacute;dula</label>
-        <input class="fi" type="text" id="d-cedula" maxlength="15" placeholder="1-2345-6789">
-      </div>
-      <div class="fg">
-        <label class="fl">Materia</label>
-        <select class="fi" id="d-materia">
-          <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
-          <option>Ciencias</option><option>Estudios Sociales</option>
-          <option>Ingl&eacute;s</option><option>Otro</option>
-        </select>
-      </div>
-      <div class="fg">
-        <label class="fl">Rol del sistema</label>
-        <select class="fi" id="d-rol">
-          <option value="docente">Docente</option>
-          <option value="bibliotecologo">Bibliotecologo</option>
-        </select>
+      <div class="doc-modal-hd-info">
+        <div class="doc-modal-hd-title" id="docModalHName">Nuevo docente</div>
+        <div class="doc-modal-hd-sub" id="docModalHSub">Complete los datos del docente</div>
+        <div class="doc-modal-hd-meta">
+          <span class="doc-modal-hd-user" id="docModalHUser">@—</span>
+          <span class="doc-modal-hd-badge" id="docModalHBadge">Docente</span>
+        </div>
       </div>
     </div>
-    <div class="mf">
+
+    <!-- Cuerpo -->
+    <div class="doc-modal-bd">
+      <input type="hidden" id="d-id">
+      <input type="hidden" id="d-foto-data">
+
+      <div class="doc-modal-sec">Acceso al sistema</div>
+      <div class="form-grid">
+        <div class="fg">
+          <label class="fl">Usuario *</label>
+          <input class="fi" type="text" id="d-usuario" maxlength="50" autocomplete="off" placeholder="nombre de usuario...">
+        </div>
+        <div class="fg">
+          <label class="fl">Contrase&ntilde;a <span id="d-pwd-hint" style="font-size:10px;color:var(--text3);font-weight:400"></span></label>
+          <input class="fi" type="password" id="d-password" maxlength="50" autocomplete="new-password" placeholder="contrase&ntilde;a...">
+        </div>
+      </div>
+
+      <div class="doc-modal-sec">Datos personales</div>
+      <div class="form-grid">
+        <div class="fg full">
+          <label class="fl">Nombre completo *</label>
+          <input class="fi" type="text" id="d-nombre" maxlength="200" placeholder="Apellidos, Nombre">
+        </div>
+        <div class="fg">
+          <label class="fl">C&eacute;dula</label>
+          <input class="fi" type="text" id="d-cedula" maxlength="15" placeholder="1-2345-6789">
+        </div>
+        <div class="fg">
+          <label class="fl">Materia</label>
+          <select class="fi" id="d-materia">
+            <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
+            <option>Ciencias</option><option>Estudios Sociales</option>
+            <option>Ingl&eacute;s</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Rol del sistema</label>
+          <select class="fi" id="d-rol">
+            <option value="docente">Docente</option>
+            <option value="bibliotecologo">Bibliotecologo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="doc-modal-ft">
       <button class="btn" id="btnCancelDocente">Cancelar</button>
-      <button class="btn primary" id="btnGuardarDocente">Guardar</button>
+      <button class="btn primary" id="btnGuardarDocente">&#10003;&nbsp; Guardar</button>
     </div>
   </div>
 </div>

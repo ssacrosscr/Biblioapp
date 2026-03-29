@@ -5,21 +5,28 @@
 
 (function (B) {
 
-  var _list = [];   /* docentes enriquecidos con datos del usuario vinculado */
+  var _list = [];
 
-  /* ── Preview de foto ── */
-  function setFotoPreview(fotoBase64, nombre) {
-    var el = B.$('d-foto-preview');
+  /* ── Avatar en cabecera del modal ── */
+  function hdAv(foto, nombre) {
+    var el = B.$('docModalAv');
     if (!el) return;
-    if (fotoBase64) {
-      el.className = '';
-      el.innerHTML = '<img class="profile-foto-lg" src="' + fotoBase64 + '" alt="Foto" title="Cambiar foto">';
+    if (foto) {
+      el.innerHTML = '<img src="' + foto + '" alt="">';
+      el.style.background = '';
     } else {
-      el.className = 'profile-foto-placeholder';
-      el.innerHTML = nombre ? B.esc(nombre.charAt(0).toUpperCase()) : '&#128100;';
-      el.title = 'Cambiar foto';
+      var ini = (nombre || '?').charAt(0).toUpperCase();
+      el.innerHTML = ini;
+      var colors = B.avc(0);
+      el.style.background = colors[0];
+      el.style.color = '#fff';
     }
   }
+
+  function hdUser(u)  { var el = B.$('docModalHUser');  if (el) el.textContent = u ? ('@' + u) : '@—'; }
+  function hdName(n)  { var el = B.$('docModalHName');  if (el) el.textContent = n || (B.$('d-id').value ? 'Editar docente' : 'Nuevo docente'); }
+  function hdBadge(r) { var el = B.$('docModalHBadge'); if (el) el.textContent = r === 'bibliotecologo' ? 'Bibliotecologo' : 'Docente'; }
+  function hdSub(s)   { var el = B.$('docModalHSub');   if (el) el.textContent = s; }
 
   /* ── Render tabla ── */
   function renderDocentes() {
@@ -31,7 +38,7 @@
     var data = _list.slice();
 
     if (q) data = data.filter(function (d) {
-      return (d.nombre || '').toLowerCase().indexOf(q) !== -1
+      return (d.nombre  || '').toLowerCase().indexOf(q) !== -1
           || (d.usuario || '').toLowerCase().indexOf(q) !== -1
           || (d.cedula  || '').toLowerCase().indexOf(q) !== -1;
     });
@@ -42,7 +49,7 @@
       return;
     }
 
-    var cuRol   = B.getUserRol();
+    var cuRol    = B.getUserRol();
     var isBiblio = cuRol === 'admin' || cuRol === 'bibliotecologo';
     var isAdmin  = cuRol === 'admin';
 
@@ -96,23 +103,33 @@
   };
 
   /* ── Filtros ── */
-  document.addEventListener('input',  function (e) { if (e.target.id === 'searchDocente')   renderDocentes(); });
+  document.addEventListener('input',  function (e) { if (e.target.id === 'searchDocente')    renderDocentes(); });
   document.addEventListener('change', function (e) { if (e.target.id === 'filterDocMateria') renderDocentes(); });
+
+  /* ── Live preview mientras el usuario escribe ── */
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (!B.$('modalDocente') || !B.$('modalDocente').classList.contains('active')) return;
+    if (t.id === 'd-nombre')  { hdName(t.value); hdAv(B.$('d-foto-data').value, t.value); }
+    if (t.id === 'd-usuario') { hdUser(t.value); }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!B.$('modalDocente') || !B.$('modalDocente').classList.contains('active')) return;
+    if (t.id === 'd-rol') { hdBadge(t.value); }
+  });
 
   /* ── Abrir modal NUEVO ── */
   document.addEventListener('click', function (e) {
     if (!e.target.closest('#btnNuevoDocente')) return;
-    B.$('d-id').value = '';
-    B.$('modalDocenteTitle').textContent = 'Nuevo docente';
-    B.$('modalDocenteSub').textContent   = 'El usuario y contrase\u00F1a por defecto ser\u00E1n la c\u00E9dula';
-    var hint = B.$('d-pwd-hint');
-    if (hint) hint.style.display = 'none';
+    B.$('d-id').value    = '';
+    B.$('d-foto-data').value = '';
+    B.$('d-usuario').disabled = false;
+    var hint = B.$('d-pwd-hint'); if (hint) hint.textContent = '';
     B.clearFields(['d-usuario', 'd-password', 'd-nombre', 'd-cedula']);
     B.$('d-rol').value = 'docente';
     var mat = B.$('d-materia'); if (mat) mat.selectedIndex = 0;
-    B.$('d-foto-data').value = '';
-    B.$('d-usuario').disabled = false;
-    setFotoPreview('', '');
+    hdName(''); hdUser(''); hdBadge('docente'); hdSub('Complete los datos del docente'); hdAv('', '');
     B.openModal('modalDocente');
   });
 
@@ -124,17 +141,14 @@
     var d  = _list.find(function (x) { return x.id === id; });
     if (!d) return;
 
-    B.$('d-id').value = id;
-    B.$('modalDocenteTitle').textContent = 'Editar docente';
-    B.$('modalDocenteSub').textContent   = 'Modifique los datos del docente';
-    var hint = B.$('d-pwd-hint');
-    if (hint) hint.style.display = '';
-
-    B.$('d-usuario').value   = d.usuario || '';
+    B.$('d-id').value    = id;
+    B.$('d-foto-data').value = d.foto || '';
     B.$('d-usuario').disabled = false;
-    B.$('d-password').value  = '';
-    B.$('d-nombre').value    = d.nombre  || '';
-    B.$('d-cedula').value    = d.cedula  || '';
+    var hint = B.$('d-pwd-hint'); if (hint) hint.textContent = 'dejar vac\u00EDo para no cambiar';
+    B.$('d-usuario').value  = d.usuario || '';
+    B.$('d-password').value = '';
+    B.$('d-nombre').value   = d.nombre  || '';
+    B.$('d-cedula').value   = d.cedula  || '';
 
     var mat = B.$('d-materia');
     if (mat) {
@@ -149,21 +163,21 @@
       }
     }
 
-    B.$('d-foto-data').value = d.foto || '';
-    setFotoPreview(d.foto || '', d.nombre);
+    hdName(d.nombre); hdUser(d.usuario); hdBadge(d.rol);
+    hdSub('Modifique los datos del docente');
+    hdAv(d.foto || '', d.nombre);
     B.openModal('modalDocente');
   });
 
-  /* ── Click foto → file picker ── */
+  /* ── Clic en avatar del header → file picker ── */
   document.addEventListener('click', function (e) {
-    if (e.target.closest('#d-foto-preview') || e.target.closest('#d-foto-wrap')) {
-      if (e.target.tagName === 'INPUT') return; /* evitar loop */
+    if (e.target.closest('#docModalAv') || e.target.closest('#docModalAvBtn')) {
       var inp = B.$('d-foto-input');
       if (inp) inp.click();
     }
   });
 
-  /* ── Leer archivo ── */
+  /* ── Leer archivo de foto ── */
   document.addEventListener('change', function (e) {
     if (e.target.id !== 'd-foto-input') return;
     var file = e.target.files && e.target.files[0];
@@ -172,7 +186,7 @@
     var reader = new FileReader();
     reader.onload = function (ev) {
       B.$('d-foto-data').value = ev.target.result;
-      setFotoPreview(ev.target.result, B.val('d-nombre'));
+      hdAv(ev.target.result, B.val('d-nombre'));
     };
     reader.readAsDataURL(file);
   });

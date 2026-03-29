@@ -329,7 +329,7 @@ app.get('/api/docentes', auth, biblioOnly, async (req, res) => {
 
 app.post('/api/docentes', auth, biblioOnly, async (req, res) => {
   try {
-    const { nombre, cedula, materia, usuario, password, rol } = req.body;
+    const { nombre, cedula, materia, usuario, password, rol, foto } = req.body;
     if (!nombre || !cedula) return res.status(400).json({ error: 'Nombre y cédula son requeridos' });
 
     const counter = await db.collection('counters').findOneAndUpdate(
@@ -338,33 +338,33 @@ app.post('/api/docentes', auth, biblioOnly, async (req, res) => {
       { returnDocument: 'after', upsert: true }
     );
 
-    const finalRol = (rol === 'bibliotecologo') ? 'bibliotecologo' : 'docente';
+    const finalRol  = (rol === 'bibliotecologo') ? 'bibliotecologo' : 'docente';
     const loginUser = usuario ? String(usuario).trim() : String(cedula).trim();
     const loginPass = password ? String(password).trim() : String(cedula).trim();
+    const fotoVal   = foto ? String(foto).slice(0, 7000000) : '';
 
-    // Crear cuenta de usuario vinculada (usa cédula como usuario/contraseña por defecto)
-    let usuarioId = null;
+    // Verificar que el usuario no exista ya
     const existing = await db.collection('usuarios').findOne({ usuario: loginUser });
-    if (!existing) {
-      const uCounter = await db.collection('counters').findOneAndUpdate(
-        { _id: 'usuarios' },
-        { $inc: { seq: 1 } },
-        { returnDocument: 'after', upsert: true }
-      );
-      const hash = await bcrypt.hash(loginPass, 10);
-      const newUser = { id: uCounter.seq, usuario: loginUser, password: hash, nombre: String(nombre).slice(0, 200), rol: finalRol };
-      await db.collection('usuarios').insertOne(newUser);
-      usuarioId = uCounter.seq;
-    } else {
-      usuarioId = existing.id;
-    }
+    if (existing) return res.status(409).json({ error: 'El usuario "' + loginUser + '" ya existe. Elija otro nombre de usuario.' });
+
+    const uCounter = await db.collection('counters').findOneAndUpdate(
+      { _id: 'usuarios' },
+      { $inc: { seq: 1 } },
+      { returnDocument: 'after', upsert: true }
+    );
+    const hash = await bcrypt.hash(loginPass, 10);
+    await db.collection('usuarios').insertOne({
+      id: uCounter.seq, usuario: loginUser, password: hash,
+      nombre: String(nombre).slice(0, 200), rol: finalRol, foto: fotoVal
+    });
 
     const doc = {
       id:        counter.seq,
       nombre:    String(nombre).slice(0, 200),
       cedula:    String(cedula).slice(0, 30),
       materia:   materia ? String(materia).slice(0, 100) : 'Otro',
-      usuarioId: usuarioId,
+      foto:      fotoVal,
+      usuarioId: uCounter.seq,
     };
     await db.collection('docentes').insertOne(doc);
     res.status(201).json(toClient(doc));
@@ -381,20 +381,35 @@ app.put('/api/docentes/:id', auth, biblioOnly, async (req, res) => {
     const docente = await db.collection('docentes').findOne({ id });
     if (!docente) return res.status(404).json({ error: 'Docente no encontrado' });
 
-    // Actualizar campos del docente
+    // ── Resolver usuario vinculado ANTES de cualquier actualización ──
+    let linkedUserId = docente.usuarioId || null;
+    if (!linkedUserId) {
+      // Intentar encontrar por nombre+rol (fallback para docentes creados antes del campo usuarioId)
+      const fallback = await db.collection('usuarios').findOne({
+        nombre: docente.nombre,
+        rol: { $in: ['docente', 'bibliotecologo'] }
+      });
+      if (fallback) {
+        linkedUserId = fallback.id;
+        // Almacenar para que futuras ediciones usen la vía rápida
+        await db.collection('docentes').updateOne({ id }, { $set: { usuarioId: linkedUserId } });
+      }
+    }
+
+    // ── Actualizar campos del docente ──
     const docUpdate = {};
-    if (nombre)              docUpdate.nombre  = String(nombre).slice(0, 200);
-    if (cedula)              docUpdate.cedula  = String(cedula).slice(0, 30);
-    if (materia)             docUpdate.materia = String(materia).slice(0, 100);
-    if (foto !== undefined)  docUpdate.foto    = foto ? String(foto).slice(0, 7000000) : '';
+    if (nombre)             docUpdate.nombre  = String(nombre).slice(0, 200);
+    if (cedula !== undefined) docUpdate.cedula = String(cedula || '').slice(0, 30);
+    if (materia)            docUpdate.materia = String(materia).slice(0, 100);
+    if (foto !== undefined) docUpdate.foto    = foto ? String(foto).slice(0, 7000000) : '';
     if (Object.keys(docUpdate).length > 0) {
       await db.collection('docentes').updateOne({ id }, { $set: docUpdate });
     }
 
-    // Actualizar usuario vinculado
+    // ── Construir actualización del usuario vinculado ──
     const userUpdate = {};
-    if (nombre)   userUpdate.nombre = String(nombre).slice(0, 200);
-    if (foto !== undefined) userUpdate.foto = foto ? String(foto).slice(0, 7000000) : '';
+    if (nombre)             userUpdate.nombre = String(nombre).slice(0, 200);
+    if (foto !== undefined) userUpdate.foto   = foto ? String(foto).slice(0, 7000000) : '';
     if (password && String(password).trim().length >= 4) {
       userUpdate.password = await bcrypt.hash(String(password).trim(), 10);
     }
@@ -403,33 +418,18 @@ app.put('/api/docentes/:id', auth, biblioOnly, async (req, res) => {
     }
     if (usuario && String(usuario).trim().length >= 3) {
       const newUser = String(usuario).trim().slice(0, 50);
-      // Check uniqueness (exclude the linked user itself)
-      const userQuery2 = docente.usuarioId
-        ? { id: docente.usuarioId }
-        : { nombre: docente.nombre, rol: { $in: ['docente', 'bibliotecologo'] } };
-      const linkedUser2 = await db.collection('usuarios').findOne(userQuery2);
-      const taken = await db.collection('usuarios').findOne({
-        usuario: newUser,
-        ...(linkedUser2 ? { id: { $ne: linkedUser2.id } } : {})
-      });
+      // Verificar unicidad excluyendo el propio usuario vinculado
+      const takenQuery = linkedUserId
+        ? { usuario: newUser, id: { $ne: linkedUserId } }
+        : { usuario: newUser };
+      const taken = await db.collection('usuarios').findOne(takenQuery);
       if (taken) return res.status(409).json({ error: 'Ese nombre de usuario ya est\u00E1 en uso' });
       userUpdate.usuario = newUser;
     }
 
-    if (Object.keys(userUpdate).length > 0) {
-      // Buscar por usuarioId almacenado, o por nombre+rol como fallback
-      let userQuery = docente.usuarioId
-        ? { id: docente.usuarioId }
-        : { nombre: docente.nombre, rol: { $in: ['docente', 'bibliotecologo'] } };
-      await db.collection('usuarios').updateOne(userQuery, { $set: userUpdate });
-
-      // Guardar usuarioId si aún no estaba almacenado
-      if (!docente.usuarioId) {
-        const linkedUser = await db.collection('usuarios').findOne(userQuery);
-        if (linkedUser) {
-          await db.collection('docentes').updateOne({ id }, { $set: { usuarioId: linkedUser.id } });
-        }
-      }
+    // ── Aplicar actualización al usuario vinculado ──
+    if (linkedUserId && Object.keys(userUpdate).length > 0) {
+      await db.collection('usuarios').updateOne({ id: linkedUserId }, { $set: userUpdate });
     }
 
     const updated = await db.collection('docentes').findOne({ id });
