@@ -875,29 +875,133 @@ input, select, textarea { font-family: inherit; }
 }
 .preview-card { text-align: center; padding: 22px; }
 
-/* Sección de portada en modal Editar libro */
-.el-portada-section {
+/* ══════════════════════════════════════════
+   Modal Editar Libro — Diseño profesional
+   ══════════════════════════════════════════ */
+.el-modal { padding: 0; overflow: hidden; border-radius: 18px; }
+
+/* Header degradado */
+.el-modal-header {
+  background: linear-gradient(135deg, #1e3a6e 0%, #1D4ED8 100%);
+  padding: 20px 28px;
   display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  background: var(--surface2);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 18px;
-  margin-bottom: 20px;
+  align-items: center;
+  justify-content: space-between;
 }
-.el-portada-preview-wrap { flex-shrink: 0; }
-.el-portada-actions { flex: 1; min-width: 0; }
-.el-portada-label {
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--text1);
-  margin-bottom: 4px;
+.el-modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  font-family: var(--font-head);
 }
-.el-portada-hint {
+.el-modal-sub {
   font-size: 12px;
-  color: var(--text3);
-  line-height: 1.4;
+  color: rgba(255,255,255,.65);
+  margin-top: 3px;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.el-header-icon { font-size: 38px; opacity: .7; }
+
+/* Cuerpo del modal */
+.el-modal-body { padding: 24px 28px 8px; }
+
+/* Panel de portada */
+.el-portada-panel {
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #f0f7ff, #e8f0fe);
+  border: 1.5px solid #bfdbfe;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 22px;
+}
+.el-cover-area { flex-shrink: 0; }
+
+/* Preview de portada */
+.el-cover-wrap {
+  width: 130px;
+  height: 172px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2.5px solid #93c5fd;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 6px 20px rgba(29,78,216,.2);
+  background: #dbeafe;
+}
+
+/* Overlay de cámara — CSS hover */
+.el-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity .18s;
+  z-index: 2;
+  border-radius: 8px;
+}
+.el-cover-wrap:hover .el-cover-overlay { opacity: 1; }
+
+/* Info a la derecha del preview */
+.el-portada-info { flex: 1; min-width: 0; padding-top: 4px; }
+.el-portada-label {
+  font-weight: 800;
+  font-size: 15px;
+  color: #1e3a6e;
+  margin-bottom: 8px;
+}
+.el-portada-desc {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.el-portada-hint-small {
+  font-size: 11px;
+  color: #94a3b8;
+  display: block;
+  margin-top: 4px;
+}
+.el-portada-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Botón quitar foto */
+.el-btn-quitar {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fca5a5;
+  font-weight: 600;
+}
+.el-btn-quitar:hover { background: #fee2e2; }
+
+/* Botón guardar en el modal editar */
+.el-btn-guardar {
+  background: linear-gradient(135deg, #1D4ED8, #2563EB);
+  border-color: #1D4ED8;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(29,78,216,.28);
+}
+.el-btn-guardar:hover {
+  background: linear-gradient(135deg, #1e40af, #1D4ED8);
+}
+
+/* Footer del modal */
+.el-modal-footer {
+  border-top: 1px solid #e9eef4;
+  margin-top: 20px;
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
 
 /* ── SUMMARY ROW (stats) ── */

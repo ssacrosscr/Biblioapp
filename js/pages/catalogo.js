@@ -118,36 +118,19 @@
     var id  = parseInt(B.$('el-id').value) || 0;
     var lib = B.getLibro(id);
     var src = elPortadaBase64 || (lib && lib.portada) || '';
+    var overlay = '<div class="el-cover-overlay"><span style="font-size:22px">&#128247;</span><span>Cambiar foto</span></div>';
     if (src) {
-      w.innerHTML = '<div id="elPreviewOverlay" style="display:none;position:absolute;inset:0;'
-        + 'background:rgba(0,0,0,.52);border-radius:10px;align-items:center;justify-content:center;'
-        + 'flex-direction:column;gap:4px;color:#fff;font-size:11px;font-weight:700;z-index:2;">'
-        + '<span style="font-size:20px">&#128247;</span>Cambiar foto</div>'
-        + '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:10px">';
+      w.innerHTML = overlay
+        + '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
     } else if (lib) {
-      w.innerHTML = '<div id="elPreviewOverlay" style="display:none;position:absolute;inset:0;'
-        + 'background:rgba(0,0,0,.52);border-radius:10px;align-items:center;justify-content:center;'
-        + 'flex-direction:column;gap:4px;color:#fff;font-size:11px;font-weight:700;z-index:2;">'
-        + '<span style="font-size:20px">&#128247;</span>Subir foto</div>'
-        + B.cover(lib, 120, 158);
+      w.innerHTML = overlay + B.cover(lib, 130, 172);
     }
+    /* Título en subtítulo del header */
+    var sub = B.$('elModalSub');
+    if (sub && lib) sub.textContent = lib.titulo;
     var qBtn = B.$('elBtnQuitarPortada');
     if (qBtn) qBtn.style.display = src ? '' : 'none';
   }
-
-  /* Hover overlay en preview */
-  document.addEventListener('mouseover', function (e) {
-    var w = e.target.closest('#elPreviewWrap');
-    if (!w) return;
-    var ov = w.querySelector('#elPreviewOverlay');
-    if (ov) ov.style.display = 'flex';
-  });
-  document.addEventListener('mouseout', function (e) {
-    var w = e.target.closest('#elPreviewWrap');
-    if (!w) return;
-    var ov = w.querySelector('#elPreviewOverlay');
-    if (ov) ov.style.display = 'none';
-  });
 
   /* Clic preview o botón → abrir file picker */
   document.addEventListener('click', function (e) {
