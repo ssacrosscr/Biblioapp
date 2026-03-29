@@ -75,8 +75,8 @@
     var file = e.target.files && e.target.files[0];
     if (!file) return;
 
-    if (file.size > 300 * 1024) {
-      B.showToast('La imagen no debe superar 300 KB', true);
+    if (file.size > 5 * 1024 * 1024) {
+      B.showToast('La imagen no debe superar 5 MB', true);
       e.target.value = '';
       return;
     }

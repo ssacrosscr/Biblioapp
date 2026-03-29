@@ -26,7 +26,7 @@ let db;
 // Middleware
 app.use(cors());
 app.options('*', cors());
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '..')));
 
 // ── Conexión a MongoDB ──────────────────────────────────────
@@ -270,7 +270,7 @@ app.post('/api/libros', auth, biblioOnly, async (req, res) => {
       isbn:      isbn      ? String(isbn).slice(0, 30)      : '',
       c:         parseInt(c) || 0,
       icon:      icon      ? String(icon).slice(0, 10)      : '\uD83D\uDCD6',
-      portada:   portada   ? String(portada).slice(0, 300000) : '',
+      portada:   portada   ? String(portada).slice(0, 7000000) : '',
       eliminado: false,
     };
     await db.collection('libros').insertOne(libro);
@@ -294,7 +294,7 @@ app.put('/api/libros/:id', auth, biblioOnly, async (req, res) => {
     if (isbn       !== undefined) update.isbn       = String(isbn).slice(0, 30);
     if (c          !== undefined) update.c          = parseInt(c) || 0;
     if (icon       !== undefined) update.icon       = String(icon).slice(0, 10);
-    if (portada    !== undefined) update.portada    = String(portada).slice(0, 300000);
+    if (portada    !== undefined) update.portada    = String(portada).slice(0, 7000000);
     if (Object.keys(update).length === 0) return res.status(400).json({ error: 'Nada que actualizar' });
     await db.collection('libros').updateOne({ id }, { $set: update });
     const updated = await db.collection('libros').findOne({ id });
