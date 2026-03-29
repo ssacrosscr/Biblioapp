@@ -123,11 +123,16 @@
       w.innerHTML = overlay
         + '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
     } else if (lib) {
-      w.innerHTML = overlay + B.cover(lib, 152, 200);
+      w.innerHTML = overlay + B.cover(lib, 130, 172);
     }
-    /* Título en subtítulo del header */
+    /* Título e info del libro en el hero */
     var sub = B.$('elModalSub');
-    if (sub && lib) sub.textContent = lib.titulo;
+    if (sub && lib) sub.textContent = lib.titulo || '—';
+    var meta = B.$('elHeroMeta');
+    if (meta && lib) {
+      meta.textContent = [lib.autor, lib.materia, lib.nivel]
+        .filter(Boolean).join(' · ');
+    }
     var qBtn = B.$('elBtnQuitarPortada');
     if (qBtn) qBtn.style.display = src ? '' : 'none';
   }
