@@ -123,7 +123,7 @@
       w.innerHTML = overlay
         + '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
     } else if (lib) {
-      w.innerHTML = overlay + B.cover(lib, 130, 172);
+      w.innerHTML = overlay + B.cover(lib, 152, 200);
     }
     /* Título en subtítulo del header */
     var sub = B.$('elModalSub');
