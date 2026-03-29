@@ -107,7 +107,7 @@ input, select, textarea { font-family: inherit; }
   position: absolute;
   inset: 1px;
   border-radius: 50%;
-  background: #001535;
+  background: #ffffff;
   z-index: 1;
 }
 @keyframes logo-ring-spin {
