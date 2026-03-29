@@ -224,10 +224,10 @@
       nivel:     B.val('el-nivel') || 'General',
       ejemplares: Math.max(0, B.valNum('el-ejemplares')),
       editorial: B.cleanInput(B.val('el-editorial'), 200),
-      /* Si se subió foto nueva, usarla; si se quitó (dataEl vacío y había portada), borrarla */
+      /* Nueva foto > quitar explícito > conservar la existente */
       portada:   elPortadaBase64 !== ''
                    ? elPortadaBase64
-                   : (B.$('el-portada-data').value === '' && l && l.portada ? '' : (l && l.portada || '')),
+                   : (elPortadaQuitada ? '' : (l && l.portada || '')),
     };
     B.apiEditLibro(id, data).then(function () {
       B.closeModal('modalEditLibro');
