@@ -24,20 +24,12 @@ window.BiblioApp = window.BiblioApp || {};
 
   B.openModal = function (id) {
     var el = document.getElementById(id);
-    if (el) {
-      el.classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
+    if (el) el.classList.add('open');
   };
 
   B.closeModal = function (id) {
     var el = document.getElementById(id);
-    if (el) {
-      el.classList.remove('open');
-      /* Restaurar scroll solo si no hay otro modal abierto */
-      var anyOpen = document.querySelector('.modal-overlay.open');
-      if (!anyOpen) document.body.style.overflow = '';
-    }
+    if (el) el.classList.remove('open');
   };
 
   B.initModals = function () {
@@ -45,8 +37,6 @@ window.BiblioApp = window.BiblioApp || {};
       overlay.addEventListener('click', function (e) {
         if (e.target === overlay) {
           overlay.classList.remove('open');
-          var anyOpen = document.querySelector('.modal-overlay.open');
-          if (!anyOpen) document.body.style.overflow = '';
         }
       });
     });
