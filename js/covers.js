@@ -15,6 +15,17 @@ window.BiblioApp = window.BiblioApp || {};
    * @returns {string} HTML seguro (título/autor se escapan)
    */
   B.cover = function (libro, w, h) {
+    /* Si el libro tiene foto real, mostrarla centrada */
+    if (libro && libro.portada) {
+      var dim = h ? 'height:' + h + 'px;' : 'height:100%;';
+      return '<div style="width:100%;' + dim + 'display:flex;align-items:center;'
+        + 'justify-content:center;background:#f1f5f9;overflow:hidden;">'
+        + '<img src="' + libro.portada + '" alt="Portada" '
+        + 'style="width:100%;height:100%;object-fit:contain;object-position:center;display:block;">'
+        + '</div>';
+    }
+
+    /* Portada generada automáticamente */
     var p = B.PAL[libro.c || 0] || B.PAL[0];
     var fs  = h > 150 ? 38 : (h > 80 ? 26 : 16);
     var tfs = h > 150 ? 12.5 : (h > 80 ? 10 : 8);
