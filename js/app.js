@@ -233,7 +233,7 @@
     var logoWrap = B.$('topbarLogoWrap');
     if (cfg.logo && logoWrap) {
       var inner = logoWrap.querySelector('.logo-mep-inner');
-      if (inner) inner.innerHTML = '<img src="' + cfg.logo + '" alt="Logo" style="width:100%;height:100%;object-fit:cover;display:block">';
+      if (inner) inner.innerHTML = '<img src="' + cfg.logo + '" alt="Logo" style="width:88%;height:88%;object-fit:contain;display:block">';
     }
 
     /* Favicon */
