@@ -317,8 +317,19 @@
     </div>
     <div class="card preview-card">
       <div class="ct" style="margin-bottom:14px">Vista previa de portada</div>
-      <div id="previewWrap" style="width:150px;height:196px;margin:0 auto;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);"></div>
-      <p style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5">La portada se genera autom&aacute;ticamente con los datos ingresados</p>
+      <div id="previewWrap" style="width:150px;height:196px;margin:0 auto;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);cursor:pointer;position:relative;" title="Clic para subir foto de portada">
+        <!-- overlay hover -->
+        <div id="previewOverlay" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.52);border-radius:12px;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#fff;font-size:12px;font-weight:700;z-index:2;">
+          <span style="font-size:22px">&#128247;</span>Cambiar foto
+        </div>
+      </div>
+      <input type="file" id="nb-portada-input" accept="image/*" style="display:none">
+      <input type="hidden" id="nb-portada-data">
+      <div style="margin-top:10px;text-align:center">
+        <button class="btn sm" id="btnSubirPortada" style="font-size:11px">&#128247; Subir foto de portada</button>
+        <button class="btn sm" id="btnQuitarPortada" style="font-size:11px;display:none">&#10005; Quitar foto</button>
+      </div>
+      <p style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5;text-align:center">Sin foto se genera autom&aacute;ticamente</p>
     </div>
   </div>
 </section>
@@ -1099,7 +1110,7 @@
 <script defer src="js/pages/prestamos.js?v=8"></script>
 <script defer src="js/pages/devoluciones.js?v=8"></script>
 <script defer src="js/pages/catalogo.js?v=8"></script>
-<script defer src="js/pages/agregar.js?v=8"></script>
+<script defer src="js/pages/agregar.js?v=9"></script>
 <script defer src="js/pages/docentes.js?v=8"></script>
 <script defer src="js/pages/estadisticas.js?v=8"></script>
 <script defer src="js/pages/historial.js?v=8"></script>
