@@ -1436,7 +1436,6 @@ input, select, textarea { font-family: inherit; }
 }
 .ded-hbadge {
   display: inline-block;
-  margin-top: 5px;
   background: rgba(255,255,255,.12);
   border: 1px solid rgba(255,255,255,.2);
   color: rgba(255,255,255,.75);
@@ -1445,6 +1444,13 @@ input, select, textarea { font-family: inherit; }
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .05em;
+}
+.ded-huser {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  font-family: monospace;
+  letter-spacing: .02em;
 }
 .ded-body {
   padding: 20px 28px 0;

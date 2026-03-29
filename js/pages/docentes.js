@@ -80,11 +80,16 @@
       var uLinked  = usuarios.find(function (u) { return u.id === doc.usuarioId; });
       var rol      = uLinked ? uLinked.rol : 'docente';
 
+      var usuarioLogin = uLinked ? uLinked.usuario : '—';
+
       return '<tr>'
         + '<td><div style="display:flex;align-items:center;gap:10px">'
         +   avatarHtml(doc, 38)
-        +   '<div><div style="font-weight:700;font-size:13.5px">' + B.esc(doc.nombre) + '</div>'
-        +   (doc.cedula ? '<div style="font-size:11.5px;color:var(--text3)">' + B.esc(doc.cedula) + '</div>' : '')
+        +   '<div>'
+        +     '<div style="font-weight:700;font-size:13.5px">' + B.esc(doc.nombre) + '</div>'
+        +     '<div style="font-size:11px;color:var(--text3);margin-top:1px">'
+        +       '&#64;' + B.esc(usuarioLogin)
+        +     '</div>'
         +   '</div></div></td>'
         + '<td style="color:var(--text2);font-size:13px">' + B.esc(doc.cedula || '—') + '</td>'
         + '<td><span class="badge info">' + B.esc(doc.materia || '—') + '</span></td>'
@@ -198,6 +203,13 @@
     B.$('dedHName').textContent = doc.nombre || '—';
     var badge = B.$('dedHBadge');
     if (badge) { badge.textContent = rol === 'bibliotecologo' ? 'Bibliotecologo' : 'Docente'; }
+
+    /* Mostrar usuario de login */
+    var loginEl = B.$('dedLoginUser');
+    if (loginEl) {
+      loginEl.textContent = uLinked ? ('@' + uLinked.usuario) : '(sin cuenta vinculada)';
+      loginEl.style.opacity = uLinked ? '1' : '0.5';
+    }
 
     B.openModal('modalEditDocente');
   });

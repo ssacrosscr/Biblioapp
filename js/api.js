@@ -91,10 +91,12 @@ window.BiblioApp = window.BiblioApp || {};
       request('GET', '/libros'),
       request('GET', '/docentes'),
       request('GET', '/prestamos'),
+      request('GET', '/usuarios'),
     ]).then(function (results) {
       B.libros    = results[0];
       B.docentes  = results[1];
       B.prestamos = results[2];
+      B.usuarios  = results[3];
     });
   };
 
