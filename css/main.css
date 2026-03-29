@@ -881,30 +881,33 @@ input, select, textarea { font-family: inherit; }
 
 /* Contenedor principal */
 .el-libro-modal {
-  border-radius: 20px;
-  overflow: hidden;
-  width: 820px;
-  max-width: calc(100vw - 24px);
-  height: 560px;
-  max-height: 92vh;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  width: 820px !important;
+  max-width: calc(100vw - 40px) !important;
+  height: 560px !important;
+  max-height: 92vh !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
   box-shadow: 0 28px 90px rgba(0,10,40,.55);
   animation: modalIn .28s cubic-bezier(.4,0,.2,1);
 }
 
 /* ── PANEL IZQUIERDO (portada) ── */
 .elp-left {
-  flex: 0 0 200px;        /* NO crece ni encoge — siempre 200px */
-  background: linear-gradient(175deg, #05091a 0%, #0d1f5c 55%, #1535a0 100%);
-  display: flex;
-  flex-direction: column;
+  flex: 0 0 200px !important;   /* NO crece ni encoge — siempre 200px */
+  width: 200px !important;
+  max-width: 200px !important;
+  min-width: 200px !important;
+  background: linear-gradient(175deg, #05091a 0%, #0d1f5c 55%, #1535a0 100%) !important;
+  display: flex !important;
+  flex-direction: column !important;
   align-items: center;
   padding: 26px 14px 18px;
   position: relative;
   overflow: hidden;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
 }
 .elp-glow {
   position: absolute;
@@ -989,20 +992,20 @@ input, select, textarea { font-family: inherit; }
 
 /* ── PANEL DERECHO (formulario) ── */
 .elp-right {
-  flex: 1 1 0;            /* ocupa todo el espacio restante */
-  min-width: 0;
+  flex: 1 1 0 !important;     /* ocupa todo el espacio restante */
+  min-width: 0 !important;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: #fff;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  background: #fff !important;
   border-left: 1px solid rgba(0,0,0,.07);
 }
 
 /* Cabecera del formulario */
 .elp-header {
-  flex-shrink: 0;
-  background: #f4f7ff;
+  flex-shrink: 0 !important;
+  background: #f4f7ff !important;
   border-bottom: 1.5px solid #dde5f6;
   padding: 18px 24px 14px;
 }
@@ -1040,9 +1043,9 @@ input, select, textarea { font-family: inherit; }
 
 /* Cuerpo scrollable */
 .elp-form-body {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
   padding: 18px 24px 6px;
 }
 .elp-section-label {
@@ -1058,8 +1061,8 @@ input, select, textarea { font-family: inherit; }
 
 /* Footer con botones */
 .elp-footer {
-  flex-shrink: 0;
-  display: flex;
+  flex-shrink: 0 !important;
+  display: flex !important;
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 24px 16px;

@@ -6,7 +6,7 @@
   <title>LuKiBooks</title>
   <link rel="icon" href="https://www.mep.go.cr/favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/main.css?v=5">
 </head>
 <body>
 
@@ -840,87 +840,99 @@
 <div class="modal-overlay" id="modalEditLibro">
   <div class="el-libro-modal">
 
-    <!-- ── HERO: portada + info ── -->
-    <div class="el-hero">
-      <!-- Patrón de puntos decorativo -->
-      <div class="el-hero-dots"></div>
+    <!-- ════ PANEL IZQUIERDO: Portada ════ -->
+    <div class="elp-left">
+      <div class="elp-glow"></div>
+      <div class="elp-eyebrow">&#128218;&nbsp; Portada del libro</div>
 
-      <!-- Portada -->
-      <div class="el-hero-left">
-        <div class="el-hero-eyebrow">CAT&Aacute;LOGO &middot; EDITAR LIBRO</div>
+      <!-- Portada 3D -->
+      <div class="elp-book-stage">
         <div id="elPreviewWrap" class="el-cover-wrap" title="Clic para cambiar foto">
           <div class="el-cover-overlay">
-            <span style="font-size:26px">&#128247;</span>
+            <span style="font-size:28px">&#128247;</span>
             <span>Cambiar foto</span>
           </div>
         </div>
-        <div class="el-hero-cover-btns">
-          <button class="el-btn-upload" id="elBtnSubirPortada" type="button">&#128247;&nbsp;Subir foto</button>
-          <button class="el-btn-remove" id="elBtnQuitarPortada" type="button" style="display:none">&#10005;&nbsp;Quitar</button>
-        </div>
-        <input type="file" id="el-portada-input" accept="image/*" style="display:none">
-        <input type="hidden" id="el-portada-data">
       </div>
 
-      <!-- Info del libro -->
-      <div class="el-hero-right">
-        <div class="el-hero-titulo" id="elModalSub">—</div>
-        <div class="el-hero-meta" id="elHeroMeta"></div>
-        <div class="el-hero-badge">&#9998;&nbsp; Editando</div>
+      <!-- Botones de portada -->
+      <button class="elp-btn-upload" id="elBtnSubirPortada" type="button">
+        &#128247;&nbsp; Subir foto
+      </button>
+      <button class="elp-btn-remove" id="elBtnQuitarPortada" type="button" style="display:none">
+        &#10005;&nbsp; Quitar foto
+      </button>
+      <div class="elp-hint">Sin foto se genera autom&aacute;ticamente</div>
+
+      <input type="file" id="el-portada-input" accept="image/*" style="display:none">
+      <input type="hidden" id="el-portada-data">
+    </div>
+
+    <!-- ════ PANEL DERECHO: Formulario ════ -->
+    <div class="elp-right">
+
+      <!-- Cabecera -->
+      <div class="elp-header">
+        <div class="elp-header-tag">&#9998; Editando</div>
+        <div class="elp-title" id="elModalSub">—</div>
+        <div class="elp-meta" id="elHeroMeta"></div>
       </div>
-    </div>
 
-    <!-- ── FORMULARIO ── -->
-    <div class="el-body">
-      <input type="hidden" id="el-id">
-      <div class="form-grid">
-        <div class="fg full">
-          <label class="fl">T&iacute;tulo *</label>
-          <input class="fi" type="text" id="el-titulo" maxlength="200">
-        </div>
-        <div class="fg">
-          <label class="fl">Autor</label>
-          <input class="fi" type="text" id="el-autor" maxlength="200">
-        </div>
-        <div class="fg">
-          <label class="fl">ISBN</label>
-          <input class="fi" type="text" id="el-isbn" maxlength="30">
-        </div>
-        <div class="fg">
-          <label class="fl">Materia *</label>
-          <select class="fi" id="el-materia">
-            <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
-            <option>Ciencias</option><option>Estudios Sociales</option>
-            <option>Ingl&eacute;s</option><option>Literatura</option><option>General</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label class="fl">Nivel</label>
-          <select class="fi" id="el-nivel">
-            <option value="">General</option>
-            <option>I Ciclo (1&deg;&ndash;3&deg;)</option>
-            <option>II Ciclo (4&deg;&ndash;6&deg;)</option>
-            <option>III Ciclo (7&deg;&ndash;9&deg;)</option>
-            <option>Diversificado (10&deg;&ndash;11&deg;)</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label class="fl">Ejemplares</label>
-          <input class="fi" type="number" id="el-ejemplares" min="0" max="999">
-        </div>
-        <div class="fg">
-          <label class="fl">Editorial</label>
-          <input class="fi" type="text" id="el-editorial" maxlength="200">
+      <!-- Campos -->
+      <div class="elp-form-body">
+        <input type="hidden" id="el-id">
+        <div class="elp-section-label">Informaci&oacute;n del libro</div>
+        <div class="form-grid">
+          <div class="fg full">
+            <label class="fl">T&iacute;tulo *</label>
+            <input class="fi" type="text" id="el-titulo" maxlength="200">
+          </div>
+          <div class="fg">
+            <label class="fl">Autor</label>
+            <input class="fi" type="text" id="el-autor" maxlength="200">
+          </div>
+          <div class="fg">
+            <label class="fl">ISBN</label>
+            <input class="fi" type="text" id="el-isbn" maxlength="30">
+          </div>
+          <div class="fg">
+            <label class="fl">Materia *</label>
+            <select class="fi" id="el-materia">
+              <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
+              <option>Ciencias</option><option>Estudios Sociales</option>
+              <option>Ingl&eacute;s</option><option>Literatura</option><option>General</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Nivel</label>
+            <select class="fi" id="el-nivel">
+              <option value="">General</option>
+              <option>I Ciclo (1&deg;&ndash;3&deg;)</option>
+              <option>II Ciclo (4&deg;&ndash;6&deg;)</option>
+              <option>III Ciclo (7&deg;&ndash;9&deg;)</option>
+              <option>Diversificado (10&deg;&ndash;11&deg;)</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Ejemplares</label>
+            <input class="fi" type="number" id="el-ejemplares" min="0" max="999">
+          </div>
+          <div class="fg">
+            <label class="fl">Editorial</label>
+            <input class="fi" type="text" id="el-editorial" maxlength="200">
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- ── FOOTER ── -->
-    <div class="el-footer">
-      <button class="btn" id="btnCancelEditLibro">Cancelar</button>
-      <button class="btn primary el-btn-guardar" id="btnGuardarEditLibro">&#10003;&nbsp; Guardar cambios</button>
-    </div>
+      <!-- Footer -->
+      <div class="elp-footer">
+        <button class="btn" id="btnCancelEditLibro">Cancelar</button>
+        <button class="btn primary elp-btn-save" id="btnGuardarEditLibro">
+          &#10003;&nbsp; Guardar cambios
+        </button>
+      </div>
 
+    </div>
   </div>
 </div>
 
