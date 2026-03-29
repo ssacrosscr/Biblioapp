@@ -21,7 +21,7 @@ window.BiblioApp = window.BiblioApp || {};
       return '<div style="width:100%;' + dim + 'display:flex;align-items:center;'
         + 'justify-content:center;background:#f1f5f9;overflow:hidden;">'
         + '<img src="' + libro.portada + '" alt="Portada" '
-        + 'style="width:100%;height:100%;object-fit:contain;object-position:center;display:block;">'
+        + 'style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;">'
         + '</div>';
     }
 
