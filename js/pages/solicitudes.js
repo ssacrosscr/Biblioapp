@@ -9,8 +9,47 @@
   var nsItems     = [];
   var currentPage = 0;
   var PAGE_SIZE   = 15;
+  var currentEditLibroId = 0;
 
   var TIPO_LABEL = { docente: 'Docente' };
+
+  /* ────────────────────────────────────────────────────────────
+     THUMBNAIL DE PORTADA
+  ─────────────────────────────────────────────────────────── */
+  function thumbHtml(libroId, w, h, allowEdit) {
+    var libro   = B.getLibro(libroId);
+    var cls     = 'sol-thumb-wrap' + (allowEdit ? ' editable' : '');
+    var editAttr = allowEdit ? ' data-edit-portada="' + libroId + '"' : '';
+    var inner   = '';
+    if (libro && libro.portada) {
+      inner = '<img src="' + libro.portada + '" style="width:' + w + 'px;height:' + h + 'px;object-fit:cover;display:block;border-radius:4px">';
+    } else if (libro) {
+      inner = B.cover(libro, w, h);
+    } else {
+      inner = '<div style="width:' + w + 'px;height:' + h + 'px;background:var(--surface2);border-radius:4px"></div>';
+    }
+    var editOverlay = allowEdit ? '<div class="sol-thumb-edit">&#128247;</div>' : '';
+    return '<div class="' + cls + '" style="width:' + w + 'px;height:' + h + 'px"'
+      + editAttr + ' title="' + (libro ? B.esc(libro.titulo) : '') + '">'
+      + inner + editOverlay + '</div>';
+  }
+
+  function renderLibroThumbs(items) {
+    var canEdit = B.isBiblio();
+    var MAX = 4;
+    var html = '<div class="sol-libros-thumbs">';
+    items.slice(0, MAX).forEach(function (item) {
+      html += '<div class="sol-thumb-qty-wrap" title="' + B.esc(item.titulo) + ' ×' + (item.cantidad || 1) + '">'
+        + thumbHtml(item.libroId, 34, 46, canEdit)
+        + (item.cantidad > 1 ? '<span class="sol-thumb-qty">&times;' + item.cantidad + '</span>' : '')
+        + '</div>';
+    });
+    if (items.length > MAX) {
+      html += '<span class="sol-thumb-more">+' + (items.length - MAX) + '</span>';
+    }
+    html += '</div>';
+    return html;
+  }
 
   /* ────────────────────────────────────────────────────────────
      DISPONIBILIDAD — Muestra conteos reales por item
@@ -153,9 +192,6 @@
     body.innerHTML = paged.map(function (s) {
       var nombre  = B.esc(s.solicitanteNombre || '—');
       var tipo    = B.esc(TIPO_LABEL[s.tipoSolicitante] || 'Docente');
-      var libros  = s.items.map(function (i) {
-        return B.esc(i.titulo) + '&nbsp;(&times;' + (i.cantidad || 1) + ')';
-      }).join(', ');
       var prioBadge = s.prioridad
         ? B.badgePrioridad(s.prioridad)
         : '<span style="color:var(--text3);font-size:12px">—</span>';
@@ -164,7 +200,7 @@
         + '<td style="font-weight:600">' + nombre + '</td>'
         + '<td style="color:var(--text2)">' + tipo + '</td>'
         + '<td style="color:var(--text3);white-space:nowrap">' + B.esc(B.fmt(s.fecha)) + '</td>'
-        + '<td class="sol-libros-cell" title="' + libros + '">' + libros + '</td>'
+        + '<td class="sol-libros-cell">' + renderLibroThumbs(s.items) + '</td>'
         + '<td>' + dispInfo(s.items) + '</td>'
         + '<td>' + B.badgeSolicitud(s.estado) + '</td>'
         + '<td>' + prioBadge + '</td>'
@@ -264,6 +300,7 @@
       + '</div>'
     );
 
+    var canEdit = B.isBiblio();
     B.setHTML('solModalItems', s.items.map(function (i) {
       var disp     = B.disponibles ? B.disponibles(i.libroId) : '?';
       var qty      = i.cantidad || 1;
@@ -273,7 +310,8 @@
           ? '<span class="badge warn">' + disp + ' disp.</span>'
           : '<span class="badge danger">Sin stock</span>';
       return '<tr>'
-        + '<td>' + B.esc(i.titulo) + '</td>'
+        + '<td style="width:64px;padding:6px 8px">' + thumbHtml(i.libroId, 44, 58, canEdit) + '</td>'
+        + '<td style="font-weight:500">' + B.esc(i.titulo) + '</td>'
         + '<td style="text-align:center">' + qty + '</td>'
         + '<td style="text-align:center">' + dBadge + '</td>'
         + '</tr>';
@@ -347,10 +385,41 @@
     var id = parseInt(btn.getAttribute('data-responder-sol'));
     var s  = solicitudes.find(function (x) { return x.id === id; });
     if (!s) return;
-    B.$('resp-id').value   = id;
+
+    B.$('resp-id').value    = id;
     B.$('resp-notas').value = s.notasRespuesta || s.respuesta || '';
-    B.$('respModalSub').textContent = 'Solicitud #' + s.id
-      + ' \u2014 ' + (s.solicitanteNombre || '—') + ' \u2014 ' + s.items.length + ' libro(s)';
+
+    /* Avatar e info del solicitante */
+    var nombre  = s.solicitanteNombre || '—';
+    var inicial = nombre.charAt(0).toUpperCase();
+    B.setHTML('respSolAvatar', inicial);
+    B.setHTML('respSolNombre', B.esc(nombre));
+    B.setHTML('respSolMeta',
+      'Solicitud&nbsp;#' + s.id
+      + ' &nbsp;&middot;&nbsp; ' + B.esc(B.fmt(s.fecha))
+      + ' &nbsp;&middot;&nbsp; ' + s.items.length + ' libro(s)'
+    );
+    B.setHTML('respSolPrio', s.prioridad ? B.badgePrioridad(s.prioridad) : '');
+
+    /* Lista de libros */
+    B.setHTML('respLibrosList', s.items.map(function (i) {
+      var disp   = B.disponibles ? B.disponibles(i.libroId) : 0;
+      var qty    = i.cantidad || 1;
+      var dBadge = disp >= qty
+        ? '<span class="badge ok">'     + disp + '&nbsp;disp.</span>'
+        : disp > 0
+          ? '<span class="badge warn">' + disp + '&nbsp;disp.</span>'
+          : '<span class="badge danger">Sin stock</span>';
+      return '<div class="resp-libro-row">'
+        + thumbHtml(i.libroId, 32, 42, false)
+        + '<span class="resp-libro-titulo">'
+        + B.esc(i.titulo)
+        + '<span class="resp-libro-qty">&nbsp;&times;' + qty + '</span>'
+        + '</span>'
+        + dBadge
+        + '</div>';
+    }).join(''));
+
     B.openModal('modalResponder');
   });
 
@@ -454,7 +523,9 @@
         ? '<span class="badge ok">' + disp + ' disp.</span>'
         : '<span class="badge danger">Sin stock</span>';
       return '<div class="conv-libro-row">'
-        + '<span>' + B.esc(i.titulo) + ' &times;' + (i.cantidad || 1) + '</span>'
+        + thumbHtml(i.libroId, 32, 42, false)
+        + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+        + B.esc(i.titulo) + ' &times;' + (i.cantidad || 1) + '</span>'
         + dBadge + '</div>';
     }).join(''));
 
@@ -604,6 +675,56 @@
 
   document.addEventListener('click', function (e) {
     if (e.target.closest('#btnCancelNuevaSolicitud')) B.closeModal('modalCrearSolicitud');
+  });
+
+  /* ════════════════════════════════════════════════════════
+     EDITAR PORTADA DE LIBRO (desde tabla o modal detalle)
+  ════════════════════════════════════════════════════════ */
+  document.addEventListener('click', function (e) {
+    var thumb = e.target.closest('[data-edit-portada]');
+    if (!thumb) return;
+    currentEditLibroId = parseInt(thumb.getAttribute('data-edit-portada'));
+    var inp = document.getElementById('solEditPortadaInput');
+    if (inp) { inp.value = ''; inp.click(); }
+  });
+
+  document.addEventListener('change', function (e) {
+    if (e.target.id !== 'solEditPortadaInput') return;
+    var file = e.target.files && e.target.files[0];
+    if (!file || !currentEditLibroId) return;
+    if (file.size > 300 * 1024) {
+      B.showToast('La imagen no debe superar 300 KB', true);
+      e.target.value = '';
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      var portada = ev.target.result;
+      B.apiEditLibro(currentEditLibroId, { portada: portada })
+        .then(function () {
+          B.showToast('\u2713 Foto actualizada');
+          /* Re-renderizar la tabla y el modal si está abierto */
+          renderTabla();
+          var modalEl = document.getElementById('modalSolicitud');
+          if (modalEl && modalEl.classList.contains('open')) {
+            /* Actualizar el thumb inline sin cerrar el modal */
+            document.querySelectorAll('[data-edit-portada="' + currentEditLibroId + '"]').forEach(function (el) {
+              var libro = B.getLibro(currentEditLibroId);
+              if (!libro) return;
+              var img = el.querySelector('img');
+              if (img) {
+                img.src = portada;
+              } else {
+                el.innerHTML = '<img src="' + portada
+                  + '" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:4px">'
+                  + '<div class="sol-thumb-edit">&#128247;</div>';
+              }
+            });
+          }
+        })
+        .catch(function () { B.showToast('Error al guardar la foto', true); });
+    };
+    reader.readAsDataURL(file);
   });
 
 })(window.BiblioApp);

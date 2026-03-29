@@ -1301,11 +1301,73 @@ input, select, textarea { font-family: inherit; }
 /* Barra de filtros de solicitudes */
 .sol-filter-bar { flex-wrap: wrap; gap: 10px; }
 
-/* Columna de libros en tabla: truncar con tooltip */
+/* Columna de libros en tabla: thumbnails */
 .sol-libros-cell {
-  max-width: 200px;
+  max-width: 220px;
+  padding: 8px 12px;
+}
+
+/* Fila de thumbnails */
+.sol-libros-thumbs {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/* Wrapper de cada thumbnail con cantidad */
+.sol-thumb-qty-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Badge de cantidad sobre el thumbnail */
+.sol-thumb-qty {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text2);
+  line-height: 1;
+}
+
+/* Wrapper del thumbnail */
+.sol-thumb-wrap {
+  position: relative;
+  border-radius: 4px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+}
+.sol-thumb-wrap.editable {
+  cursor: pointer;
+}
+
+/* Overlay de edición (cámara) */
+.sol-thumb-edit {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.52);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  opacity: 0;
+  transition: opacity .15s;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.sol-thumb-wrap.editable:hover .sol-thumb-edit {
+  opacity: 1;
+}
+
+/* Indicador "+N más" en la fila de thumbnails */
+.sol-thumb-more {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  padding: 0 3px;
   white-space: nowrap;
 }
 
@@ -1343,19 +1405,184 @@ input, select, textarea { font-family: inherit; }
 }
 .btn-convertir:hover { background: #cce8d8; }
 
+/* ══════════════════════════════════════════
+   Modal Responder — Estética profesional
+   ══════════════════════════════════════════ */
+
+/* Contenedor del modal */
+.resp-modal {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+/* Encabezado con franja de color */
+.resp-modal .modal-title {
+  padding: 22px 28px 4px;
+  font-size: 20px;
+  background: linear-gradient(135deg, #1e3a6e 0%, #1D4ED8 100%);
+  color: #fff;
+  margin: 0;
+}
+
+/* Sub-encabezado oculto (usamos la tarjeta en su lugar) */
+#respModalSub { display: none; }
+
+/* Resto del contenido */
+.resp-modal > *:not(.modal-title) {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* Tarjeta del solicitante */
+.resp-sol-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,.92);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 16px 24px;
+  margin: 0;
+}
+.resp-sol-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(37,99,235,.35);
+}
+.resp-sol-info { flex: 1; min-width: 0; }
+.resp-sol-nombre {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.resp-sol-meta {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 3px;
+}
+
+/* Sección libros */
+.resp-libros-wrap {
+  margin: 16px 24px 0;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fafbfc;
+}
+.resp-libros-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: #64748b;
+  padding: 8px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.resp-libro-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  transition: background .12s;
+}
+.resp-libro-row:last-child { border-bottom: none; }
+.resp-libro-row:hover { background: #f8faff; }
+.resp-libro-titulo {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #1e293b;
+}
+.resp-libro-qty {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* Área de notas */
+.resp-modal .fg {
+  padding: 14px 24px 0;
+}
+.resp-nota-hint {
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 6px;
+  background: #fef2f2;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* Footer — botones en una fila */
+.resp-mf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 14px 24px 20px;
+  border-top: 1px solid #e9eef4;
+  flex-wrap: nowrap;
+  background: #f8fafc;
+}
+.resp-decision-btns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 /* Botones del modal responder */
 .btn-espera {
-  background: var(--warn-bg);
-  color: var(--warn);
-  border-color: #C9920A;
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #D97706;
+  font-weight: 600;
 }
-.btn-espera:hover { background: #ede0b0; }
+.btn-espera:hover {
+  background: #FDE68A;
+  border-color: #B45309;
+}
 .btn-rechazar {
-  background: var(--danger-bg);
-  color: var(--danger);
-  border-color: var(--danger);
+  background: #FEE2E2;
+  color: #991B1B;
+  border-color: #EF4444;
+  font-weight: 600;
 }
-.btn-rechazar:hover { background: #f0c8c8; }
+.btn-rechazar:hover {
+  background: #FECACA;
+  border-color: #DC2626;
+}
+/* Aprobar usa .btn.primary — agregar peso extra en contexto resp-modal */
+.resp-mf .btn.primary {
+  background: linear-gradient(135deg, #1D4ED8, #2563EB);
+  border-color: #1D4ED8;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(29,78,216,.30);
+}
+.resp-mf .btn.primary:hover {
+  background: linear-gradient(135deg, #1e40af, #1D4ED8);
+  box-shadow: 0 4px 12px rgba(29,78,216,.40);
+}
 
 /* Grilla info modal detalle */
 .sol-detail-grid {
@@ -1380,9 +1607,10 @@ input, select, textarea { font-family: inherit; }
 /* Fila de libro en modal convertir */
 .conv-libro-row {
   display: flex;
+  gap: 10px;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: 7px 0;
   border-bottom: 1px solid var(--border);
   font-size: 13px;
 }

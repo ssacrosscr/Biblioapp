@@ -986,7 +986,7 @@
     <div id="solModalInfo"></div>
     <div class="table-responsive" style="margin:16px 0">
       <table class="tbl">
-        <thead><tr><th>Libro</th><th>Cantidad</th><th>Disponibles</th></tr></thead>
+        <thead><tr><th style="width:52px"></th><th>Libro</th><th>Cantidad</th><th>Disponibles</th></tr></thead>
         <tbody id="solModalItems"></tbody>
       </table>
     </div>
@@ -1017,20 +1017,51 @@
 
 <!-- Modal: Responder solicitud -->
 <div class="modal-overlay" id="modalResponder">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-title">Responder solicitud</div>
-    <div class="modal-sub" id="respModalSub"></div>
+  <div class="modal resp-modal" style="max-width:580px">
+
+    <!-- Encabezado con franja azul -->
+    <div class="modal-title">
+      &#128203;&nbsp; Responder solicitud
+    </div>
+
+    <!-- Tarjeta de solicitante (sobre fondo blanco debajo del header) -->
+    <div class="resp-sol-card">
+      <div class="resp-sol-avatar" id="respSolAvatar">?</div>
+      <div class="resp-sol-info">
+        <div class="resp-sol-nombre" id="respSolNombre">—</div>
+        <div class="resp-sol-meta" id="respSolMeta">—</div>
+      </div>
+      <div id="respSolPrio"></div>
+    </div>
+
+    <!-- Lista de libros solicitados -->
+    <div class="resp-libros-wrap">
+      <div class="resp-libros-titulo">&#128218;&nbsp; Libros solicitados</div>
+      <div id="respLibrosList"></div>
+    </div>
+
     <input type="hidden" id="resp-id">
+
+    <!-- Notas -->
     <div class="fg">
-      <label class="fl">Notas de respuesta <span style="color:var(--danger)">*requeridas al rechazar</span></label>
-      <textarea class="fi" id="resp-notas" placeholder="Observaciones o motivo de rechazo..." maxlength="500" rows="3"></textarea>
+      <label class="fl">Notas de respuesta
+        <span class="resp-nota-hint">&#9888; requeridas al rechazar</span>
+      </label>
+      <textarea class="fi" id="resp-notas"
+        placeholder="Escriba observaciones, motivo de aprobaci&oacute;n o rechazo..."
+        maxlength="500" rows="3"></textarea>
     </div>
-    <div class="mf">
+
+    <!-- Botones en una sola fila -->
+    <div class="mf resp-mf">
       <button class="btn" id="btnCancelResponder">Cancelar</button>
-      <button class="btn btn-espera" id="btnEsperarSolicitud">&#9208; En espera</button>
-      <button class="btn btn-rechazar" id="btnRechazarSolicitud">&#10007; Rechazar</button>
-      <button class="btn primary" id="btnAprobarSolicitud">&#10003; Aprobar</button>
+      <div class="resp-decision-btns">
+        <button class="btn btn-espera"   id="btnEsperarSolicitud">&#9208;&nbsp;En espera</button>
+        <button class="btn btn-rechazar" id="btnRechazarSolicitud">&#10007;&nbsp;Rechazar</button>
+        <button class="btn primary"      id="btnAprobarSolicitud">&#10003;&nbsp;Aprobar</button>
+      </div>
     </div>
+
   </div>
 </div>
 
@@ -1089,6 +1120,9 @@
     </div>
   </div>
 </div>
+
+<!-- Input oculto para editar portada de libro desde solicitudes -->
+<input type="file" id="solEditPortadaInput" accept="image/*" style="display:none">
 
 <!-- Toast de notificaciones -->
 <div class="toast" id="toast"></div>
