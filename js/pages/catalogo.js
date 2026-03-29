@@ -111,13 +111,14 @@
 
   /* ── Portada en modal editar ── */
   var elPortadaBase64 = '';
+  var elPortadaQuitada = false;   /* flag: usuario quitó la foto explícitamente */
 
   function elUpdatePreview() {
     var w = B.$('elPreviewWrap');
     if (!w) return;
     var id  = parseInt(B.$('el-id').value) || 0;
     var lib = B.getLibro(id);
-    var src = elPortadaBase64 || (lib && lib.portada) || '';
+    var src = elPortadaBase64 || (!elPortadaQuitada && lib && lib.portada) || '';
     var overlay = '<div class="el-cover-overlay"><span style="font-size:22px">&#128247;</span><span>Cambiar foto</span></div>';
     if (src) {
       w.innerHTML = overlay
@@ -149,6 +150,7 @@
   document.addEventListener('click', function (e) {
     if (!e.target.closest('#elBtnQuitarPortada')) return;
     elPortadaBase64 = '';
+    elPortadaQuitada = true;
     var dataEl = B.$('el-portada-data');
     if (dataEl) dataEl.value = '';
     var inp = B.$('el-portada-input');
@@ -186,6 +188,7 @@
     var l = B.getLibro(id);
     if (!l) return;
     elPortadaBase64 = '';
+    elPortadaQuitada = false;
     B.$('el-id').value        = id;
     B.$('el-titulo').value    = l.titulo;
     B.$('el-autor').value     = l.autor || '';

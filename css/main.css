@@ -919,19 +919,30 @@ input, select, textarea { font-family: inherit; }
   pointer-events: none;
 }
 .elp-eyebrow {
-  font-size: 9px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9.5px;
   font-weight: 700;
-  letter-spacing: .11em;
-  color: rgba(255,255,255,.35);
+  letter-spacing: .18em;
+  color: rgba(255,255,255,.45);
   text-transform: uppercase;
-  margin-bottom: 14px;
-  align-self: flex-start;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  margin-bottom: 18px;
+  align-self: stretch;
+  justify-content: center;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 30px;
+  padding: 5px 10px;
   position: relative;
   z-index: 1;
+}
+.elp-eyebrow-dot {
+  display: inline-block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(99,179,237,.6);
+  flex-shrink: 0;
 }
 .elp-book-stage {
   display: flex;
