@@ -5,309 +5,252 @@
 
 (function (B) {
 
-  /* ── Estado foto edición ── */
-  var dedFotoBase64 = '';
-  var dedFotoQuitada = false;
+  var _list = [];   /* docentes enriquecidos con datos del usuario vinculado */
 
-  /* ── Helpers ─────────────────────────────────────────────── */
-
-  function rolLabel(rol) {
-    if (rol === 'bibliotecologo') return '<span class="badge purple">Bibliotecologo</span>';
-    return '<span class="badge info">Docente</span>';
-  }
-
-  function avatarHtml(doc, size) {
-    size = size || 38;
-    if (doc.foto) {
-      return '<img src="' + doc.foto + '" class="doc-av-foto" style="width:' + size + 'px;height:' + size + 'px">';
-    }
-    var colors = B.avc(doc.id || 0);
-    return '<div class="av" style="width:' + size + 'px;height:' + size + 'px;min-width:' + size + 'px;'
-      + 'font-size:' + Math.round(size * 0.37) + 'px;background:' + colors[0] + ';color:' + colors[1] + '">'
-      + B.esc(B.ini(doc.nombre)) + '</div>';
-  }
-
-  /* ── Stats ───────────────────────────────────────────────── */
-
-  function renderStats() {
-    var el = B.$('docStats');
+  /* ── Preview de foto ── */
+  function setFotoPreview(fotoBase64, nombre) {
+    var el = B.$('d-foto-preview');
     if (!el) return;
-    var total     = B.docentes.length;
-    var activos   = B.docentes.reduce(function (acc, d) { return acc + B.prestamosActivosPersona(d.id); }, 0);
-    var conPrest  = B.docentes.filter(function (d) { return B.prestamosActivosPersona(d.id) > 0; }).length;
-
-    el.innerHTML =
-      '<div class="doc-stat-card">'
-      + '<div class="doc-stat-icon" style="background:#eff6ff;color:#2563eb">&#128105;&#8205;&#127979;</div>'
-      + '<div><div class="doc-stat-val">' + total + '</div><div class="doc-stat-label">Docentes registrados</div></div>'
-      + '</div>'
-      + '<div class="doc-stat-card">'
-      + '<div class="doc-stat-icon" style="background:#fef3c7;color:#d97706">&#128218;</div>'
-      + '<div><div class="doc-stat-val">' + activos + '</div><div class="doc-stat-label">Libros en pr&eacute;stamo</div></div>'
-      + '</div>'
-      + '<div class="doc-stat-card">'
-      + '<div class="doc-stat-icon" style="background:#dcfce7;color:#16a34a">&#9989;</div>'
-      + '<div><div class="doc-stat-val">' + conPrest + '</div><div class="doc-stat-label">Con pr&eacute;stamos activos</div></div>'
-      + '</div>';
+    if (fotoBase64) {
+      el.className = '';
+      el.innerHTML = '<img class="profile-foto-lg" src="' + fotoBase64 + '" alt="Foto" title="Cambiar foto">';
+    } else {
+      el.className = 'profile-foto-placeholder';
+      el.innerHTML = nombre ? B.esc(nombre.charAt(0).toUpperCase()) : '&#128100;';
+      el.title = 'Cambiar foto';
+    }
   }
 
-  /* ── Tabla ───────────────────────────────────────────────── */
-
+  /* ── Render tabla ── */
   function renderDocentes() {
-    var q  = B.val('searchDocente').toLowerCase();
-    var fm = B.val('filterDocMateria');
-    var data = B.docentes.slice();
-
-    if (q)  data = data.filter(function (d) {
-      return d.nombre.toLowerCase().indexOf(q) !== -1
-          || (d.materia || '').toLowerCase().indexOf(q) !== -1;
-    });
-    if (fm) data = data.filter(function (d) { return d.materia === fm; });
-
     var body = B.$('docentesBody');
     if (!body) return;
 
+    var q  = (B.val('searchDocente') || '').toLowerCase();
+    var fm = B.val('filterDocMateria') || '';
+    var data = _list.slice();
+
+    if (q) data = data.filter(function (d) {
+      return (d.nombre || '').toLowerCase().indexOf(q) !== -1
+          || (d.usuario || '').toLowerCase().indexOf(q) !== -1
+          || (d.cedula  || '').toLowerCase().indexOf(q) !== -1;
+    });
+    if (fm) data = data.filter(function (d) { return d.materia === fm; });
+
     if (!data.length) {
-      body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px">Sin resultados</td></tr>';
-      renderStats();
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px">Sin resultados</td></tr>';
       return;
     }
 
-    body.innerHTML = data.map(function (doc) {
-      var ac = B.prestamosActivosPersona(doc.id);
-      /* Buscar rol del usuario vinculado */
-      var usuarios = B.usuarios || [];
-      var uLinked  = usuarios.find(function (u) { return u.id === doc.usuarioId; });
-      var rol      = uLinked ? uLinked.rol : 'docente';
+    var cuRol   = B.getUserRol();
+    var isBiblio = cuRol === 'admin' || cuRol === 'bibliotecologo';
+    var isAdmin  = cuRol === 'admin';
 
-      var usuarioLogin = uLinked ? uLinked.usuario : '—';
+    body.innerHTML = data.map(function (d) {
+      var ac = B.prestamosActivosPersona(d.id);
+
+      var rolBadge = d.rol === 'bibliotecologo'
+        ? '<span class="badge ok">Bibliotecologo</span>'
+        : '<span class="badge orange">Docente</span>';
+
+      var fotoHtml = d.foto
+        ? '<img class="av-neon" src="' + d.foto + '" alt="Foto">'
+        : '<div class="av" style="background:linear-gradient(135deg,#003DA5,#1A52B5);color:white;font-size:14px">'
+          + B.esc((d.nombre || '?').charAt(0).toUpperCase()) + '</div>';
+
+      var editBtn = isBiblio
+        ? '<button class="btn sm primary" data-edit-doc="' + d.id + '">Editar</button> '
+        : '';
+      var delBtn  = isAdmin
+        ? '<button class="btn sm" data-del-doc="' + d.id + '" style="color:var(--danger);border-color:var(--danger)">Eliminar</button>'
+        : '';
 
       return '<tr>'
         + '<td><div style="display:flex;align-items:center;gap:10px">'
-        +   avatarHtml(doc, 38)
-        +   '<div>'
-        +     '<div style="font-weight:700;font-size:13.5px">' + B.esc(doc.nombre) + '</div>'
-        +     '<div style="font-size:11px;color:var(--text3);margin-top:1px">'
-        +       '&#64;' + B.esc(usuarioLogin)
-        +     '</div>'
-        +   '</div></div></td>'
-        + '<td style="color:var(--text2);font-size:13px">' + B.esc(doc.cedula || '—') + '</td>'
-        + '<td><span class="badge info">' + B.esc(doc.materia || '—') + '</span></td>'
-        + '<td>' + rolLabel(rol) + '</td>'
+        +   fotoHtml
+        +   '<span style="font-weight:700">' + B.esc(d.usuario || '\u2014') + '</span>'
+        + '</div></td>'
+        + '<td>' + B.esc(d.nombre) + '</td>'
+        + '<td style="color:var(--text2);font-size:13px">' + B.esc(d.cedula || '\u2014') + '</td>'
+        + '<td><span class="badge info">' + B.esc(d.materia || '\u2014') + '</span></td>'
+        + '<td>' + rolBadge + '</td>'
         + '<td style="text-align:center">'
         +   (ac ? '<span class="badge orange">' + ac + '</span>' : '<span style="color:var(--text3)">\u2014</span>')
         + '</td>'
-        + '<td style="text-align:center">'
-        +   '<button class="btn-ico" data-edit-doc="' + doc.id + '" title="Editar docente">&#9998;</button>'
-        + '</td>'
+        + '<td>' + editBtn + delBtn + '</td>'
         + '</tr>';
     }).join('');
-
-    renderStats();
   }
 
-  B.pageRenderers.docentes = renderDocentes;
-
-  /* ── Filtros ─────────────────────────────────────────────── */
-
-  document.addEventListener('input', function (e) {
-    if (e.target.id === 'searchDocente') renderDocentes();
-  });
-  document.addEventListener('change', function (e) {
-    if (e.target.id === 'filterDocMateria') renderDocentes();
-  });
-
-  /* ── Nuevo docente ───────────────────────────────────────── */
-
-  document.addEventListener('click', function (e) {
-    if (e.target.closest('#btnNuevoDocente')) {
-      B.clearFields(['d-nombre', 'd-cedula', 'd-usuario', 'd-password']);
-      B.openModal('modalDocente');
-    }
-  });
-
-  document.addEventListener('click', function (e) {
-    if (!e.target.closest('#btnGuardarDocente')) return;
-
-    var nombre = B.cleanInput(B.val('d-nombre'), 200);
-    var cedula = B.cleanInput(B.val('d-cedula'), 15);
-
-    if (!nombre || !cedula) { B.showToast('Complete nombre y c\u00E9dula', true); return; }
-    if (!B.isValidCedula(cedula)) { B.showToast('C\u00E9dula inv\u00E1lida (X-XXXX-XXXX)', true); return; }
-    if (B.docentes.some(function (d) { return d.cedula === cedula; })) {
-      B.showToast('Ya existe un docente con esa c\u00E9dula', true);
-      return;
-    }
-
-    var docData = {
-      nombre:   nombre,
-      cedula:   cedula,
-      materia:  B.val('d-materia') || 'Otro',
-      rol:      B.val('d-rol') || 'docente',
-      usuario:  B.cleanInput(B.val('d-usuario'), 50) || cedula,
-      password: B.val('d-password') || cedula,
-    };
-
-    B.apiAddDocente(docData).then(function () {
-      B.closeModal('modalDocente');
-      B.showToast('\u2713 Docente registrado');
-      renderDocentes();
-    }).catch(function () {
-      B.showToast('Error al registrar', true);
+  /* ── Cargar ── */
+  B.pageRenderers.docentes = function () {
+    _list = (B.docentes || []).map(function (d) {
+      var uLinked = (B.usuarios || []).find(function (u) { return u.id === d.usuarioId; });
+      return Object.assign({}, d, {
+        usuario: uLinked ? uLinked.usuario : '',
+        rol:     uLinked ? uLinked.rol : 'docente',
+        foto:    d.foto || (uLinked ? uLinked.foto : ''),
+      });
     });
-  });
+    renderDocentes();
+  };
 
+  /* ── Filtros ── */
+  document.addEventListener('input',  function (e) { if (e.target.id === 'searchDocente')   renderDocentes(); });
+  document.addEventListener('change', function (e) { if (e.target.id === 'filterDocMateria') renderDocentes(); });
+
+  /* ── Abrir modal NUEVO ── */
   document.addEventListener('click', function (e) {
-    if (e.target.closest('#btnCancelDocente')) B.closeModal('modalDocente');
+    if (!e.target.closest('#btnNuevoDocente')) return;
+    B.$('d-id').value = '';
+    B.$('modalDocenteTitle').textContent = 'Nuevo docente';
+    B.$('modalDocenteSub').textContent   = 'El usuario y contrase\u00F1a por defecto ser\u00E1n la c\u00E9dula';
+    var hint = B.$('d-pwd-hint');
+    if (hint) hint.style.display = 'none';
+    B.clearFields(['d-usuario', 'd-password', 'd-nombre', 'd-cedula']);
+    B.$('d-rol').value = 'docente';
+    var mat = B.$('d-materia'); if (mat) mat.selectedIndex = 0;
+    B.$('d-foto-data').value = '';
+    B.$('d-usuario').disabled = false;
+    setFotoPreview('', '');
+    B.openModal('modalDocente');
   });
 
-  /* ── Abrir modal editar ──────────────────────────────────── */
-
+  /* ── Abrir modal EDITAR ── */
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-edit-doc]');
     if (!btn) return;
+    var id = parseInt(btn.dataset.editDoc);
+    var d  = _list.find(function (x) { return x.id === id; });
+    if (!d) return;
 
-    var id  = parseInt(btn.dataset.editDoc);
-    var doc = B.docentes.find(function (d) { return d.id === id; });
-    if (!doc) return;
+    B.$('d-id').value = id;
+    B.$('modalDocenteTitle').textContent = 'Editar docente';
+    B.$('modalDocenteSub').textContent   = 'Modifique los datos del docente';
+    var hint = B.$('d-pwd-hint');
+    if (hint) hint.style.display = '';
 
-    /* Buscar rol del usuario vinculado */
-    var usuarios = B.usuarios || [];
-    var uLinked  = usuarios.find(function (u) { return u.id === doc.usuarioId; });
-    var rol      = uLinked ? uLinked.rol : 'docente';
+    B.$('d-usuario').value   = d.usuario || '';
+    B.$('d-usuario').disabled = false;
+    B.$('d-password').value  = '';
+    B.$('d-nombre').value    = d.nombre  || '';
+    B.$('d-cedula').value    = d.cedula  || '';
 
-    /* Resetear estado foto */
-    dedFotoBase64 = '';
-    dedFotoQuitada = false;
-
-    /* Poblar campos */
-    B.$('ded-id').value = id;
-    B.$('ded-nombre').value  = doc.nombre  || '';
-    B.$('ded-cedula').value  = doc.cedula  || '';
-    B.$('ded-password').value = '';
-
-    var matSel = B.$('ded-materia');
-    if (matSel) {
-      for (var i = 0; i < matSel.options.length; i++) {
-        if (matSel.options[i].value === doc.materia) { matSel.selectedIndex = i; break; }
+    var mat = B.$('d-materia');
+    if (mat) {
+      for (var i = 0; i < mat.options.length; i++) {
+        if (mat.options[i].value === d.materia) { mat.selectedIndex = i; break; }
       }
     }
-    var rolSel = B.$('ded-rol');
-    if (rolSel) {
-      for (var j = 0; j < rolSel.options.length; j++) {
-        if (rolSel.options[j].value === rol) { rolSel.selectedIndex = j; break; }
+    var rol = B.$('d-rol');
+    if (rol) {
+      for (var j = 0; j < rol.options.length; j++) {
+        if (rol.options[j].value === d.rol) { rol.selectedIndex = j; break; }
       }
     }
 
-    dedRenderFoto(doc);
-    B.$('dedHName').textContent = doc.nombre || '—';
-    var badge = B.$('dedHBadge');
-    if (badge) { badge.textContent = rol === 'bibliotecologo' ? 'Bibliotecologo' : 'Docente'; }
-
-    /* Mostrar usuario de login en header */
-    var loginEl = B.$('dedLoginUser');
-    if (loginEl) {
-      loginEl.textContent = uLinked ? ('@' + uLinked.usuario) : '(sin cuenta vinculada)';
-      loginEl.style.opacity = uLinked ? '1' : '0.5';
-    }
-
-    /* Poblar campo editable de usuario */
-    var usuarioInput = B.$('ded-usuario');
-    if (usuarioInput) usuarioInput.value = uLinked ? uLinked.usuario : '';
-
-    B.openModal('modalEditDocente');
+    B.$('d-foto-data').value = d.foto || '';
+    setFotoPreview(d.foto || '', d.nombre);
+    B.openModal('modalDocente');
   });
 
-  /* ── Foto en modal editar ────────────────────────────────── */
-
-  function dedRenderFoto(doc) {
-    var el = B.$('dedFotoEl');
-    if (!el) return;
-    var src = dedFotoBase64 || (!dedFotoQuitada && doc && doc.foto) || '';
-    if (src) {
-      el.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-    } else {
-      var colors = B.avc(doc ? (doc.id || 0) : 0);
-      el.innerHTML = '<span style="font-size:28px;font-weight:800;color:' + colors[1] + '">'
-        + B.esc(B.ini((doc && doc.nombre) || '?')) + '</span>';
-      el.style.background = colors[0];
-    }
-  }
-
-  /* Clic en avatar → abrir file picker */
+  /* ── Click foto → file picker ── */
   document.addEventListener('click', function (e) {
-    if (e.target.closest('#dedFotoEl') || e.target.closest('#dedBtnFoto')) {
-      var inp = B.$('ded-foto-input');
+    if (e.target.closest('#d-foto-preview') || e.target.closest('#d-foto-wrap')) {
+      if (e.target.tagName === 'INPUT') return; /* evitar loop */
+      var inp = B.$('d-foto-input');
       if (inp) inp.click();
     }
   });
 
-  /* Leer archivo foto */
+  /* ── Leer archivo ── */
   document.addEventListener('change', function (e) {
-    if (e.target.id !== 'ded-foto-input') return;
+    if (e.target.id !== 'd-foto-input') return;
     var file = e.target.files && e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { B.showToast('La imagen no debe superar 5 MB', true); return; }
+    if (file.size > 5 * 1024 * 1024) { B.showToast('La imagen no debe superar 5\u00A0MB', true); return; }
     var reader = new FileReader();
     reader.onload = function (ev) {
-      dedFotoBase64 = ev.target.result;
-      dedFotoQuitada = false;
-      var id  = parseInt(B.$('ded-id').value) || 0;
-      var doc = B.docentes.find(function (d) { return d.id === id; }) || null;
-      dedRenderFoto(doc);
+      B.$('d-foto-data').value = ev.target.result;
+      setFotoPreview(ev.target.result, B.val('d-nombre'));
     };
     reader.readAsDataURL(file);
   });
 
-  /* Toggle contraseña visible */
+  /* ── Guardar ── */
   document.addEventListener('click', function (e) {
-    if (!e.target.closest('#dedPwdEye')) return;
-    var inp = B.$('ded-password');
-    if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
-  });
+    if (!e.target.closest('#btnGuardarDocente')) return;
 
-  /* ── Guardar edición ─────────────────────────────────────── */
+    var id      = B.$('d-id').value;
+    var nombre  = B.cleanInput(B.val('d-nombre'), 200);
+    var cedula  = B.cleanInput(B.val('d-cedula'), 15);
+    var materia = B.val('d-materia') || 'Otro';
+    var rol     = B.val('d-rol') || 'docente';
+    var foto    = B.$('d-foto-data').value || '';
+    var usuario = B.cleanInput(B.val('d-usuario'), 50);
+    var pwd     = (B.$('d-password').value || '').trim();
 
-  document.addEventListener('click', function (e) {
-    if (!e.target.closest('#btnGuardarEditDocente')) return;
-
-    var id     = parseInt(B.$('ded-id').value) || 0;
-    var nombre = B.cleanInput(B.val('ded-nombre'), 200);
-    var cedula = B.cleanInput(B.val('ded-cedula'), 15);
     if (!nombre) { B.showToast('El nombre es requerido', true); return; }
 
-    var data = {
-      nombre:   nombre,
-      cedula:   cedula,
-      materia:  B.val('ded-materia') || 'Otro',
-      rol:      B.val('ded-rol') || 'docente',
-      usuario:  B.cleanInput(B.val('ded-usuario'), 50),
-    };
+    if (id) {
+      /* ─ EDITAR ─ */
+      var data = { nombre: nombre, cedula: cedula, materia: materia, rol: rol, foto: foto };
+      if (usuario) data.usuario = usuario;
+      if (pwd) {
+        if (pwd.length < 4) { B.showToast('La contrase\u00F1a debe tener al menos 4 caracteres', true); return; }
+        data.password = pwd;
+      }
+      B.apiEditDocente(parseInt(id), data).then(function () {
+        B.closeModal('modalDocente');
+        B.showToast('\u2713 Docente actualizado');
+        B.pageRenderers.docentes();
+      }).catch(function (err) {
+        B.showToast(err.message || 'Error al guardar', true);
+      });
 
-    /* Contraseña */
-    var pwd = B.val('ded-password').trim();
-    if (pwd) {
-      if (pwd.length < 4) { B.showToast('La contrase\u00F1a debe tener al menos 4 caracteres', true); return; }
-      data.password = pwd;
+    } else {
+      /* ─ NUEVO ─ */
+      if (!cedula) { B.showToast('La c\u00E9dula es requerida', true); return; }
+      if (!B.isValidCedula(cedula)) { B.showToast('C\u00E9dula inv\u00E1lida (X-XXXX-XXXX)', true); return; }
+      if (B.docentes.some(function (d) { return d.cedula === cedula; })) {
+        B.showToast('Ya existe un docente con esa c\u00E9dula', true); return;
+      }
+      B.apiAddDocente({
+        nombre:   nombre,
+        cedula:   cedula,
+        materia:  materia,
+        rol:      rol,
+        foto:     foto,
+        usuario:  usuario || cedula,
+        password: pwd     || cedula,
+      }).then(function () {
+        B.closeModal('modalDocente');
+        B.showToast('\u2713 Docente registrado');
+        B.pageRenderers.docentes();
+      }).catch(function (err) {
+        B.showToast(err.message || 'Error al registrar', true);
+      });
     }
-
-    /* Foto */
-    var doc = B.docentes.find(function (d) { return d.id === id; }) || {};
-    data.foto = dedFotoBase64 !== ''
-      ? dedFotoBase64
-      : (dedFotoQuitada ? '' : (doc.foto || ''));
-
-    B.apiEditDocente(id, data).then(function () {
-      B.closeModal('modalEditDocente');
-      B.showToast('\u2713 Docente actualizado');
-      renderDocentes();
-    }).catch(function () {
-      B.showToast('Error al guardar cambios', true);
-    });
   });
 
+  /* ── Cancelar ── */
   document.addEventListener('click', function (e) {
-    if (e.target.closest('#btnCancelEditDocente')) B.closeModal('modalEditDocente');
+    if (e.target.closest('#btnCancelDocente')) B.closeModal('modalDocente');
+  });
+
+  /* ── Eliminar ── */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-del-doc]');
+    if (!btn) return;
+    var id = parseInt(btn.dataset.delDoc);
+    B.confirm('\u00BFEliminar este docente?', 'Esto tambi\u00E9n eliminar\u00E1 su cuenta de acceso al sistema', function () {
+      B.apiDeleteDocente(id).then(function () {
+        B.showToast('\u2713 Docente eliminado');
+        B.pageRenderers.docentes();
+      }).catch(function (err) {
+        B.showToast(err.message || 'Error', true);
+      });
+    });
   });
 
 })(window.BiblioApp);

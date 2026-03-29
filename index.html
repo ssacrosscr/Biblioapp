@@ -6,7 +6,7 @@
   <title>LuKiBooks</title>
   <link rel="icon" href="https://www.mep.go.cr/favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=12">
+  <link rel="stylesheet" href="css/main.css?v=13">
 </head>
 <body>
 
@@ -341,17 +341,13 @@
   <div class="ph">
     <div>
       <div class="pt">Docentes</div>
-      <div class="ps">Personal docente y administrativo</div>
+      <div class="ps">Personal docente y administraci&oacute;n de cuentas</div>
     </div>
-    <button class="btn or" id="btnNuevoDocente">+ Nuevo docente</button>
+    <button class="btn primary" id="btnNuevoDocente">+ Nuevo docente</button>
   </div>
-
-  <!-- Stats -->
-  <div class="doc-stats" id="docStats"></div>
-
   <div class="card">
-    <div class="srow">
-      <input class="fi" type="text" placeholder="&#128269;&nbsp; Buscar por nombre o materia..." id="searchDocente" style="flex:1">
+    <div class="srow" style="margin-bottom:16px">
+      <input class="fi" type="text" placeholder="&#128269;&nbsp; Buscar por nombre, usuario o c&eacute;dula..." id="searchDocente" style="flex:1">
       <select class="fi" id="filterDocMateria" style="width:185px">
         <option value="">Todas las materias</option>
         <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
@@ -363,12 +359,13 @@
       <table class="tbl">
         <thead>
           <tr>
-            <th>Docente</th>
+            <th>Usuario</th>
+            <th>Nombre</th>
             <th>C&eacute;dula</th>
             <th>Materia</th>
             <th>Rol</th>
             <th style="text-align:center">Pr&eacute;stamos</th>
-            <th style="text-align:center;width:90px">Acciones</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="docentesBody"></tbody>
@@ -826,19 +823,34 @@
 </div>
 
 <!-- Modal: Nuevo Docente -->
-<!-- Modal: Nuevo Docente -->
+<!-- Modal: Docente (crear y editar) -->
 <div class="modal-overlay" id="modalDocente">
-  <div class="modal" style="width:520px">
-    <div class="modal-title">Nuevo docente</div>
-    <div class="modal-sub">El usuario y contrase&ntilde;a por defecto ser&aacute;n la c&eacute;dula</div>
+  <div class="modal" style="width:560px;max-width:calc(100vw - 32px)">
+    <div class="modal-title" id="modalDocenteTitle">Nuevo docente</div>
+    <div class="modal-sub" id="modalDocenteSub">Complete los datos del docente</div>
+    <input type="hidden" id="d-id">
+    <input type="hidden" id="d-foto-data">
+    <div id="d-foto-wrap" style="text-align:center;margin-bottom:14px">
+      <div class="profile-foto-placeholder" id="d-foto-preview" title="Cambiar foto">&#128100;</div>
+      <input type="file" id="d-foto-input" accept="image/*" style="display:none">
+      <div class="foto-hint">Clic para cambiar foto</div>
+    </div>
     <div class="form-grid">
-      <div class="fg full">
-        <label class="fl">Nombre completo *</label>
-        <input class="fi" type="text" id="d-nombre" placeholder="Apellidos, Nombre" maxlength="200">
+      <div class="fg">
+        <label class="fl">Usuario *</label>
+        <input class="fi" type="text" id="d-usuario" maxlength="50" autocomplete="off" placeholder="nombre de usuario...">
       </div>
       <div class="fg">
-        <label class="fl">C&eacute;dula *</label>
-        <input class="fi" type="text" id="d-cedula" placeholder="1-2345-6789" maxlength="15">
+        <label class="fl">Contrase&ntilde;a <span id="d-pwd-hint" style="font-size:10px;color:var(--text3);font-weight:400">(dejar vac&iacute;o para no cambiar)</span></label>
+        <input class="fi" type="password" id="d-password" maxlength="50" autocomplete="new-password" placeholder="contrase&ntilde;a...">
+      </div>
+      <div class="fg full">
+        <label class="fl">Nombre completo *</label>
+        <input class="fi" type="text" id="d-nombre" maxlength="200" placeholder="Apellidos, Nombre">
+      </div>
+      <div class="fg">
+        <label class="fl">C&eacute;dula</label>
+        <input class="fi" type="text" id="d-cedula" maxlength="15" placeholder="1-2345-6789">
       </div>
       <div class="fg">
         <label class="fl">Materia</label>
@@ -855,92 +867,10 @@
           <option value="bibliotecologo">Bibliotecologo</option>
         </select>
       </div>
-      <div class="fg">
-        <label class="fl">Usuario (login)</label>
-        <input class="fi" type="text" id="d-usuario" placeholder="Por defecto: c&eacute;dula" maxlength="50">
-      </div>
-      <div class="fg">
-        <label class="fl">Contrase&ntilde;a inicial</label>
-        <input class="fi" type="password" id="d-password" placeholder="Por defecto: c&eacute;dula">
-      </div>
     </div>
     <div class="mf">
       <button class="btn" id="btnCancelDocente">Cancelar</button>
-      <button class="btn primary" id="btnGuardarDocente">&#10003;&nbsp; Registrar docente</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Editar Docente -->
-<div class="modal-overlay" id="modalEditDocente">
-  <div class="modal ded-modal">
-
-    <!-- Cabecera con foto de perfil -->
-    <div class="ded-header">
-      <div class="ded-foto-wrap">
-        <div class="ded-foto" id="dedFotoEl"></div>
-        <button class="ded-foto-btn" id="dedBtnFoto" type="button" title="Cambiar foto">&#128247;</button>
-        <input type="file" id="ded-foto-input" accept="image/*" style="display:none">
-      </div>
-      <div class="ded-header-info">
-        <div class="ded-hname" id="dedHName">—</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
-          <span class="ded-hbadge" id="dedHBadge">Docente</span>
-          <span class="ded-huser" id="dedLoginUser">@—</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Cuerpo -->
-    <div class="ded-body">
-      <input type="hidden" id="ded-id">
-      <div class="form-grid">
-        <div class="fg full">
-          <label class="fl">Nombre completo *</label>
-          <input class="fi" type="text" id="ded-nombre" maxlength="200">
-        </div>
-        <div class="fg">
-          <label class="fl">C&eacute;dula</label>
-          <input class="fi" type="text" id="ded-cedula" maxlength="15">
-        </div>
-        <div class="fg">
-          <label class="fl">Usuario de acceso</label>
-          <input class="fi" type="text" id="ded-usuario" maxlength="50" placeholder="nombre de usuario..." autocomplete="off">
-        </div>
-        <div class="fg">
-          <label class="fl">Materia</label>
-          <select class="fi" id="ded-materia">
-            <option>Matem&aacute;ticas</option><option>Espa&ntilde;ol</option>
-            <option>Ciencias</option><option>Estudios Sociales</option>
-            <option>Ingl&eacute;s</option><option>Otro</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label class="fl">Rol del sistema</label>
-          <select class="fi" id="ded-rol">
-            <option value="docente">Docente</option>
-            <option value="bibliotecologo">Bibliotecologo</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Sección contraseña -->
-      <div class="ded-pwd-section">
-        <div class="ded-pwd-title">
-          &#128274;&nbsp; Cambiar contrase&ntilde;a
-          <span class="ded-pwd-hint">Dejar vac&iacute;o para no modificar</span>
-        </div>
-        <div style="position:relative">
-          <input class="fi" type="password" id="ded-password" placeholder="Nueva contrase&ntilde;a..." style="width:100%;box-sizing:border-box;padding-right:44px">
-          <button type="button" class="ded-pwd-eye" id="dedPwdEye" title="Mostrar/ocultar">&#128065;</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="ded-footer">
-      <button class="btn" id="btnCancelEditDocente">Cancelar</button>
-      <button class="btn primary" id="btnGuardarEditDocente">&#10003;&nbsp; Guardar cambios</button>
+      <button class="btn primary" id="btnGuardarDocente">Guardar</button>
     </div>
   </div>
 </div>

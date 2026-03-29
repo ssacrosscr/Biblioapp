@@ -439,6 +439,23 @@ app.put('/api/docentes/:id', auth, biblioOnly, async (req, res) => {
   }
 });
 
+app.delete('/api/docentes/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const docente = await db.collection('docentes').findOne({ id });
+    if (!docente) return res.status(404).json({ error: 'Docente no encontrado' });
+
+    // Eliminar usuario vinculado si existe
+    if (docente.usuarioId) {
+      await db.collection('usuarios').deleteOne({ id: docente.usuarioId });
+    }
+    await db.collection('docentes').deleteOne({ id });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ════════════════════════════════════════════════════════════
 //  PRÉSTAMOS
 // ════════════════════════════════════════════════════════════

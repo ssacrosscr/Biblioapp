@@ -130,6 +130,12 @@ window.BiblioApp = window.BiblioApp || {};
     });
   };
 
+  B.apiDeleteDocente = function (id) {
+    return request('DELETE', '/docentes/' + id).then(function () {
+      B.docentes = B.docentes.filter(function (d) { return d.id !== id; });
+    });
+  };
+
   B.apiEditDocente = function (id, data) {
     return request('PUT', '/docentes/' + id, data).then(function (updated) {
       var idx = B.docentes.findIndex(function (d) { return d.id === id; });
