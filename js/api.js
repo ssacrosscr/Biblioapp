@@ -128,6 +128,14 @@ window.BiblioApp = window.BiblioApp || {};
     });
   };
 
+  B.apiEditDocente = function (id, data) {
+    return request('PUT', '/docentes/' + id, data).then(function (updated) {
+      var idx = B.docentes.findIndex(function (d) { return d.id === id; });
+      if (idx >= 0) B.docentes[idx] = updated;
+      return updated;
+    });
+  };
+
   /* ── Préstamos ── */
   B.apiAddPrestamo = function (prest) {
     return request('POST', '/prestamos', prest).then(function (saved) {

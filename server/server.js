@@ -329,21 +329,97 @@ app.get('/api/docentes', auth, biblioOnly, async (req, res) => {
 
 app.post('/api/docentes', auth, biblioOnly, async (req, res) => {
   try {
-    const { nombre, cedula, materia } = req.body;
+    const { nombre, cedula, materia, usuario, password, rol } = req.body;
     if (!nombre || !cedula) return res.status(400).json({ error: 'Nombre y cédula son requeridos' });
+
     const counter = await db.collection('counters').findOneAndUpdate(
       { _id: 'docentes' },
       { $inc: { seq: 1 } },
       { returnDocument: 'after', upsert: true }
     );
+
+    const finalRol = (rol === 'bibliotecologo') ? 'bibliotecologo' : 'docente';
+    const loginUser = usuario ? String(usuario).trim() : String(cedula).trim();
+    const loginPass = password ? String(password).trim() : String(cedula).trim();
+
+    // Crear cuenta de usuario vinculada (usa cédula como usuario/contraseña por defecto)
+    let usuarioId = null;
+    const existing = await db.collection('usuarios').findOne({ usuario: loginUser });
+    if (!existing) {
+      const uCounter = await db.collection('counters').findOneAndUpdate(
+        { _id: 'usuarios' },
+        { $inc: { seq: 1 } },
+        { returnDocument: 'after', upsert: true }
+      );
+      const hash = await bcrypt.hash(loginPass, 10);
+      const newUser = { id: uCounter.seq, usuario: loginUser, password: hash, nombre: String(nombre).slice(0, 200), rol: finalRol };
+      await db.collection('usuarios').insertOne(newUser);
+      usuarioId = uCounter.seq;
+    } else {
+      usuarioId = existing.id;
+    }
+
     const doc = {
-      id:      counter.seq,
-      nombre:  String(nombre).slice(0, 200),
-      cedula:  String(cedula).slice(0, 30),
-      materia: materia ? String(materia).slice(0, 100) : 'Otro',
+      id:        counter.seq,
+      nombre:    String(nombre).slice(0, 200),
+      cedula:    String(cedula).slice(0, 30),
+      materia:   materia ? String(materia).slice(0, 100) : 'Otro',
+      usuarioId: usuarioId,
     };
     await db.collection('docentes').insertOne(doc);
     res.status(201).json(toClient(doc));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/docentes/:id', auth, biblioOnly, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { nombre, cedula, materia, foto, password, rol } = req.body;
+
+    const docente = await db.collection('docentes').findOne({ id });
+    if (!docente) return res.status(404).json({ error: 'Docente no encontrado' });
+
+    // Actualizar campos del docente
+    const docUpdate = {};
+    if (nombre)              docUpdate.nombre  = String(nombre).slice(0, 200);
+    if (cedula)              docUpdate.cedula  = String(cedula).slice(0, 30);
+    if (materia)             docUpdate.materia = String(materia).slice(0, 100);
+    if (foto !== undefined)  docUpdate.foto    = foto ? String(foto).slice(0, 7000000) : '';
+    if (Object.keys(docUpdate).length > 0) {
+      await db.collection('docentes').updateOne({ id }, { $set: docUpdate });
+    }
+
+    // Actualizar usuario vinculado
+    const userUpdate = {};
+    if (nombre)   userUpdate.nombre = String(nombre).slice(0, 200);
+    if (foto !== undefined) userUpdate.foto = foto ? String(foto).slice(0, 7000000) : '';
+    if (password && String(password).trim().length >= 4) {
+      userUpdate.password = await bcrypt.hash(String(password).trim(), 10);
+    }
+    if (rol && rol !== 'admin') {
+      userUpdate.rol = (rol === 'bibliotecologo') ? 'bibliotecologo' : 'docente';
+    }
+
+    if (Object.keys(userUpdate).length > 0) {
+      // Buscar por usuarioId almacenado, o por nombre+rol como fallback
+      let userQuery = docente.usuarioId
+        ? { id: docente.usuarioId }
+        : { nombre: docente.nombre, rol: { $in: ['docente', 'bibliotecologo'] } };
+      await db.collection('usuarios').updateOne(userQuery, { $set: userUpdate });
+
+      // Guardar usuarioId si aún no estaba almacenado
+      if (!docente.usuarioId) {
+        const linkedUser = await db.collection('usuarios').findOne(userQuery);
+        if (linkedUser) {
+          await db.collection('docentes').updateOne({ id }, { $set: { usuarioId: linkedUser.id } });
+        }
+      }
+    }
+
+    const updated = await db.collection('docentes').findOne({ id });
+    res.json(toClient(updated));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
