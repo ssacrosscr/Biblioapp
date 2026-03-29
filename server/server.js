@@ -376,7 +376,7 @@ app.post('/api/docentes', auth, biblioOnly, async (req, res) => {
 app.put('/api/docentes/:id', auth, biblioOnly, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { nombre, cedula, materia, foto, password, rol } = req.body;
+    const { nombre, cedula, materia, foto, password, rol, usuario } = req.body;
 
     const docente = await db.collection('docentes').findOne({ id });
     if (!docente) return res.status(404).json({ error: 'Docente no encontrado' });
@@ -400,6 +400,20 @@ app.put('/api/docentes/:id', auth, biblioOnly, async (req, res) => {
     }
     if (rol && rol !== 'admin') {
       userUpdate.rol = (rol === 'bibliotecologo') ? 'bibliotecologo' : 'docente';
+    }
+    if (usuario && String(usuario).trim().length >= 3) {
+      const newUser = String(usuario).trim().slice(0, 50);
+      // Check uniqueness (exclude the linked user itself)
+      const userQuery2 = docente.usuarioId
+        ? { id: docente.usuarioId }
+        : { nombre: docente.nombre, rol: { $in: ['docente', 'bibliotecologo'] } };
+      const linkedUser2 = await db.collection('usuarios').findOne(userQuery2);
+      const taken = await db.collection('usuarios').findOne({
+        usuario: newUser,
+        ...(linkedUser2 ? { id: { $ne: linkedUser2.id } } : {})
+      });
+      if (taken) return res.status(409).json({ error: 'Ese nombre de usuario ya est\u00E1 en uso' });
+      userUpdate.usuario = newUser;
     }
 
     if (Object.keys(userUpdate).length > 0) {

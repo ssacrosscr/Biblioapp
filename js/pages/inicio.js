@@ -134,9 +134,13 @@
     if (isNaN(id)) return;
     var p = B.prestamos.find(function (x) { return x.id === id; });
     if (p) {
-      p.dev = true;
-      B.showToast('\u2713 Devoluci\u00F3n registrada');
-      B.pageRenderers.inicio();
+      B.apiUpdatePrestamo(id, { dev: true, fechaDev: new Date().toISOString().slice(0, 10) })
+        .then(function () {
+          p.dev = true;
+          B.showToast('\u2713 Devoluci\u00F3n registrada');
+          B.pageRenderers.inicio();
+        })
+        .catch(function () { B.showToast('Error al registrar devoluci\u00F3n', true); });
     }
   });
 

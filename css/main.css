@@ -2476,3 +2476,49 @@ input, select, textarea { font-family: inherit; }
   .vis-filter-bar .ml-auto { margin-left: 0; }
   #visStatsResumen { gap: 12px; }
 }
+
+/* ── Responsive adicional ── */
+
+/* Solicitar: carrito encima del catálogo en móvil */
+@media (max-width: 900px) {
+  .solicitar-layout { grid-template-columns: 1fr; }
+  .cart-sidebar { order: -1; position: static; max-height: none; }
+}
+
+/* Sol-metrics 1 columna en pantallas muy pequeñas */
+@media (max-width: 420px) {
+  .sol-metrics { grid-template-columns: 1fr; gap: 10px; }
+  .vis-metrics { grid-template-columns: 1fr; gap: 10px; }
+}
+
+/* Doc-stats: columna en móvil */
+@media (max-width: 480px) {
+  .doc-stats { flex-direction: column; }
+  .doc-stat-card { flex: none; width: 100%; min-width: 0; }
+}
+
+/* Modal editar docente: header apilado en pantallas estrechas */
+@media (max-width: 480px) {
+  .ded-modal { width: calc(100vw - 20px) !important; }
+  .ded-header { flex-wrap: wrap; gap: 12px; padding: 18px 18px 16px; }
+  .ded-header-info { min-width: 0; width: 100%; }
+  .ded-hname { font-size: 15px; }
+  .ded-body { padding: 16px 18px 0; }
+  .ded-footer { padding: 14px 18px 16px; }
+}
+
+/* Modal editar libro: sin altura fija en landscape móvil */
+@media (max-width: 660px) {
+  .el-libro-modal { height: auto !important; max-height: 95vh; }
+}
+
+/* Tablas: scroll horizontal en móvil */
+@media (max-width: 700px) {
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* Topbar en pantallas muy pequeñas */
+@media (max-width: 380px) {
+  .alert-pill { display: none; }
+  .logo-name { font-size: 14px; }
+}

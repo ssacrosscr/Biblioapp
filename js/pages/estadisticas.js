@@ -117,7 +117,7 @@
     var rows = [
       ['Total de ejemplares',      totEj,               false],
       ['T\u00EDtulos en cat\u00E1logo', B.libros.length, false],
-      ['Estudiantes registrados',   B.estudiantes.length, false],
+      ['Estudiantes registrados',   (B.estudiantes || []).length, false],
       ['Docentes registrados',      B.docentes.length,    false],
       ['Vencidos sin devolver',     ve,                   true],
     ];

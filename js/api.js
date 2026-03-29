@@ -111,7 +111,7 @@ window.BiblioApp = window.BiblioApp || {};
   B.apiEditLibro = function (id, data) {
     return request('PUT', '/libros/' + id, data).then(function (saved) {
       var idx = B.libros.findIndex(function (l) { return l.id === id; });
-      if (idx !== -1) Object.assign(B.libros[idx], data);
+      if (idx !== -1) Object.assign(B.libros[idx], saved);
       return saved;
     });
   };

@@ -479,11 +479,11 @@ window.BiblioApp = window.BiblioApp || {};
     var cantidad  = parseInt(($('vis-cantidad') || {}).value, 10) || 0;
     var obs       = (($('vis-observaciones')    || {}).value || '').trim();
 
-    if (!docenteId) return alert('Seleccione un docente.');
-    if (!seccion)   return alert('Ingrese la sección.');
-    if (!fecha)     return alert('Ingrese la fecha.');
-    if (!entrada)   return alert('Ingrese la hora de entrada.');
-    if (!cantidad || cantidad < 1) return alert('Ingrese la cantidad de estudiantes.');
+    if (!docenteId) { B.showToast('Seleccione un docente.', true); return; }
+    if (!seccion)   { B.showToast('Ingrese la secci\u00F3n.', true); return; }
+    if (!fecha)     { B.showToast('Ingrese la fecha.', true); return; }
+    if (!entrada)   { B.showToast('Ingrese la hora de entrada.', true); return; }
+    if (!cantidad || cantidad < 1) { B.showToast('Ingrese la cantidad de estudiantes.', true); return; }
 
     var data = {
       docenteId: docenteId, seccion: seccion, fecha: fecha,
@@ -499,7 +499,7 @@ window.BiblioApp = window.BiblioApp || {};
       cerrarModal('modalVisita');
       cargar();
     }).catch(function(err) {
-      alert('Error: ' + err.message);
+      B.showToast('Error: ' + err.message, true);
     }).finally(function() { if (btn) btn.disabled = false; });
   }
 
@@ -527,11 +527,12 @@ window.BiblioApp = window.BiblioApp || {};
 
   function guardarSalida() {
     var hora = ($('salida-hora') || {}).value || '';
-    if (!hora) return alert('Ingrese la hora de salida.');
+    if (!hora) { B.showToast('Ingrese la hora de salida.', true); return; }
 
     var v = _visitas.find(function(x){ return x.id === _salidaId; });
     if (v && v.horaEntrada && hora <= v.horaEntrada) {
-      return alert('La hora de salida debe ser posterior a la entrada (' + v.horaEntrada + ').');
+      B.showToast('La hora de salida debe ser posterior a la entrada (' + v.horaEntrada + ').', true);
+      return;
     }
 
     var btn = $('btnGuardarSalida');
@@ -539,16 +540,16 @@ window.BiblioApp = window.BiblioApp || {};
 
     B.apiEditVisita(_salidaId, { horaSalida: hora, estado: 'completado' })
       .then(function() { cerrarModal('modalSalida'); cargar(); })
-      .catch(function(err) { alert('Error: ' + err.message); })
+      .catch(function(err) { B.showToast('Error: ' + err.message, true); })
       .finally(function() { if (btn) btn.disabled = false; });
   }
 
   /* ── helpers ── */
   function eliminarVisita(id) {
-    if (!confirm('¿Eliminar este registro?')) return;
+    if (!window.confirm('\u00BFEliminar este registro?')) return;
     B.apiDeleteVisita(id)
       .then(function() { cargar(); })
-      .catch(function(err) { alert('Error: ' + err.message); });
+      .catch(function(err) { B.showToast('Error: ' + err.message, true); });
   }
 
   function cerrarModal(id) { var m = $(id); if (m) m.classList.remove('active'); }

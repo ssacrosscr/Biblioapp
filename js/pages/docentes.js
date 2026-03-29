@@ -204,12 +204,16 @@
     var badge = B.$('dedHBadge');
     if (badge) { badge.textContent = rol === 'bibliotecologo' ? 'Bibliotecologo' : 'Docente'; }
 
-    /* Mostrar usuario de login */
+    /* Mostrar usuario de login en header */
     var loginEl = B.$('dedLoginUser');
     if (loginEl) {
       loginEl.textContent = uLinked ? ('@' + uLinked.usuario) : '(sin cuenta vinculada)';
       loginEl.style.opacity = uLinked ? '1' : '0.5';
     }
+
+    /* Poblar campo editable de usuario */
+    var usuarioInput = B.$('ded-usuario');
+    if (usuarioInput) usuarioInput.value = uLinked ? uLinked.usuario : '';
 
     B.openModal('modalEditDocente');
   });
@@ -273,10 +277,11 @@
     if (!nombre) { B.showToast('El nombre es requerido', true); return; }
 
     var data = {
-      nombre:  nombre,
-      cedula:  cedula,
-      materia: B.val('ded-materia') || 'Otro',
-      rol:     B.val('ded-rol') || 'docente',
+      nombre:   nombre,
+      cedula:   cedula,
+      materia:  B.val('ded-materia') || 'Otro',
+      rol:      B.val('ded-rol') || 'docente',
+      usuario:  B.cleanInput(B.val('ded-usuario'), 50),
     };
 
     /* Contraseña */
