@@ -630,7 +630,7 @@
         <div class="lp-logo-wrap">
           <div class="lp-logo-box" id="lpLogoBox">
             <div class="lp-logo-inner">
-              <img src="img/logo.png" alt="LuKiBooks"
+              <img src="img/logo.png" alt="LuKiBooks" style="width:100%;height:100%;object-fit:cover;display:block"
                    onerror="this.style.display='none';this.parentElement.innerHTML='<span style=font-size:30px>📚</span>'">
             </div>
           </div>
@@ -1562,9 +1562,11 @@
       if (!cfg) return;
 
       if (cfg.logo) {
-        var img = '<img style="width:100%;height:100%;object-fit:contain" src="' + cfg.logo + '" alt="Logo">';
         var box = document.getElementById('lpLogoBox');
-        if (box) box.innerHTML = img;
+        if (box) {
+          var inner = box.querySelector('.lp-logo-inner');
+          if (inner) inner.innerHTML = '<img src="' + cfg.logo + '" alt="Logo" style="width:100%;height:100%;object-fit:cover;display:block">';
+        }
       }
 
       if (cfg.favicon) {

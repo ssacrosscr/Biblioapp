@@ -231,11 +231,9 @@
     if (!cfg) return;
     /* Logo en topbar */
     var logoWrap = B.$('topbarLogoWrap');
-    var logoImg = B.$('topbarLogo');
     if (cfg.logo && logoWrap) {
-      logoWrap.innerHTML = '<img id="topbarLogo" class="logo-neon" src="' + cfg.logo + '" alt="Logo">';
-    } else if (logoImg && !cfg.logo) {
-      /* mantener el default */
+      var inner = logoWrap.querySelector('.logo-mep-inner');
+      if (inner) inner.innerHTML = '<img src="' + cfg.logo + '" alt="Logo" style="width:100%;height:100%;object-fit:cover;display:block">';
     }
 
     /* Favicon */
