@@ -883,10 +883,10 @@ input, select, textarea { font-family: inherit; }
 .el-libro-modal {
   border-radius: 20px !important;
   overflow: hidden !important;
-  width: 820px !important;
+  width: 860px !important;
   max-width: calc(100vw - 40px) !important;
-  height: 560px !important;
-  max-height: 92vh !important;
+  height: 520px !important;
+  max-height: 90vh !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: stretch !important;
@@ -896,15 +896,15 @@ input, select, textarea { font-family: inherit; }
 
 /* ── PANEL IZQUIERDO (portada) ── */
 .elp-left {
-  flex: 0 0 200px !important;   /* NO crece ni encoge — siempre 200px */
-  width: 200px !important;
-  max-width: 200px !important;
-  min-width: 200px !important;
+  flex: 0 0 260px !important;
+  width: 260px !important;
+  max-width: 260px !important;
+  min-width: 260px !important;
   background: linear-gradient(175deg, #05091a 0%, #0d1f5c 55%, #1535a0 100%) !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center;
-  padding: 26px 14px 18px;
+  padding: 24px 20px 18px;
   position: relative;
   overflow: hidden;
   box-sizing: border-box !important;
@@ -1007,7 +1007,7 @@ input, select, textarea { font-family: inherit; }
   flex-shrink: 0 !important;
   background: #f4f7ff !important;
   border-bottom: 1.5px solid #dde5f6;
-  padding: 18px 24px 14px;
+  padding: 14px 24px 12px;
 }
 .elp-header-tag {
   display: inline-flex;
@@ -1046,7 +1046,7 @@ input, select, textarea { font-family: inherit; }
   flex: 1 1 0 !important;
   min-height: 0 !important;
   overflow-y: auto !important;
-  padding: 18px 24px 6px;
+  padding: 14px 24px 4px;
 }
 .elp-section-label {
   font-size: 10px;
@@ -1154,8 +1154,8 @@ input, select, textarea { font-family: inherit; }
 
 /* Portada con efecto libro 3D */
 .el-cover-wrap {
-  width: 130px;
-  height: 172px;
+  width: 152px;
+  height: 200px;
   border-radius: 4px 10px 10px 4px;
   overflow: hidden;
   cursor: pointer;
