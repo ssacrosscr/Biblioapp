@@ -75,34 +75,58 @@ input, select, textarea { font-family: inherit; }
 }
 .logo { display: flex; align-items: center; gap: 14px; }
 .logo-mep {
-  width: 48px; height: 48px;
+  width: 52px; height: 52px;
   border-radius: 50%;
-  background: transparent;
   flex-shrink: 0;
   display: inline-flex; align-items: center; justify-content: center;
   position: relative;
   overflow: visible;
-  box-shadow: 0 0 0 2px rgba(0,220,255,.95),
-              0 0 10px 3px rgba(0,200,255,.7),
-              0 0 22px 6px rgba(0,160,255,.4),
-              0 0 45px 10px rgba(0,100,255,.2),
-              0 10px 30px rgba(0,0,0,.5);
+  /* Halo suave de fondo */
+  filter: drop-shadow(0 0 8px rgba(0,200,255,.7)) drop-shadow(0 0 20px rgba(0,160,255,.4));
   animation: logo-topbar-pulse 3.5s ease-in-out infinite;
 }
+/* Anillo giratorio exterior con gradiente */
+.logo-mep::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(0,220,255,1)   0%,
+    rgba(80,255,220,.6) 25%,
+    rgba(255,220,80,.9) 50%,
+    rgba(0,180,255,.7)  75%,
+    rgba(0,220,255,1)   100%
+  );
+  animation: logo-ring-spin 4s linear infinite;
+  z-index: 0;
+}
+/* Separación entre anillo y logo */
+.logo-mep::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 50%;
+  background: #001535;
+  z-index: 1;
+}
+@keyframes logo-ring-spin {
+  to { transform: rotate(360deg); }
+}
 @keyframes logo-topbar-pulse {
-  0%,100% { box-shadow: 0 0 0 2px rgba(0,220,255,.85), 0 0 8px 2px rgba(0,200,255,.55), 0 0 18px 5px rgba(0,160,255,.3), 0 10px 30px rgba(0,0,0,.5); }
-  50%      { box-shadow: 0 0 0 2px rgba(0,220,255,1),   0 0 14px 4px rgba(0,220,255,.9), 0 0 38px 10px rgba(0,180,255,.55), 0 10px 30px rgba(0,0,0,.5); }
+  0%,100% { filter: drop-shadow(0 0 6px rgba(0,200,255,.6))  drop-shadow(0 0 16px rgba(0,140,255,.3)); }
+  50%      { filter: drop-shadow(0 0 12px rgba(0,220,255,.95)) drop-shadow(0 0 28px rgba(0,180,255,.55)); }
 }
 .logo-mep-inner {
-  width: 100%; height: 100%;
+  width: calc(100% - 8px); height: calc(100% - 8px);
   border-radius: 50%;
   overflow: hidden;
   background: transparent;
   display: flex; align-items: center; justify-content: center;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
-.logo-mep-inner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.logo-mep-inner img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
 .logo-name {
   font-family: var(--font-head);
   font-size: 20px; color: white;

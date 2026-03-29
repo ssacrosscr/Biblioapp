@@ -293,18 +293,49 @@
       background: transparent;
       border-radius: 50%;
       overflow: visible;
-      animation: logo-float 4s ease-in-out infinite;
-      box-shadow: 0 0 0 2px rgba(0,220,255,.95), 0 0 10px 3px rgba(0,200,255,.7), 0 0 22px 6px rgba(0,160,255,.4), 0 0 45px 10px rgba(0,100,255,.2), 0 10px 30px rgba(0,0,0,.5);
+      filter: drop-shadow(0 0 12px rgba(0,200,255,.7)) drop-shadow(0 0 28px rgba(0,160,255,.4));
+      animation: logo-float 4s ease-in-out infinite, logo-halo-pulse 3.5s ease-in-out infinite;
+    }
+    /* Anillo giratorio */
+    .lp-logo-box::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: conic-gradient(
+        rgba(0,220,255,1)   0%,
+        rgba(80,255,220,.6) 25%,
+        rgba(255,220,80,.9) 50%,
+        rgba(0,180,255,.7)  75%,
+        rgba(0,220,255,1)   100%
+      );
+      animation: logo-ring-spin 4s linear infinite;
+      z-index: 0;
+    }
+    /* Separador oscuro entre anillo y logo */
+    .lp-logo-box::after {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border-radius: 50%;
+      background: #000d22;
+      z-index: 1;
     }
     @keyframes logo-float {
       0%,100% { transform: translateY(0);   }
       50%      { transform: translateY(-7px); }
     }
-    .lp-logo-box::before, .lp-logo-box::after { display: none; }
+    @keyframes logo-ring-spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes logo-halo-pulse {
+      0%,100% { filter: drop-shadow(0 0 10px rgba(0,200,255,.6))  drop-shadow(0 0 22px rgba(0,140,255,.3)); }
+      50%      { filter: drop-shadow(0 0 18px rgba(0,220,255,.95)) drop-shadow(0 0 40px rgba(0,180,255,.55)); }
+    }
 
     /* Contenedor circular interior — recorta y rellena */
     .lp-logo-inner {
-      width: 100%; height: 100%;
+      width: calc(100% - 12px); height: calc(100% - 12px);
       border-radius: 50%;
       overflow: hidden;
       background: transparent;
@@ -312,12 +343,13 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      z-index: 1;
+      z-index: 2;
     }
     .lp-logo-inner img {
       width: 100%; height: 100%;
       object-fit: cover;
       display: block;
+      border-radius: 50%;
     }
 
     /* Nombre de marca */
