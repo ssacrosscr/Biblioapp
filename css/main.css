@@ -875,6 +875,31 @@ input, select, textarea { font-family: inherit; }
 }
 .preview-card { text-align: center; padding: 22px; }
 
+/* Sección de portada en modal Editar libro */
+.el-portada-section {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+.el-portada-preview-wrap { flex-shrink: 0; }
+.el-portada-actions { flex: 1; min-width: 0; }
+.el-portada-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text1);
+  margin-bottom: 4px;
+}
+.el-portada-hint {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.4;
+}
+
 /* ── SUMMARY ROW (stats) ── */
 .summary-row {
   display: flex; justify-content: space-between;

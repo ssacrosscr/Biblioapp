@@ -109,6 +109,86 @@
     if (e.target.id === 'filterMateria') renderCatalogo();
   });
 
+  /* ── Portada en modal editar ── */
+  var elPortadaBase64 = '';
+
+  function elUpdatePreview() {
+    var w = B.$('elPreviewWrap');
+    if (!w) return;
+    var id  = parseInt(B.$('el-id').value) || 0;
+    var lib = B.getLibro(id);
+    var src = elPortadaBase64 || (lib && lib.portada) || '';
+    if (src) {
+      w.innerHTML = '<div id="elPreviewOverlay" style="display:none;position:absolute;inset:0;'
+        + 'background:rgba(0,0,0,.52);border-radius:10px;align-items:center;justify-content:center;'
+        + 'flex-direction:column;gap:4px;color:#fff;font-size:11px;font-weight:700;z-index:2;">'
+        + '<span style="font-size:20px">&#128247;</span>Cambiar foto</div>'
+        + '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:10px">';
+    } else if (lib) {
+      w.innerHTML = '<div id="elPreviewOverlay" style="display:none;position:absolute;inset:0;'
+        + 'background:rgba(0,0,0,.52);border-radius:10px;align-items:center;justify-content:center;'
+        + 'flex-direction:column;gap:4px;color:#fff;font-size:11px;font-weight:700;z-index:2;">'
+        + '<span style="font-size:20px">&#128247;</span>Subir foto</div>'
+        + B.cover(lib, 120, 158);
+    }
+    var qBtn = B.$('elBtnQuitarPortada');
+    if (qBtn) qBtn.style.display = src ? '' : 'none';
+  }
+
+  /* Hover overlay en preview */
+  document.addEventListener('mouseover', function (e) {
+    var w = e.target.closest('#elPreviewWrap');
+    if (!w) return;
+    var ov = w.querySelector('#elPreviewOverlay');
+    if (ov) ov.style.display = 'flex';
+  });
+  document.addEventListener('mouseout', function (e) {
+    var w = e.target.closest('#elPreviewWrap');
+    if (!w) return;
+    var ov = w.querySelector('#elPreviewOverlay');
+    if (ov) ov.style.display = 'none';
+  });
+
+  /* Clic preview o botón → abrir file picker */
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#elPreviewWrap') || e.target.closest('#elBtnSubirPortada')) {
+      var inp = B.$('el-portada-input');
+      if (inp) inp.click();
+    }
+  });
+
+  /* Quitar foto */
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#elBtnQuitarPortada')) return;
+    elPortadaBase64 = '';
+    var dataEl = B.$('el-portada-data');
+    if (dataEl) dataEl.value = '';
+    var inp = B.$('el-portada-input');
+    if (inp) inp.value = '';
+    elUpdatePreview();
+  });
+
+  /* Leer archivo */
+  document.addEventListener('change', function (e) {
+    if (e.target.id !== 'el-portada-input') return;
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      B.showToast('La imagen no debe superar 5 MB', true);
+      e.target.value = '';
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      elPortadaBase64 = ev.target.result;
+      var dataEl = B.$('el-portada-data');
+      if (dataEl) dataEl.value = elPortadaBase64;
+      elUpdatePreview();
+      B.showToast('\u2713 Foto cargada');
+    };
+    reader.readAsDataURL(file);
+  });
+
   /* Editar libro */
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-edit-libro]');
@@ -117,14 +197,20 @@
     var id = parseInt(btn.getAttribute('data-edit-libro'));
     var l = B.getLibro(id);
     if (!l) return;
-    B.$('el-id').value = id;
-    B.$('el-titulo').value = l.titulo;
-    B.$('el-autor').value = l.autor || '';
-    B.$('el-isbn').value = l.isbn || '';
-    B.$('el-materia').value = l.materia;
-    B.$('el-nivel').value = l.nivel || '';
+    elPortadaBase64 = '';
+    B.$('el-id').value        = id;
+    B.$('el-titulo').value    = l.titulo;
+    B.$('el-autor').value     = l.autor || '';
+    B.$('el-isbn').value      = l.isbn || '';
+    B.$('el-materia').value   = l.materia;
+    B.$('el-nivel').value     = l.nivel || '';
     B.$('el-ejemplares').value = l.ejemplares;
-    B.$('el-editorial').value = l.editorial || '';
+    B.$('el-editorial').value  = l.editorial || '';
+    var dataEl = B.$('el-portada-data');
+    if (dataEl) dataEl.value = '';
+    var inp = B.$('el-portada-input');
+    if (inp) inp.value = '';
+    elUpdatePreview();
     B.openModal('modalEditLibro');
   });
 
@@ -138,14 +224,19 @@
       B.showToast('T\u00EDtulo y materia son obligatorios', true);
       return;
     }
+    var l = B.getLibro(id);
     var data = {
-      titulo: titulo,
-      autor: B.cleanInput(B.val('el-autor'), 200),
-      isbn: B.cleanInput(B.val('el-isbn'), 30),
-      materia: materia,
-      nivel: B.val('el-nivel') || 'General',
+      titulo:    titulo,
+      autor:     B.cleanInput(B.val('el-autor'), 200),
+      isbn:      B.cleanInput(B.val('el-isbn'), 30),
+      materia:   materia,
+      nivel:     B.val('el-nivel') || 'General',
       ejemplares: Math.max(0, B.valNum('el-ejemplares')),
       editorial: B.cleanInput(B.val('el-editorial'), 200),
+      /* Si se subió foto nueva, usarla; si se quitó (dataEl vacío y había portada), borrarla */
+      portada:   elPortadaBase64 !== ''
+                   ? elPortadaBase64
+                   : (B.$('el-portada-data').value === '' && l && l.portada ? '' : (l && l.portada || '')),
     };
     B.apiEditLibro(id, data).then(function () {
       B.closeModal('modalEditLibro');
