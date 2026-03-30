@@ -149,12 +149,7 @@ app.put('/api/mi-perfil', auth, async (req, res) => {
     if (req.body.nombre) update.nombre = req.body.nombre;
     if (req.body.password) update.password = await bcrypt.hash(req.body.password, 10);
     if (req.body.foto !== undefined) update.foto = req.body.foto;
-    // Admin no puede quitarse su propio rol
-    if (req.body.rol && req.user.rol === 'admin') {
-      // Ignorar cambio de rol para admin editándose a sí mismo
-    } else if (req.body.rol) {
-      update.rol = req.body.rol;
-    }
+    // El rol solo puede cambiarse desde /api/usuarios/:id por un admin — nunca desde mi-perfil
     if (Object.keys(update).length === 0) {
       return res.status(400).json({ error: 'Nada que actualizar' });
     }
@@ -207,16 +202,33 @@ app.post('/api/usuarios', auth, adminOnly, async (req, res) => {
 app.put('/api/usuarios/:id', auth, biblioOnly, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const update = { ...req.body };
-    // Proteger: admin no puede quitarse su propio rol
-    if (id === req.user.id && req.user.rol === 'admin' && update.rol && update.rol !== 'admin') {
-      return res.status(400).json({ error: 'No puede quitarse el rol de administrador' });
+    const { nombre, password, rol, foto } = req.body;
+
+    // Whitelist — nunca se actualiza id, _id ni usuario directamente
+    const update = {};
+    if (nombre !== undefined) update.nombre = String(nombre).slice(0, 200);
+    if (foto   !== undefined) update.foto   = foto ? String(foto).slice(0, 7000000) : '';
+    if (password && String(password).trim().length >= 1) {
+      update.password = await bcrypt.hash(String(password).trim(), 10);
     }
-    if (update.password) {
-      update.password = await bcrypt.hash(update.password, 10);
+
+    // Solo admin puede cambiar roles
+    if (rol !== undefined) {
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({ error: 'Solo el administrador puede cambiar roles' });
+      }
+      if (!VALID_ROLES.includes(rol)) {
+        return res.status(400).json({ error: 'Rol inválido' });
+      }
+      // Admin no puede quitarse su propio rol
+      if (id === req.user.id && rol !== 'admin') {
+        return res.status(400).json({ error: 'No puede quitarse el rol de administrador' });
+      }
+      update.rol = rol;
     }
-    if (update.rol && VALID_ROLES.indexOf(update.rol) === -1) {
-      update.rol = 'usuario';
+
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ error: 'Nada que actualizar' });
     }
     await db.collection('usuarios').updateOne({ id }, { $set: update });
     const updated = await db.collection('usuarios').findOne({ id });
@@ -332,26 +344,30 @@ app.post('/api/docentes', auth, biblioOnly, async (req, res) => {
     const { nombre, cedula, materia, usuario, password, rol, foto } = req.body;
     if (!nombre || !cedula) return res.status(400).json({ error: 'Nombre y cédula son requeridos' });
 
-    const counter = await db.collection('counters').findOneAndUpdate(
-      { _id: 'docentes' },
-      { $inc: { seq: 1 } },
-      { returnDocument: 'after', upsert: true }
-    );
-
     const finalRol  = (rol === 'bibliotecologo') ? 'bibliotecologo' : 'docente';
     const loginUser = usuario ? String(usuario).trim() : String(cedula).trim();
     const loginPass = password ? String(password).trim() : String(cedula).trim();
     const fotoVal   = foto ? String(foto).slice(0, 7000000) : '';
 
-    // Verificar que el usuario no exista ya
-    const existing = await db.collection('usuarios').findOne({ usuario: loginUser });
-    if (existing) return res.status(409).json({ error: 'El usuario "' + loginUser + '" ya existe. Elija otro nombre de usuario.' });
+    // Validar antes de tocar contadores
+    const cedulaExiste = await db.collection('docentes').findOne({ cedula: String(cedula).trim() });
+    if (cedulaExiste) return res.status(409).json({ error: 'Ya existe un docente con esa cédula' });
 
+    const usuarioExiste = await db.collection('usuarios').findOne({ usuario: loginUser });
+    if (usuarioExiste) return res.status(409).json({ error: 'El usuario "' + loginUser + '" ya existe. Elija otro nombre de usuario.' });
+
+    // Incrementar contadores solo cuando ya sabemos que todo es válido
     const uCounter = await db.collection('counters').findOneAndUpdate(
       { _id: 'usuarios' },
       { $inc: { seq: 1 } },
       { returnDocument: 'after', upsert: true }
     );
+    const dCounter = await db.collection('counters').findOneAndUpdate(
+      { _id: 'docentes' },
+      { $inc: { seq: 1 } },
+      { returnDocument: 'after', upsert: true }
+    );
+
     const hash = await bcrypt.hash(loginPass, 10);
     await db.collection('usuarios').insertOne({
       id: uCounter.seq, usuario: loginUser, password: hash,
@@ -359,9 +375,9 @@ app.post('/api/docentes', auth, biblioOnly, async (req, res) => {
     });
 
     const doc = {
-      id:        counter.seq,
+      id:        dCounter.seq,
       nombre:    String(nombre).slice(0, 200),
-      cedula:    String(cedula).slice(0, 30),
+      cedula:    String(cedula).trim().slice(0, 30),
       materia:   materia ? String(materia).slice(0, 100) : 'Otro',
       foto:      fotoVal,
       usuarioId: uCounter.seq,
@@ -445,7 +461,12 @@ app.delete('/api/docentes/:id', auth, adminOnly, async (req, res) => {
     const docente = await db.collection('docentes').findOne({ id });
     if (!docente) return res.status(404).json({ error: 'Docente no encontrado' });
 
-    // Eliminar usuario vinculado si existe
+    // Bloquear eliminación si tiene préstamos activos
+    const prestamosActivos = await db.collection('prestamos').countDocuments({ pId: id, dev: false });
+    if (prestamosActivos > 0) {
+      return res.status(400).json({ error: 'El docente tiene ' + prestamosActivos + ' préstamo(s) activo(s). Regístrelos como devueltos antes de eliminar.' });
+    }
+
     if (docente.usuarioId) {
       await db.collection('usuarios').deleteOne({ id: docente.usuarioId });
     }
@@ -475,6 +496,19 @@ app.post('/api/prestamos', auth, biblioOnly, async (req, res) => {
     if (!pId || !lId || !fp || !fd) {
       return res.status(400).json({ error: 'Docente, libro y fechas son requeridos' });
     }
+
+    // Verificar que el docente existe
+    const docente = await db.collection('docentes').findOne({ id: parseInt(pId) });
+    if (!docente) return res.status(404).json({ error: 'Docente no encontrado' });
+
+    // Verificar que el libro existe y tiene ejemplares disponibles
+    const libro = await db.collection('libros').findOne({ id: parseInt(lId), eliminado: { $ne: true } });
+    if (!libro) return res.status(404).json({ error: 'Libro no encontrado' });
+    const activos = await db.collection('prestamos').countDocuments({ lId: parseInt(lId), dev: false });
+    if (activos >= libro.ejemplares) {
+      return res.status(400).json({ error: 'No hay ejemplares disponibles de "' + libro.titulo + '"' });
+    }
+
     const counter = await db.collection('counters').findOneAndUpdate(
       { _id: 'prestamos' },
       { $inc: { seq: 1 } },
@@ -487,7 +521,7 @@ app.post('/api/prestamos', auth, biblioOnly, async (req, res) => {
       lId: parseInt(lId),
       fp:  String(fp).slice(0, 30),
       fd:  String(fd).slice(0, 30),
-      dev: dev === true || dev === 'true' ? true : false,
+      dev: dev === true || dev === 'true',
       n:   n ? String(n).slice(0, 300) : '',
     };
     await db.collection('prestamos').insertOne(prest);
@@ -500,12 +534,13 @@ app.post('/api/prestamos', auth, biblioOnly, async (req, res) => {
 app.put('/api/prestamos/:id', auth, biblioOnly, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { dev, fp, fd, n } = req.body;
+    const { dev, fp, fd, n, fechaDev } = req.body;
     const update = {};
-    if (dev !== undefined) update.dev = dev === true || dev === 'true' ? true : false;
-    if (fp  !== undefined) update.fp  = String(fp).slice(0, 30);
-    if (fd  !== undefined) update.fd  = String(fd).slice(0, 30);
-    if (n   !== undefined) update.n   = String(n).slice(0, 300);
+    if (dev     !== undefined) update.dev     = dev === true || dev === 'true';
+    if (fp      !== undefined) update.fp      = String(fp).slice(0, 30);
+    if (fd      !== undefined) update.fd      = String(fd).slice(0, 30);
+    if (n       !== undefined) update.n       = String(n).slice(0, 300);
+    if (fechaDev !== undefined) update.fechaDev = fechaDev ? String(fechaDev).slice(0, 30) : null;
     if (Object.keys(update).length === 0) return res.status(400).json({ error: 'Nada que actualizar' });
     await db.collection('prestamos').updateOne({ id }, { $set: update });
     const updated = await db.collection('prestamos').findOne({ id });
@@ -793,14 +828,16 @@ function calcTiempo(horaEntrada, horaSalida) {
 app.get('/api/visitas', auth, biblioOnly, async (req, res) => {
   try {
     const query = {};
-    if (req.query.fecha)      query.fecha      = req.query.fecha;
-    if (req.query.docenteId)  query.docenteId  = parseInt(req.query.docenteId);
-    if (req.query.seccion)    query.seccion    = req.query.seccion;
-    if (req.query.estado)     query.estado     = req.query.estado;
+    if (req.query.docenteId) query.docenteId = parseInt(req.query.docenteId);
+    if (req.query.seccion)   query.seccion   = req.query.seccion;
+    if (req.query.estado)    query.estado    = req.query.estado;
+    // desde/hasta tienen precedencia sobre fecha exacta
     if (req.query.desde || req.query.hasta) {
       query.fecha = {};
       if (req.query.desde) query.fecha.$gte = req.query.desde;
       if (req.query.hasta) query.fecha.$lte = req.query.hasta;
+    } else if (req.query.fecha) {
+      query.fecha = req.query.fecha;
     }
     const visitas = await db.collection('visitas').find(query).sort({ id: -1 }).toArray();
     res.json(toClientArray(visitas));
