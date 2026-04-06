@@ -207,6 +207,7 @@ input, select, textarea { font-family: inherit; }
   height: calc(100vh - 66px);
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   z-index: 90;
 }
 .sidebar::before {
@@ -1547,8 +1548,9 @@ input, select, textarea { font-family: inherit; }
   /* Sidebar como drawer */
   .sidebar {
     position: fixed;
-    top: 66px; left: 0;
-    height: calc(100vh - 66px);
+    top: 58px; left: 0;
+    height: calc(100vh - 58px);
+    height: calc(100dvh - 58px);
     transform: translateX(-100%);
     transition: transform .3s ease;
     box-shadow: none;
@@ -2541,4 +2543,317 @@ input, select, textarea { font-family: inherit; }
 @media (max-width: 380px) {
   .alert-pill { display: none; }
   .logo-name { font-size: 14px; }
+}
+
+/* ============================================================
+   RESPONSIVE MOBILE FULL — Optimización completa móvil/tablet
+   Cubre: iPhone SE (375px), iPhone 14/15 (390px), Android común
+   (360-412px), tablets (768px), landscape móvil
+   ============================================================ */
+
+/* ── Prevenir zoom automático en iOS al hacer focus en inputs ── */
+@media (max-width: 800px) {
+  input, select, textarea, .fi {
+    font-size: 16px !important;
+  }
+  /* Mantener tamaño visual correcto con transform compensatorio */
+  .fi { padding: 10px 12px; }
+}
+
+/* ── Touch targets mínimos 44px (WCAG / Apple HIG) ── */
+@media (max-width: 800px) {
+  .btn { min-height: 44px; }
+  .btn.sm { min-height: 38px; }
+  .btn-ico { width: 40px; height: 40px; }
+  .btn-logout { width: 40px; height: 40px; }
+  .nav-item { padding: 13px 20px; min-height: 44px; }
+  .vis-tab { padding: 10px 18px; min-height: 44px; }
+}
+
+/* ── Scroll táctil suave en todas las tablas ── */
+@media (max-width: 800px) {
+  .tbl-wrap,
+  .table-responsive,
+  .vis-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  /* Indicador visual de scroll horizontal */
+  .tbl-wrap, .table-responsive { position: relative; }
+}
+
+/* ── Tablet (768px – 1024px) ── */
+@media (max-width: 1024px) and (min-width: 801px) {
+  .main { padding: 24px 24px; gap: 20px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .qg { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+  .dev-grid { grid-template-columns: 1fr; }
+  .config-grid { grid-template-columns: 1fr; }
+  .vis-charts-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Móvil estándar (≤ 768px) ── */
+@media (max-width: 768px) {
+  /* Layout general */
+  .main { padding: 16px 14px; gap: 16px; }
+  .pt { font-size: 22px; }
+  .ps { font-size: 12px; }
+
+  /* Page header: apilado */
+  .ph { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .ph > .btn, .ph > div { width: 100%; }
+
+  /* Cards */
+  .card { padding: 16px; }
+
+  /* Grids de métricas — 2 columnas en tablet, luego 1 */
+  .metrics { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .mv { font-size: 30px; }
+  .metric { padding: 16px; }
+
+  /* Hero banner */
+  .hero-banner { padding: 20px 18px; }
+  .hero-title { font-size: 18px; }
+  .hero-sub { font-size: 12px; }
+
+  /* Quick actions: 1 columna */
+  .qg { grid-template-columns: 1fr; gap: 10px; }
+  .qa { padding: 14px 16px; gap: 12px; }
+
+  /* Formularios: siempre 1 columna */
+  .form-grid { grid-template-columns: 1fr; gap: 14px; }
+  .fg.full { grid-column: 1; }
+
+  /* Dev grid (Devoluciones) */
+  .dev-grid { grid-template-columns: 1fr; }
+
+  /* Configuración */
+  .config-grid { grid-template-columns: 1fr; }
+
+  /* Visitas */
+  .vis-charts-grid { grid-template-columns: 1fr; }
+  .vis-form-grid { grid-template-columns: 1fr; }
+  .vis-form-grid .full { grid-column: 1; }
+  .vis-metrics { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+  /* Sol metrics */
+  .sol-metrics { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .sol-metric-num { font-size: 28px; }
+
+  /* Solicitar layout */
+  .solicitar-layout { grid-template-columns: 1fr; }
+  .cart-sidebar { position: static; max-height: none; order: -1; }
+
+  /* Modal: full width en pantallas pequeñas */
+  .modal { padding: 24px 18px; width: calc(100vw - 28px) !important; max-width: 100% !important; }
+  .modal-title { font-size: 20px; }
+  .modal-sub { font-size: 12px; margin-bottom: 18px; }
+  .mf { flex-direction: column-reverse; gap: 8px; }
+  .mf .btn { width: 100%; justify-content: center; }
+
+  /* Modal editar libro */
+  .el-libro-modal {
+    flex-direction: column !important;
+    height: auto !important;
+    max-height: 96dvh !important;
+    width: calc(100vw - 20px) !important;
+  }
+  .elp-left {
+    flex: 0 0 auto !important; width: 100% !important;
+    flex-direction: row !important; padding: 14px 16px !important;
+    gap: 14px !important; align-items: center !important;
+    min-width: 0 !important;
+  }
+  .elp-eyebrow, .elp-hint { display: none !important; }
+  .elp-btn-upload, .elp-btn-remove { width: auto !important; margin: 0 !important; }
+  .elp-right { flex: 1 !important; }
+
+  /* Modal docente */
+  .ded-modal { width: calc(100vw - 20px) !important; }
+  .ded-header { flex-wrap: wrap; gap: 10px; padding: 16px 16px 14px; }
+  .ded-header-info { min-width: 0; width: 100%; }
+  .ded-hname { font-size: 15px; }
+  .ded-body { padding: 14px 16px 0; }
+  .ded-footer { padding: 12px 16px 14px; }
+
+  /* Modal doc usuario */
+  .doc-modal { width: calc(100vw - 20px) !important; }
+  .doc-modal-hd { flex-wrap: wrap; padding: 14px 16px 12px; gap: 10px; }
+  .doc-modal-hd-info { width: 100%; }
+  .doc-modal-bd { padding: 14px 16px 4px; }
+  .doc-modal-ft { padding: 10px 16px 14px; }
+
+  /* Modal responder solicitud */
+  .resp-modal { width: calc(100vw - 20px) !important; }
+  .sol-detail-grid { grid-template-columns: 1fr; }
+
+  /* Tablas */
+  .tbl { font-size: 12px; }
+  .tbl th { padding: 0 10px 12px; font-size: 9.5px; }
+  .tbl td { padding: 11px 10px; }
+
+  /* Barra de búsqueda */
+  .srow { flex-direction: column; gap: 10px; }
+  .srow .fi { min-width: 0; width: 100%; }
+
+  /* Stat bars */
+  .sb-label { width: 90px; font-size: 11px; }
+
+  /* Book grid */
+  .book-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 14px; }
+  .bc { height: 190px; }
+
+  /* Cart item */
+  .cart-item { flex-wrap: wrap; }
+
+  /* Paginación */
+  #visPaginacion { flex-direction: column; align-items: flex-start; gap: 8px; }
+  #solPaginacion { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .pag-btns { flex-wrap: wrap; }
+
+  /* Toast centrado */
+  .toast { bottom: 12px; right: 12px; left: 12px; font-size: 12px; padding: 12px 16px; }
+
+  /* Doc stats */
+  .doc-stats { flex-direction: column; }
+  .doc-stat-card { flex: none; width: 100%; min-width: 0; }
+
+  /* Filter bars */
+  .sol-filter-bar { flex-direction: column; }
+  .sol-filter-bar .fi { width: 100% !important; }
+  .vis-filter-bar { flex-direction: column; align-items: flex-start; }
+  .vis-filter-bar .fi { width: 100%; }
+  .vis-filter-bar .ml-auto { margin-left: 0; }
+}
+
+/* ── Teléfonos pequeños (≤ 430px) — iPhone SE, Android estándar ── */
+@media (max-width: 430px) {
+  /* Topbar más compacta */
+  .topbar { padding: 0 10px; height: 54px; }
+  .logo-mep { width: 36px; height: 36px; }
+  .logo-name { font-size: 15px; }
+  .logo-sub { display: none; }
+  .user-chip { display: none; }
+  .alert-pill { font-size: 10px; padding: 5px 10px; }
+
+  /* Ajuste sidebar */
+  .sidebar { top: 54px !important; height: calc(100vh - 54px) !important; height: calc(100dvh - 54px) !important; }
+
+  /* Contenido */
+  .main { padding: 12px 12px; gap: 14px; }
+  .pt { font-size: 20px; }
+  .card { padding: 14px 12px; }
+
+  /* Métricas: 2 columnas compactas */
+  .metrics { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .metric { padding: 12px; }
+  .mv { font-size: 26px; }
+  .ml { font-size: 9px; }
+  .ms { font-size: 11px; }
+
+  /* Sol/Vis metrics: 2 columnas */
+  .sol-metrics { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .sol-metric { padding: 14px 12px 12px; }
+  .sol-metric-num { font-size: 24px; }
+  .vis-metrics { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .vis-metric-val { font-size: 24px; }
+
+  /* Quick actions */
+  .qa { padding: 12px 14px; gap: 10px; }
+  .qi { width: 38px; height: 38px; font-size: 17px; border-radius: 10px; }
+  .ql { font-size: 13px; }
+  .qd { font-size: 11.5px; }
+
+  /* Botones */
+  .btn { font-size: 12px; padding: 10px 14px; }
+  .btn.sm { font-size: 11px; padding: 7px 11px; }
+
+  /* Book grid: 2 columnas fijas */
+  .book-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .bc { height: 170px; }
+  .bt { font-size: 12.5px; }
+  .bm { font-size: 10.5px; }
+
+  /* Modal */
+  .modal { padding: 20px 14px; width: calc(100vw - 16px) !important; border-radius: 14px; }
+  .modal-title { font-size: 18px; }
+
+  /* Tabla más compacta */
+  .tbl { font-size: 11.5px; }
+  .tbl th { padding: 0 8px 10px; font-size: 9px; }
+  .tbl td { padding: 9px 8px; }
+
+  /* Hero banner */
+  .hero-banner { padding: 16px 14px; }
+  .hero-title { font-size: 16px; }
+}
+
+/* ── Teléfonos muy pequeños (≤ 360px) ── */
+@media (max-width: 360px) {
+  .topbar { padding: 0 8px; }
+  .logo-name { font-size: 14px; }
+  .alert-pill { display: none; }
+  .main { padding: 10px 10px; }
+  .metrics { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .mv { font-size: 24px; }
+  .book-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .bc { height: 155px; }
+  .modal { padding: 16px 12px; border-radius: 12px; }
+}
+
+/* ── Landscape móvil (altura < 500px) ── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .topbar { height: 48px; }
+  .sidebar { top: 48px !important; height: calc(100dvh - 48px) !important; }
+  .main { padding: 10px 14px; gap: 12px; }
+  .hero-banner { padding: 14px 16px; }
+  .hero-deco { display: none; }
+  .modal { max-height: 96dvh; padding: 16px 20px; }
+  .modal-overlay { padding: 8px; }
+  /* Métricas en fila horizontal */
+  .metrics { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .metric { padding: 10px 12px; }
+  .mv { font-size: 24px; }
+}
+
+/* ── Landscape tablet (768px–1024px, height < 700px) ── */
+@media (min-width: 601px) and (max-width: 1024px) and (max-height: 700px) and (orientation: landscape) {
+  .main { padding: 14px 20px; }
+  .metrics { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ── Safe area insets (iPhone X+, notch/punch-hole) ── */
+@supports (padding: max(0px)) {
+  .topbar {
+    padding-left: max(28px, env(safe-area-inset-left));
+    padding-right: max(28px, env(safe-area-inset-right));
+  }
+  @media (max-width: 800px) {
+    .topbar {
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
+    }
+    .sidebar {
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+    .main {
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+    .toast {
+      bottom: max(12px, env(safe-area-inset-bottom));
+    }
+  }
+}
+
+/* ── Prevenir doble-tap zoom en botones (iOS) ── */
+button, .btn, .nav-item, .btn-ico {
+  touch-action: manipulation;
+}
+
+/* ── Texto no seleccionable en elementos interactivos ── */
+.nav-item, .btn, .btn-ico, .topbar {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }

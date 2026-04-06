@@ -615,6 +615,45 @@
       .sp-prog-track  { width: 120px; }
     }
 
+    /* ── Teléfonos muy pequeños (≤ 360px) ── */
+    @media (max-width: 360px) {
+      .lp-card           { padding: 24px 14px; border-radius: 16px; }
+      .lp-heading-title  { font-size: 19px; }
+      .lp-logo-box       { width: 72px; height: 72px; }
+      .lp-brand          { font-size: 20px; }
+      .btn-login         { padding: 13px 20px; }
+    }
+
+    /* ── iOS zoom fix: inputs mínimo 16px ── */
+    @media (max-width: 800px) {
+      .fi { font-size: 16px !important; }
+    }
+
+    /* ── Touch targets mínimo 44px ── */
+    .btn-login { min-height: 48px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+    /* ── Landscape móvil: login compacto ── */
+    @media (max-height: 500px) and (orientation: landscape) {
+      #loginPage        { padding: 10px; align-items: flex-start; overflow-y: auto; }
+      .lp-card          { padding: 20px 28px; border-radius: 16px; max-height: none; }
+      .lp-logo          { margin-bottom: 12px; }
+      .lp-logo-box      { width: 64px; height: 64px; }
+      .lp-logo-wrap     { margin-bottom: 8px; }
+      .lp-heading       { margin-bottom: 14px; }
+      .lp-heading-title { font-size: 18px; }
+      .fg               { margin-bottom: 12px; }
+      .lp-footer        { margin-top: 14px; }
+    }
+
+    /* ── Safe area insets (iPhone X+ notch) ── */
+    @supports (padding: max(0px)) {
+      #loginPage {
+        padding-left: max(24px, env(safe-area-inset-left));
+        padding-right: max(24px, env(safe-area-inset-right));
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+      }
+    }
+
   </style>
 </head>
 <body>
