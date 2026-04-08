@@ -1093,15 +1093,7 @@ input, select, textarea { font-family: inherit; }
   transform: translateY(-1px);
 }
 
-/* ── Responsive ── */
-@media (max-width: 660px) {
-  .el-libro-modal { flex-direction: column; height: auto; max-height: 96vh; }
-  .elp-left { flex: 0 0 auto; width: 100%; flex-direction: row; padding: 14px 16px; gap: 14px; align-items: center; }
-  .elp-book-stage { flex: 0 0 auto; width: auto; }
-  .elp-eyebrow, .elp-hint { display: none; }
-  .elp-btn-upload, .elp-btn-remove { width: auto; margin: 0; }
-  .elp-right { flex: 1; }
-}
+/* ── Responsive: ver sección RESPONSIVE MOBILE FULL al final ── */
 
 /* ── HERO (portada + info) ── */
 .el-hero {
@@ -1506,14 +1498,7 @@ input, select, textarea { font-family: inherit; }
   border-top: 1.5px solid var(--border);
   background: #fafbfc;
 }
-/* ── Responsive ── */
-@media (max-width: 480px) {
-  .doc-modal { width: calc(100vw - 20px) !important; }
-  .doc-modal-hd { flex-wrap: wrap; padding: 16px 18px 14px; gap: 12px; }
-  .doc-modal-hd-info { width: 100%; }
-  .doc-modal-bd { padding: 16px 18px 4px; }
-  .doc-modal-ft { padding: 12px 18px 16px; }
-}
+/* ── Responsive: ver sección RESPONSIVE MOBILE FULL al final ── */
 
 /* Badge purple para bibliotecologo */
 .badge.purple {
@@ -1620,15 +1605,6 @@ input, select, textarea { font-family: inherit; }
   .sb-label { width: 100px; font-size: 11px; }
 }
 
-@media (max-width: 480px) {
-  .metrics { grid-template-columns: 1fr; }
-  .book-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
-  .bc { height: 180px; }
-  .btn { font-size: 12px; padding: 8px 14px; }
-  .btn.sm { padding: 5px 10px; font-size: 11px; }
-  .topbar { gap: 8px; }
-  .logo { gap: 8px; }
-}
 
 /* ── NEON GLOW PROFILE PHOTOS ── */
 @keyframes neonGlow {
@@ -1826,11 +1802,6 @@ input, select, textarea { font-family: inherit; }
   color: var(--orange-dark);
 }
 
-@media (max-width: 900px) {
-  .solicitar-layout { grid-template-columns: 1fr; }
-  .cart-sidebar { position: static; max-height: none; }
-  .config-grid { grid-template-columns: 1fr; }
-}
 
 /* ════════════════════════════════════════════════════════════
    SOLICITUDES v3.0
@@ -2273,17 +2244,6 @@ input, select, textarea { font-family: inherit; }
   font-style: italic;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .sol-metrics { grid-template-columns: repeat(2, 1fr); }
-  .sol-filter-bar { flex-direction: column; }
-  .sol-filter-bar .fi { width: 100% !important; }
-}
-@media (max-width: 500px) {
-  .sol-metrics { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .sol-metric-num { font-size: 24px; }
-  .sol-detail-grid { grid-template-columns: 1fr; }
-}
 
 /* ============================================================
    VISITAS — Control de Asistencia
@@ -2501,49 +2461,7 @@ input, select, textarea { font-family: inherit; }
 
 /* ── Responsive adicional ── */
 
-/* Solicitar: carrito encima del catálogo en móvil */
-@media (max-width: 900px) {
-  .solicitar-layout { grid-template-columns: 1fr; }
-  .cart-sidebar { order: -1; position: static; max-height: none; }
-}
 
-/* Sol-metrics 1 columna en pantallas muy pequeñas */
-@media (max-width: 420px) {
-  .sol-metrics { grid-template-columns: 1fr; gap: 10px; }
-  .vis-metrics { grid-template-columns: 1fr; gap: 10px; }
-}
-
-/* Doc-stats: columna en móvil */
-@media (max-width: 480px) {
-  .doc-stats { flex-direction: column; }
-  .doc-stat-card { flex: none; width: 100%; min-width: 0; }
-}
-
-/* Modal editar docente: header apilado en pantallas estrechas */
-@media (max-width: 480px) {
-  .ded-modal { width: calc(100vw - 20px) !important; }
-  .ded-header { flex-wrap: wrap; gap: 12px; padding: 18px 18px 16px; }
-  .ded-header-info { min-width: 0; width: 100%; }
-  .ded-hname { font-size: 15px; }
-  .ded-body { padding: 16px 18px 0; }
-  .ded-footer { padding: 14px 18px 16px; }
-}
-
-/* Modal editar libro: sin altura fija en landscape móvil */
-@media (max-width: 660px) {
-  .el-libro-modal { height: auto !important; max-height: 95vh; }
-}
-
-/* Tablas: scroll horizontal en móvil */
-@media (max-width: 700px) {
-  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-}
-
-/* Topbar en pantallas muy pequeñas */
-@media (max-width: 380px) {
-  .alert-pill { display: none; }
-  .logo-name { font-size: 14px; }
-}
 
 /* ============================================================
    RESPONSIVE MOBILE FULL — Optimización completa móvil/tablet
@@ -2551,36 +2469,25 @@ input, select, textarea { font-family: inherit; }
    (360-412px), tablets (768px), landscape móvil
    ============================================================ */
 
-/* ── Prevenir zoom automático en iOS al hacer focus en inputs ── */
+/* ── iOS zoom fix + touch targets + scroll táctil ── */
 @media (max-width: 800px) {
-  input, select, textarea, .fi {
-    font-size: 16px !important;
-  }
-  /* Mantener tamaño visual correcto con transform compensatorio */
+  /* Prevenir zoom automático en iOS al hacer focus en inputs */
+  input, select, textarea, .fi { font-size: 16px !important; }
   .fi { padding: 10px 12px; }
-}
-
-/* ── Touch targets mínimos 44px (WCAG / Apple HIG) ── */
-@media (max-width: 800px) {
+  /* Touch targets mínimos 44px (WCAG / Apple HIG) */
   .btn { min-height: 44px; }
   .btn.sm { min-height: 38px; }
   .btn-ico { width: 40px; height: 40px; }
   .btn-logout { width: 40px; height: 40px; }
   .nav-item { padding: 13px 20px; min-height: 44px; }
   .vis-tab { padding: 10px 18px; min-height: 44px; }
-}
-
-/* ── Scroll táctil suave en todas las tablas ── */
-@media (max-width: 800px) {
-  .tbl-wrap,
-  .table-responsive,
-  .vis-table-wrap {
+  /* Scroll táctil suave en todas las tablas */
+  .tbl-wrap, .table-responsive, .vis-table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
+    position: relative;
   }
-  /* Indicador visual de scroll horizontal */
-  .tbl-wrap, .table-responsive { position: relative; }
 }
 
 /* ── Tablet (768px – 1024px) ── */
@@ -2653,22 +2560,38 @@ input, select, textarea { font-family: inherit; }
   .mf { flex-direction: column-reverse; gap: 8px; }
   .mf .btn { width: 100%; justify-content: center; }
 
-  /* Modal editar libro */
+  /* Modal editar libro — layout vertical en móvil */
   .el-libro-modal {
     flex-direction: column !important;
+    width: calc(100vw - 20px) !important;
     height: auto !important;
     max-height: 96dvh !important;
-    width: calc(100vw - 20px) !important;
+    overflow: hidden !important;
   }
+  /* Panel izquierdo: fila horizontal compacta */
   .elp-left {
-    flex: 0 0 auto !important; width: 100% !important;
-    flex-direction: row !important; padding: 14px 16px !important;
-    gap: 14px !important; align-items: center !important;
-    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    width: 100% !important; min-width: 0 !important; max-width: 100% !important;
+    flex-direction: row !important;
+    padding: 12px 16px !important;
+    gap: 14px !important;
+    align-items: center !important;
   }
+  .elp-book-stage { flex: 0 0 auto !important; width: auto !important; }
   .elp-eyebrow, .elp-hint { display: none !important; }
-  .elp-btn-upload, .elp-btn-remove { width: auto !important; margin: 0 !important; }
-  .elp-right { flex: 1 !important; }
+  .elp-btn-upload { margin-top: 0 !important; margin-bottom: 0 !important; width: auto !important; }
+  .elp-btn-remove { margin-bottom: 0 !important; width: auto !important; }
+  /* Panel derecho: ocupa el resto y permite scroll */
+  .elp-right {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    min-height: 0 !important;
+  }
+  .elp-form-body {
+    overflow-y: visible !important;
+    flex: none !important;
+  }
 
   /* Modal docente */
   .ded-modal { width: calc(100vw - 20px) !important; }
