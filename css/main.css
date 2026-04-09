@@ -36,6 +36,11 @@
   --shadow-lg:   0 16px 48px rgba(0,30,80,0.14);
   --shadow-blue: 0 8px 24px rgba(0,61,165,0.18);
   --shadow-orange:0 8px 24px rgba(255,107,0,0.18);
+  /* Aliases de compatibilidad */
+  --card:       #FFFFFF;
+  --accent:     #003DA5;
+  --font:       'Plus Jakarta Sans', system-ui, sans-serif;
+  --text-muted: #7A90B8;
 }
 
 /* ── RESET ── */
@@ -1579,9 +1584,9 @@ input, select, textarea { font-family: inherit; }
   /* Book grid */
   .book-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 
-  /* Search row */
+  /* Search row: !important para ganar a inline styles */
   .srow { flex-direction: column; }
-  .srow .fi { min-width: 0; width: 100%; }
+  .srow .fi { min-width: 0 !important; width: 100% !important; }
 
   /* Modal */
   .modal { padding: 24px 20px; }
@@ -1795,13 +1800,6 @@ input, select, textarea { font-family: inherit; }
   border: 3px solid #00aaff;
   animation: neonGlow 2s ease-in-out infinite;
 }
-
-/* Badge orange */
-.badge.orange {
-  background: var(--orange-light);
-  color: var(--orange-dark);
-}
-
 
 /* ════════════════════════════════════════════════════════════
    SOLICITUDES v3.0
@@ -2454,7 +2452,7 @@ input, select, textarea { font-family: inherit; }
 @media (max-width: 600px) {
   .vis-metrics { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .vis-filter-bar { flex-direction: column; align-items: flex-start; }
-  .vis-filter-bar .fi { width: 100%; }
+  .vis-filter-bar .fi { width: 100% !important; }
   .vis-filter-bar .ml-auto { margin-left: 0; }
   #visStatsResumen { gap: 12px; }
 }
@@ -2551,7 +2549,7 @@ input, select, textarea { font-family: inherit; }
 
   /* Solicitar layout */
   .solicitar-layout { grid-template-columns: 1fr; }
-  .cart-sidebar { position: static; max-height: none; order: -1; }
+  .cart-sidebar { position: static !important; top: auto !important; max-height: none; order: -1; }
 
   /* Modal: full width en pantallas pequeñas */
   .modal { padding: 24px 18px; width: calc(100vw - 28px) !important; max-width: 100% !important; }
@@ -2592,6 +2590,16 @@ input, select, textarea { font-family: inherit; }
     overflow-y: visible !important;
     flex: none !important;
   }
+  .elp-footer {
+    flex-wrap: wrap !important;
+    padding: 10px 16px 14px !important;
+    gap: 8px !important;
+  }
+  .elp-footer .btn {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    min-width: 100px !important;
+  }
 
   /* Modal docente */
   .ded-modal { width: calc(100vw - 20px) !important; }
@@ -2606,10 +2614,15 @@ input, select, textarea { font-family: inherit; }
   .doc-modal-hd { flex-wrap: wrap; padding: 14px 16px 12px; gap: 10px; }
   .doc-modal-hd-info { width: 100%; }
   .doc-modal-bd { padding: 14px 16px 4px; }
-  .doc-modal-ft { padding: 10px 16px 14px; }
+  .doc-modal-ft { padding: 10px 16px 14px; flex-wrap: wrap; gap: 8px; }
+  .doc-modal-ft .btn { flex: 1 1 auto; justify-content: center; min-width: 90px; }
 
   /* Modal responder solicitud */
   .resp-modal { width: calc(100vw - 20px) !important; }
+  .resp-mf { flex-wrap: wrap !important; padding: 10px 16px 14px; }
+  .resp-decision-btns { flex-wrap: wrap; gap: 6px; width: 100%; }
+  .resp-decision-btns .btn { flex: 1 1 auto; justify-content: center; min-width: 80px; }
+  .resp-mf > .btn { width: 100%; }
   .sol-detail-grid { grid-template-columns: 1fr; }
 
   /* Tablas */
@@ -2619,7 +2632,7 @@ input, select, textarea { font-family: inherit; }
 
   /* Barra de búsqueda */
   .srow { flex-direction: column; gap: 10px; }
-  .srow .fi { min-width: 0; width: 100%; }
+  .srow .fi { min-width: 0 !important; width: 100% !important; }
 
   /* Stat bars */
   .sb-label { width: 90px; font-size: 11px; }
@@ -2708,6 +2721,9 @@ input, select, textarea { font-family: inherit; }
   .tbl th { padding: 0 8px 10px; font-size: 9px; }
   .tbl td { padding: 9px 8px; }
 
+  /* Fila agregar libro en modal solicitud */
+  #ns-libro-sel { min-width: 0 !important; }
+
   /* Hero banner */
   .hero-banner { padding: 16px 14px; }
   .hero-title { font-size: 16px; }
@@ -2779,4 +2795,40 @@ button, .btn, .nav-item, .btn-ico {
 .nav-item, .btn, .btn-ico, .topbar {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
+}
+
+/* ── Performance: desactivar animaciones neon en móvil ── */
+/* Las animaciones continuas en tablas con muchos avatares
+   causan jank y drenaje de batería en dispositivos de gama media/baja */
+@media (max-width: 768px) {
+  .av-neon,
+  .profile-foto,
+  .profile-foto-sm,
+  .profile-foto-lg,
+  .profile-foto-placeholder,
+  .user-chip-foto img,
+  .logo-neon,
+  .config-preview {
+    animation: none !important;
+    box-shadow: none;
+    border-color: var(--blue-light);
+  }
+  .logo-mep { animation: none; }
+  .logo-mep::before { animation: none; }
+}
+
+/* ── Accesibilidad: respetar preferencia de movimiento reducido ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .logo-mep, .logo-mep::before, .logo-mep::after,
+  .av-neon, .profile-foto, .profile-foto-lg,
+  .profile-foto-sm, .user-chip-foto img,
+  .logo-neon, .config-preview {
+    animation: none !important;
+  }
 }
